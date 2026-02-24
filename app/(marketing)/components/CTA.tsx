@@ -13,8 +13,10 @@ export default function CTA() {
           Join Mom Ops - $29.95/month
         </CheckoutButton>
         <p className="cta-guarantee">
-          Money-back guarantee: Sign up and don&apos;t love your first task?
-          Request a refund.
+          <a href="/terms#money-back-guarantee">
+            Money-back guarantee: Sign up and don&apos;t love your first task?
+            Request a refund.
+          </a>
         </p>
         <p className="cta-note">Stripe-ready. Secure checkout.</p>
       </div>

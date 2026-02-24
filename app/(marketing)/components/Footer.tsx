@@ -25,6 +25,12 @@ export default function Footer() {
             </CheckoutButton>
           </div>
         </div>
+        <p className="footer-copy">
+          Customer service:{" "}
+          <a href="mailto:support@themomops.com" className="footer-contact-email">
+            support@themomops.com
+          </a>
+        </p>
         <p className="footer-copy">&copy; Mom Ops. All rights reserved.</p>
       </div>
     </footer>
