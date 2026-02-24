@@ -8,7 +8,7 @@ export default async function AdminPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/login?next=" + encodeURIComponent("/admin"));
 
   const { data: tickets } = await supabase
     .from("tickets")
@@ -69,7 +69,7 @@ export default async function AdminPage() {
               <div>
                 <Link href={`/admin/${t.id}`}>{t.subject}</Link>
                 <span className="ticket-meta" style={{ marginLeft: "var(--space-sm)" }}>
-                  {t.status} — member: {t.member_id?.slice(0, 8)}… —{" "}
+                  {t.status} - member: {t.member_id?.slice(0, 8)}… - {" "}
                   {new Date(t.created_at).toLocaleString()}
                 </span>
               </div>

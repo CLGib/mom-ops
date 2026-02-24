@@ -4,12 +4,13 @@ export default function Hero() {
   return (
     <section className="hero">
       <div className="container">
-        <p className="hero-brand">Mom Ops by Caregiver Co.</p>
+        <p className="hero-brand">Mom Ops</p>
         <h1 className="hero-headline">
-          Your Personal Household VA — Without Hiring Full-Time
+          Your Personal Household Virtual Assistant (VA), without Hiring
+          Full-Time
         </h1>
         <p className="hero-subhead">
-          Household admin — handled by a real mom VA.
+          Household admin, handled by a real mom VA.
           <br />
           Structured membership.
           <br />

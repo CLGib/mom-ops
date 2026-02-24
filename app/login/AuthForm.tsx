@@ -1,35 +1,86 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type Mode = "login" | "signup";
+type Mode = "login" | "signup" | "magiclink";
+
+function formatAuthError(message: string): string {
+  if (
+    /rate limit|too many requests|too many attempts/i.test(message)
+  ) {
+    return "Too many emails sent. Please wait a few minutes and try again.";
+  }
+  return message;
+}
 
 export default function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/";
+  const isCheckoutIntent = next.includes("checkout=1");
 
-  const [mode, setMode] = useState<Mode>("login");
+  const [mode, setMode] = useState<Mode>(isCheckoutIntent ? "signup" : "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [redirectingToCheckout, setRedirectingToCheckout] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [emailCooldown, setEmailCooldown] = useState(0);
+
+  // Cooldown countdown after sending an email (avoids hitting rate limit)
+  useEffect(() => {
+    if (emailCooldown <= 0) return;
+    const t = setInterval(() => {
+      setEmailCooldown((s) => (s <= 1 ? 0 : s - 1));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [emailCooldown]);
+
+  // When returning from magic link click, session exists — full page redirect so server sees cookies
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        window.location.href = next;
+      }
+    });
+  }, [next]);
 
   function redirect() {
-    router.push(next);
-    router.refresh();
+    // Full page load so the server receives the session cookies set by Supabase
+    window.location.href = next;
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setSignupSuccess(false);
+    setMagicLinkSent(false);
     setLoading(true);
 
     const supabase = createClient();
+
+    if (mode === "magiclink") {
+      const { error: err } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/login?next=${encodeURIComponent(next)}`,
+        },
+      });
+      setLoading(false);
+      if (err) {
+        setError(formatAuthError(err.message));
+        if (/rate limit|too many/i.test(err.message)) setEmailCooldown(120);
+        return;
+      }
+      setMagicLinkSent(true);
+      setEmailCooldown(60);
+      return;
+    }
 
     if (mode === "login") {
       const { error: err } = await supabase.auth.signInWithPassword({
@@ -38,29 +89,56 @@ export default function AuthForm() {
       });
       setLoading(false);
       if (err) {
-        setError(err.message);
+        setError(formatAuthError(err.message));
         return;
       }
       redirect();
       return;
     }
 
-    const { data, error: err } = await supabase.auth.signUp({ email, password });
+    const { data, error: err } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        // After they confirm via email, land on /?checkout=1 so CheckoutRedirect sends them to Stripe.
+        // Add this URL to Supabase Auth → URL Configuration → Redirect URLs (e.g. http://localhost:3000/?checkout=1).
+        emailRedirectTo: `${window.location.origin}/?checkout=1`,
+      },
+    });
     setLoading(false);
     if (err) {
-      setError(err.message);
+      setError(formatAuthError(err.message));
+      if (/rate limit|too many/i.test(err.message)) setEmailCooldown(120);
       return;
     }
     if (data?.user?.identities?.length === 0) {
       setError("An account with this email already exists. Try logging in.");
       return;
     }
+    setEmailCooldown(60);
     if (data?.session != null) {
+      setRedirectingToCheckout(true);
+      try {
+        const res = await fetch("/api/stripe/checkout", {
+          method: "POST",
+          credentials: "include",
+        });
+        const checkoutData = await res.json().catch(() => ({}));
+        if (res.ok && checkoutData.url) {
+          window.location.href = checkoutData.url;
+          return;
+        }
+      } catch {
+        // fall through to redirect()
+      }
+      setRedirectingToCheckout(false);
       redirect();
       return;
     }
     setSignupSuccess(true);
   }
+
+  const isEmailCooldown = emailCooldown > 0;
 
   return (
     <>
@@ -79,11 +157,31 @@ export default function AuthForm() {
         >
           Sign up
         </button>
+        <button
+          type="button"
+          onClick={() => setMode("magiclink")}
+          className={mode === "magiclink" ? "auth-tab auth-tab--active" : "auth-tab"}
+        >
+          Email me a link
+        </button>
       </div>
+
+      {magicLinkSent && (
+        <p className="auth-success-message" role="status">
+          Check your email for the sign-in link. Click it and you&apos;ll be signed in.
+        </p>
+      )}
+
+      {isEmailCooldown && (mode === "magiclink" || mode === "signup") && (
+        <p className="form-note" role="status">
+          You can request another link in {emailCooldown} seconds.
+        </p>
+      )}
 
       {signupSuccess && (
         <p className="auth-success-message" role="status">
-          Check your email to confirm your account.
+          Check your email to confirm your account. After confirming, log in and
+          you&apos;ll be taken to checkout.
         </p>
       )}
 
@@ -105,32 +203,40 @@ export default function AuthForm() {
             className="input"
           />
         </div>
-        <div className="form-group">
-          <label htmlFor="auth-password">Password</label>
-          <input
-            id="auth-password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete={mode === "login" ? "current-password" : "new-password"}
-            className="input"
-            minLength={mode === "signup" ? 8 : undefined}
-          />
-        </div>
+        {mode !== "magiclink" && (
+          <div className="form-group">
+            <label htmlFor="auth-password">Password</label>
+            <input
+              id="auth-password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required={mode !== "magiclink"}
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              className="input"
+              minLength={mode === "signup" ? 8 : undefined}
+            />
+          </div>
+        )}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || redirectingToCheckout || ((mode === "magiclink" || mode === "signup") && isEmailCooldown)}
           className="btn btn-primary"
           style={{ width: "100%" }}
         >
-          {loading
-            ? mode === "login"
-              ? "Signing in…"
-              : "Creating account…"
-            : mode === "login"
-              ? "Log in"
-              : "Sign up"}
+          {redirectingToCheckout
+            ? "Redirecting to checkout…"
+            : loading
+              ? mode === "magiclink"
+                ? "Sending link…"
+                : mode === "login"
+                  ? "Signing in…"
+                  : "Creating account…"
+              : mode === "magiclink"
+                ? "Send me a sign-in link"
+                : mode === "login"
+                  ? "Log in"
+                  : "Sign up"}
         </button>
       </form>
     </>

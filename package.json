@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "stripe:listen": "./bin/stripe listen --forward-to localhost:3000/api/webhooks/stripe"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
@@ -14,6 +15,7 @@
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "resend": "^6.9.2",
     "stripe": "^20.3.1"
   },
   "devDependencies": {

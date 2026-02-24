@@ -9,7 +9,7 @@ export default async function VAPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/login?next=" + encodeURIComponent("/va"));
 
   const { data: unassigned } = await supabase
     .from("tickets")
@@ -41,14 +41,14 @@ export default async function VAPage() {
     <main className="app-shell">
       <h1 className="page-title">VA Dashboard</h1>
       <section className="card card--highlight" style={{ marginBottom: "var(--space-2xl)" }}>
-        <h2 className="section-heading">Your payout (completed tickets)</h2>
+        <h2 className="section-heading">Your payout (completed tasks)</h2>
         <p style={{ fontSize: "1.25rem", fontWeight: 600, color: "var(--text)", margin: "0 0 var(--space-xs)" }}>
           ${payoutSummary.toFixed(2)}
         </p>
         <p className="ticket-meta">20% of credit_cost + 100% of tip</p>
       </section>
       <section style={{ marginBottom: "var(--space-2xl)" }}>
-        <h2 className="section-heading">Unassigned (new)</h2>
+        <h2 className="section-heading">Unassigned tasks (new)</h2>
         <ul className="ticket-list">
           {(unassigned ?? []).map((t) => (
             <li key={t.id} className="ticket-item">
@@ -64,14 +64,14 @@ export default async function VAPage() {
         </ul>
       </section>
       <section>
-        <h2 className="section-heading">Your assigned tickets</h2>
+        <h2 className="section-heading">Your assigned tasks</h2>
         <ul className="ticket-list">
           {(assigned ?? []).map((t) => (
             <li key={t.id} className="ticket-item">
               <div>
                 <Link href={`/va/${t.id}`}>{t.subject}</Link>
                 <span className="ticket-meta" style={{ marginLeft: "var(--space-sm)" }}>
-                  {t.status} — {new Date(t.created_at).toLocaleString()}
+                  {t.status} -  {new Date(t.created_at).toLocaleString()}
                 </span>
               </div>
               <UpdateTicketStatus ticketId={t.id} currentStatus={t.status} />

@@ -29,6 +29,24 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
+## Inbound email (tasks by email)
+
+Members can create a task by sending or forwarding an email to a dedicated address. The app identifies the member by the sender (From) address and creates a ticket with the email subject/body and any image or video attachments.
+
+1. **Env vars** (in `.env.local` or your host):
+   - `RESEND_API_KEY` – required for fetching email body and attachments after the webhook.
+   - `RESEND_WEBHOOK_SECRET` – optional; when set, webhook requests are verified (recommended in production).
+   - `NEXT_PUBLIC_INBOUND_TASK_EMAIL` – optional; the address shown in the member dashboard (e.g. `task@in.yourdomain.com`).
+
+2. **Resend setup**
+   - In [Resend](https://resend.com): add a domain and enable **Inbound** (MX records). Get the inbound address (e.g. `task@in.yourdomain.com`).
+   - Create a **Webhook** for event `email.received` with URL `https://your-app.com/api/webhooks/inbound-email`. Copy the signing secret into `RESEND_WEBHOOK_SECRET`.
+
+3. **Database**  
+   Run the migration that creates `inbound_email_events` (idempotency) if you use Supabase migrations.
+
+4. Tell members the inbound address; they can email or forward messages there to create tasks.
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.

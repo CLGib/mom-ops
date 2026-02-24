@@ -12,7 +12,7 @@ export default async function AdminTicketPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/login?next=" + encodeURIComponent("/admin"));
 
   const { data: ticket } = await supabase
     .from("tickets")
@@ -37,8 +37,8 @@ export default async function AdminTicketPage({
       </Link>
       <h1 className="page-title">{ticket.subject}</h1>
       <p className="ticket-meta" style={{ marginBottom: "var(--space-xs)" }}>
-        Status: {ticket.status} — Member: {ticket.member_id} — VA:{" "}
-        {ticket.assigned_va_id ?? "—"}
+        Status: {ticket.status} -  Member: {ticket.member_id} -  VA:{" "}
+        {ticket.assigned_va_id ?? "-"}
       </p>
       <p className="ticket-meta" style={{ marginBottom: "var(--space-md)" }}>
         Created {new Date(ticket.created_at).toLocaleString()}
@@ -64,7 +64,7 @@ export default async function AdminTicketPage({
           {(messages ?? []).map((m) => (
             <li key={m.id} className="thread-message">
               <p className="thread-message-meta">
-                {m.sender_role ?? "—"} ·{" "}
+                {m.sender_role ?? "-"} ·{" "}
                 {new Date(m.created_at).toLocaleString()}
               </p>
               <p className="thread-message-body">{m.message}</p>

@@ -11,6 +11,9 @@ returns text as $$
 $$ language sql security definer stable;
 
 -- profiles: users can read/update own; admin can do all
+drop policy if exists "profiles_select_own" on public.profiles;
+drop policy if exists "profiles_update_own" on public.profiles;
+drop policy if exists "profiles_admin_all" on public.profiles;
 create policy "profiles_select_own" on public.profiles
   for select using (id = auth.uid());
 
@@ -21,6 +24,12 @@ create policy "profiles_admin_all" on public.profiles
   for all using (public.current_user_role() = 'admin');
 
 -- tickets: member view/insert own; VA view/update assigned; admin all
+drop policy if exists "tickets_member_select_own" on public.tickets;
+drop policy if exists "tickets_member_insert_own" on public.tickets;
+drop policy if exists "tickets_va_select_assigned" on public.tickets;
+drop policy if exists "tickets_va_select_new" on public.tickets;
+drop policy if exists "tickets_va_update_assigned_or_claim" on public.tickets;
+drop policy if exists "tickets_admin_all" on public.tickets;
 create policy "tickets_member_select_own" on public.tickets
   for select using (member_id = auth.uid());
 
@@ -46,6 +55,12 @@ create policy "tickets_admin_all" on public.tickets
   for all using (public.current_user_role() = 'admin');
 
 -- ticket_messages: member insert for own tickets; VA insert for assigned; all can select messages for tickets they can see
+drop policy if exists "ticket_messages_select_ticket_member" on public.ticket_messages;
+drop policy if exists "ticket_messages_select_ticket_va" on public.ticket_messages;
+drop policy if exists "ticket_messages_select_admin" on public.ticket_messages;
+drop policy if exists "ticket_messages_insert_member" on public.ticket_messages;
+drop policy if exists "ticket_messages_insert_va" on public.ticket_messages;
+drop policy if exists "ticket_messages_insert_admin" on public.ticket_messages;
 create policy "ticket_messages_select_ticket_member" on public.ticket_messages
   for select using (
     exists (select 1 from public.tickets t where t.id = ticket_id and t.member_id = auth.uid())
@@ -73,6 +88,9 @@ create policy "ticket_messages_insert_admin" on public.ticket_messages
   for insert with check (public.current_user_role() = 'admin');
 
 -- credit_transactions: member can select own (for balance); admin can insert
+drop policy if exists "credit_transactions_select_own" on public.credit_transactions;
+drop policy if exists "credit_transactions_admin_insert" on public.credit_transactions;
+drop policy if exists "credit_transactions_admin_select" on public.credit_transactions;
 create policy "credit_transactions_select_own" on public.credit_transactions
   for select using (member_id = auth.uid());
 

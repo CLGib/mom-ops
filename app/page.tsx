@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import CheckoutRedirect from "./(marketing)/components/CheckoutRedirect";
 import Header from "./(marketing)/components/Header";
 import Hero from "./(marketing)/components/Hero";
 import Problem from "./(marketing)/components/Problem";
@@ -15,8 +16,7 @@ import FAQ from "./(marketing)/components/FAQ";
 import Footer from "./(marketing)/components/Footer";
 
 export const metadata: Metadata = {
-  title:
-    "Mom Ops — Structured Virtual Assistant Support for Moms | Caregiver Co.",
+  title: "Mom Ops - Structured Virtual Assistant Support for Moms",
   description:
     "Real virtual assistant support for moms. Structured tasks, clear expectations, calm execution. $29.95/month membership.",
 };
@@ -24,6 +24,7 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
+      <CheckoutRedirect />
       <Header />
       <main>
         <Hero />

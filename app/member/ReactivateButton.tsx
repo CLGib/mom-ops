@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 
-type Props = {
-  children: React.ReactNode;
-  className?: string;
-};
+type Props = { className?: string; children?: React.ReactNode };
 
-export default function CheckoutButton({ children, className }: Props) {
+export default function ReactivateButton({
+  className,
+  children = "Reactivate subscription",
+}: Props) {
   const [loading, setLoading] = useState(false);
 
   async function handleClick() {
@@ -20,14 +20,13 @@ export default function CheckoutButton({ children, className }: Props) {
       const data = await res.json().catch(() => ({}));
       if (res.status === 401) {
         window.location.href =
-          "/login?next=" + encodeURIComponent("/?checkout=1");
+          "/login?next=" + encodeURIComponent("/member");
         return;
       }
       if (!res.ok) {
-        console.error("Checkout error", data);
         const msg =
           (data && typeof data.error === "string" && data.error) ||
-          "Checkout failed. Check the console and server env (STRIPE_PRICE_ID, etc.).";
+          "Checkout failed. Try again or contact support.";
         alert(msg);
         return;
       }
@@ -44,9 +43,9 @@ export default function CheckoutButton({ children, className }: Props) {
       type="button"
       onClick={handleClick}
       disabled={loading}
-      className={className}
+      className={className ?? "btn btn-primary"}
     >
-      {loading ? "Loading…" : children}
+      {loading ? "Redirecting…" : children}
     </button>
   );
 }

@@ -1,36 +1,44 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 
 export default function AdjustCreditForm() {
   const router = useRouter();
-  const [memberId, setMemberId] = useState("");
+  const [email, setEmail] = useState("");
   const [amount, setAmount] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    setLoading(true);
     const amt = parseInt(amount, 10);
     if (Number.isNaN(amt) || amt === 0) {
       setError("Amount must be a non-zero integer.");
+      setLoading(false);
       return;
     }
-    const supabase = createClient();
-    const { error: err } = await supabase.from("credit_transactions").insert({
-      member_id: memberId.trim(),
-      amount: amt,
-      type: "admin_adjustment",
-    });
-    if (err) {
-      setError(err.message);
-      return;
+    try {
+      const res = await fetch("/api/admin/credits-by-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email: email.trim(), amount: amt }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ?? "Failed to adjust credits.");
+        setLoading(false);
+        return;
+      }
+      setEmail("");
+      setAmount("");
+      router.refresh();
+    } finally {
+      setLoading(false);
     }
-    setMemberId("");
-    setAmount("");
-    router.refresh();
   }
 
   return (
@@ -40,14 +48,15 @@ export default function AdjustCreditForm() {
           {error}
         </p>
       )}
-      <div className="form-group" style={{ width: "18rem" }}>
-        <label htmlFor="admin-member-id">Member ID (uuid)</label>
+      <div className="form-group" style={{ width: "20rem" }}>
+        <label htmlFor="admin-email">Member email</label>
         <input
-          id="admin-member-id"
-          value={memberId}
-          onChange={(e) => setMemberId(e.target.value)}
+          id="admin-email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
-          placeholder="uuid"
+          placeholder="member@example.com"
           className="input"
         />
       </div>
@@ -59,12 +68,12 @@ export default function AdjustCreditForm() {
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           required
-          placeholder="e.g. 1000 or -500"
+          placeholder="e.g. 100 or -50"
           className="input"
         />
       </div>
-      <button type="submit" className="btn btn-primary">
-        Apply
+      <button type="submit" className="btn btn-primary" disabled={loading}>
+        {loading ? "Applying…" : "Apply"}
       </button>
     </form>
   );

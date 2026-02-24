@@ -50,6 +50,7 @@ begin
 end;
 $$ language plpgsql;
 
+drop trigger if exists tickets_updated_at on public.tickets;
 create trigger tickets_updated_at
   before update on public.tickets
   for each row execute function public.set_updated_at();
@@ -65,6 +66,7 @@ begin
 end;
 $$ language plpgsql;
 
+drop trigger if exists ticket_set_completed_at on public.tickets;
 create trigger ticket_set_completed_at
   before update on public.tickets
   for each row execute function public.set_ticket_completed_at();
@@ -83,6 +85,7 @@ begin
 end;
 $$ language plpgsql security definer;
 
+drop trigger if exists ticket_completed_charge on public.tickets;
 create trigger ticket_completed_charge
   after update on public.tickets
   for each row execute function public.on_ticket_completed();
@@ -97,6 +100,7 @@ begin
 end;
 $$ language plpgsql security definer;
 
+drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();

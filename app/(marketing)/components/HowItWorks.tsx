@@ -7,17 +7,17 @@ const STEPS = [
   {
     num: "02",
     title: "Email Your Task",
-    body: "No dashboard required.\nSimply email your request.\nAttach files. If we need access, we'll send a secure link.\nDelegation should be easy—even on the go.",
+    body: "No dashboard required.\nSimply email your request.\nAttach files. If we need access, we'll send a secure link.\nDelegation should be easy, even on the go.",
   },
   {
     num: "03",
-    title: "We Assign a Mom VA",
+    title: "We Assign a Mom Virtual Assistant",
     body: "A real mom virtual assistant takes your task.\nStandard turnaround: 1 business day.\nYou can request the same VA when available.",
   },
   {
     num: "04",
     title: "Review + Refine",
-    body: "Receive your completed work by email.\nNeed an edit? You can request revisions within scope.\nOptionally say thanks with a $1 coffee—100% goes directly to your VA.",
+    body: "Receive your completed work by email.\nNeed an edit? You can request revisions within scope.\nOptionally say thanks with a $1 coffee; 100% goes directly to your Virtual Assistant.",
   },
 ];
 
@@ -42,20 +42,42 @@ export default function HowItWorks() {
             </span>
           ))}
         </div>
-        <div className="how-it-works-example">
+        <div className="how-it-works-example transformation-block">
           <p className="how-it-works-example-label">Real example</p>
-          <figure className="example-email-figure">
-            <img
-              src="/assets/example-email.png"
-              alt="Example task email: a request for a printable 8.5 x 11 piano recital flyer with event details, tone, and deliverables."
-              width={720}
-              height={400}
-            />
-            <figcaption>
-              Just email your request. Event details, tone, and what you
-              need—we take it from there.
-            </figcaption>
-          </figure>
+          <div className="transformation-grid">
+            <div className="transformation-card transformation-card--request">
+              <span className="transformation-card-label">Your request</span>
+              <div className="transformation-card-inner">
+                <img
+                  src="/assets/example-email.png"
+                  alt="Example task email: a request for a printable 8.5 x 11 piano recital flyer with event details, tone, and deliverables."
+                  width={560}
+                  height={373}
+                />
+              </div>
+              <p className="transformation-card-caption">
+                Just email your request. Event details, tone, and what you
+                need; we take it from there.
+              </p>
+            </div>
+            <div className="transformation-arrow" aria-hidden>
+              →
+            </div>
+            <div className="transformation-card transformation-card--deliverable">
+              <span className="transformation-card-label">Final deliverable</span>
+              <div className="transformation-card-inner">
+                <img
+                  src="/assets/melodies-in-may.png"
+                  alt="Melodies in May piano recital invitation: elegant floral design with event date, time, and details."
+                  width={560}
+                  height={747}
+                />
+              </div>
+              <p className="transformation-card-caption">
+                Polished invitation, ready to print or share.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>

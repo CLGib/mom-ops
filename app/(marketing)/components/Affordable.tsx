@@ -16,8 +16,8 @@ export default function Affordable() {
           They benefit from stable, flexible income.
         </p>
         <p className="section-body">
-          It&apos;s a model used by companies of all sizes—from startups to
-          Fortune 500 brands—and it allows us to offer meaningful support at a
+          It&apos;s a model used by companies of all sizes - from startups to
+          Fortune 500 brands - and it allows us to offer meaningful support at a
           price most families can sustain.
         </p>
         <p className="section-body">

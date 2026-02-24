@@ -42,22 +42,86 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = getSupabase();
+  console.log("[webhook] Received event:", event.type, "id:", event.id);
 
   if (event.type === "checkout.session.completed") {
-    if (await claimEvent(supabase, event.id)) {
+    const alreadyProcessed = await claimEvent(supabase, event.id);
+    if (alreadyProcessed) {
+      console.log("[webhook] checkout.session.completed already processed (idempotent)");
       return NextResponse.json({ received: true, idempotent: true });
     }
 
     const session = event.data.object as Stripe.Checkout.Session;
-    const userId =
+    let userId =
       (session.client_reference_id as string) || session.metadata?.user_id;
+
     if (!userId) {
+      const email =
+        session.customer_email ||
+        (session.customer_details?.email as string | undefined);
+      if (email) {
+        const {
+          data: { users },
+        } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+        const match = users?.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+        if (match) userId = match.id;
+      }
+    }
+
+    if (!userId) {
+      console.log("[webhook] checkout.session.completed skipped: no user id (client_reference_id or email match)");
       return NextResponse.json({
         received: true,
-        skipped: "no client_reference_id or metadata.user_id",
+        skipped: "no client_reference_id, metadata.user_id, or matching user by email",
       });
     }
 
+    // Respond 200 quickly so Stripe can redirect the customer, then finish DB work
+    const userIdFinal = userId;
+    setImmediate(() => {
+      getSupabase()
+        .from("credit_transactions")
+        .insert({ member_id: userIdFinal, amount: 45, type: "purchase" })
+        .then(({ error: creditError }) => {
+          if (creditError) {
+            console.error("[webhook] credit_transactions insert failed", creditError);
+            return;
+          }
+          getSupabase()
+            .from("profiles")
+            .update({ subscription_status: "active" })
+            .eq("id", userIdFinal)
+            .then(() => {
+              console.log("[webhook] checkout.session.completed: granted 45 credits + active for user", userIdFinal);
+            });
+        });
+    });
+
+    return NextResponse.json({ received: true });
+  } else if (event.type === "invoice.paid") {
+    const invoice = event.data.object as Stripe.Invoice;
+    // Only grant credits on subscription renewal (first invoice is handled by checkout.session.completed)
+    if (invoice.billing_reason !== "subscription_cycle") {
+      return NextResponse.json({ received: true, skipped: "not a renewal" });
+    }
+    const subscriptionId =
+      typeof invoice.subscription === "string"
+        ? invoice.subscription
+        : invoice.subscription?.id;
+    if (!subscriptionId) {
+      return NextResponse.json({ received: true, skipped: "no subscription" });
+    }
+    if (await claimEvent(supabase, event.id)) {
+      return NextResponse.json({ received: true, idempotent: true });
+    }
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const userId = subscription.metadata?.user_id;
+    if (!userId) {
+      return NextResponse.json({
+        received: true,
+        skipped: "no user_id in subscription metadata",
+      });
+    }
     const { error: creditError } = await supabase
       .from("credit_transactions")
       .insert({
@@ -65,19 +129,14 @@ export async function POST(request: NextRequest) {
         amount: 45,
         type: "purchase",
       });
-
     if (creditError) {
-      console.error("Webhook: credit_transactions insert failed", creditError);
+      console.error("[webhook] renewal credit_transactions insert failed", creditError);
       return NextResponse.json(
-        { error: "Failed to grant credits", detail: creditError.message },
+        { error: "Failed to grant renewal credits", detail: creditError.message },
         { status: 500 }
       );
     }
-
-    await supabase
-      .from("profiles")
-      .update({ subscription_status: "active" })
-      .eq("id", userId);
+    console.log("[webhook] invoice.paid (renewal): granted 45 credits for user", userId);
   } else if (event.type === "customer.subscription.deleted") {
     if (await claimEvent(supabase, event.id)) {
       return NextResponse.json({ received: true, idempotent: true });

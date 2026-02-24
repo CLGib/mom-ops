@@ -20,6 +20,9 @@
 # production
 /build
 
+# Stripe CLI binary (downloaded by script)
+/bin
+
 # misc
 .DS_Store
 *.pem
@@ -35,6 +38,9 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+# supabase local
+supabase/.temp/
 
 # typescript
 *.tsbuildinfo

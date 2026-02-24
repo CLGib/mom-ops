@@ -1,19 +1,20 @@
 import Link from "next/link";
+import CheckoutButton from "./CheckoutButton";
 
 export default function Header() {
   return (
     <header className="site-header">
       <div className="header-inner">
         <a href="#" className="logo">
-          Caregiver Co.
+          Mom Ops
         </a>
         <nav className="nav">
           <a href="#how-it-works">How It Works</a>
           <a href="#credits">Task Credits</a>
           <a href="#faq">FAQ</a>
-          <a href="#cta" className="nav-cta">
+          <CheckoutButton className="nav-cta nav-cta-button">
             Get Started
-          </a>
+          </CheckoutButton>
           <Link href="/login" className="btn btn-primary">
             Login
           </Link>

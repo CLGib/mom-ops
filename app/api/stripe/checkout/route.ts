@@ -15,33 +15,51 @@ function requireEnv(name: string) {
 }
 
 export async function POST() {
-  const priceId = requireEnv("STRIPE_PRICE_ID");
-  const siteUrl = requireEnv("NEXT_PUBLIC_SITE_URL"); // e.g. http://localhost:3000 or https://yourdomain.com
+  try {
+    requireEnv("STRIPE_SECRET_KEY");
+    const priceId = requireEnv("STRIPE_PRICE_ID");
+    const siteUrl = requireEnv("NEXT_PUBLIC_SITE_URL");
 
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    return new NextResponse("Unauthorized", { status: 401 });
+    if (!user) {
+      return NextResponse.json(
+        { error: "Not logged in", code: "UNAUTHORIZED" },
+        { status: 401 }
+      );
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${siteUrl}/member?checkout=success`,
+      cancel_url: `${siteUrl}/?checkout=cancel`,
+      customer_email: user.email ?? undefined,
+      client_reference_id: user.id,
+      subscription_data: {
+        metadata: { user_id: user.id },
+      },
+    });
+
+    if (!session.url) {
+      return NextResponse.json(
+        { error: "Stripe did not return a checkout URL" },
+        { status: 500 }
+      );
+    }
+
+    console.log("[stripe/checkout] Session created for", user.email, "→", session.url?.slice(0, 50) + "...");
+    return NextResponse.json({ url: session.url });
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Checkout session failed";
+    console.error("[stripe/checkout]", message, err);
+    return NextResponse.json(
+      { error: message, code: "CHECKOUT_ERROR" },
+      { status: 500 }
+    );
   }
-
-  // Optional: If you store stripe_customer_id in profiles, you can reuse it here.
-  // For MVP: Stripe will create a customer automatically via email.
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${siteUrl}/member?checkout=success`,
-    cancel_url: `${siteUrl}/?checkout=cancel`,
-    customer_email: user.email ?? undefined,
-
-    // ✅ Easiest: store userId in client_reference_id so the webhook can read it
-    client_reference_id: user.id,
-
-    // ✅ Also store in subscription metadata so subscription.deleted has it
-    subscription_data: {
-      metadata: { user_id: user.id },
-    },
-  });
-
-  return NextResponse.json({ url: session.url });
 }
