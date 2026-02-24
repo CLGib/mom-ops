@@ -4,8 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
 function requireEnv(name: string) {
   const v = process.env[name];
   if (!v) throw new Error(`Missing env var: ${name}`);
@@ -14,7 +12,8 @@ function requireEnv(name: string) {
 
 export async function POST() {
   try {
-    requireEnv("STRIPE_SECRET_KEY");
+    const secretKey = requireEnv("STRIPE_SECRET_KEY");
+    const stripe = new Stripe(secretKey);
     const priceId = requireEnv("STRIPE_PRICE_ID");
     const siteUrl = requireEnv("NEXT_PUBLIC_SITE_URL");
 
