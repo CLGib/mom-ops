@@ -14,7 +14,11 @@ function getSupabase() {
 
 /** Idempotent: try to claim this event. Returns true if we should skip (already processed), false if we should process. */
 async function claimEvent(supabase: ReturnType<typeof createClient>, eventId: string): Promise<boolean> {
-  const { error } = await supabase.from("stripe_webhook_events").insert({ event_id: eventId });
+  // Table may not be in generated types; assert row shape for insert
+  const { error } = await supabase
+    .from("stripe_webhook_events")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .insert({ event_id: eventId } as any);
   if (error?.code === "23505") return true; // unique violation = already processed
   if (error) return true; // other error: skip to avoid double-grant
   return false;
