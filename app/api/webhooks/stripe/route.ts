@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -13,7 +13,7 @@ function getSupabase() {
 }
 
 /** Idempotent: try to claim this event. Returns true if we should skip (already processed), false if we should process. */
-async function claimEvent(supabase: ReturnType<typeof createClient>, eventId: string): Promise<boolean> {
+async function claimEvent(supabase: SupabaseClient, eventId: string): Promise<boolean> {
   // Table may not be in generated types; assert row shape for insert
   const { error } = await supabase
     .from("stripe_webhook_events")
