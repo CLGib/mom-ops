@@ -17,6 +17,9 @@ export default function Footer() {
             <a href="#how-it-works">How It Works</a>
             <a href="#credits">Task Credits</a>
             <a href="#faq">FAQ</a>
+            <a href="mailto:support@themomops.com">Contact</a>
+            <a href="/privacy">Privacy</a>
+            <a href="/terms">Terms</a>
             <CheckoutButton className="footer-cta-button">
               Get Started
             </CheckoutButton>
