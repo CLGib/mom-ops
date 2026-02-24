@@ -23,9 +23,7 @@ function loadEnvLocal() {
 }
 
 loadEnvLocal();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-01-27.acacia",
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const amountCents = parseInt(process.argv[2], 10) || 2995;
 

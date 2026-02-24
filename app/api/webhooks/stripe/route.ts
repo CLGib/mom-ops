@@ -103,7 +103,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } else if (event.type === "invoice.paid") {
-    const invoice = event.data.object as Stripe.Invoice;
+    const invoice = event.data.object as Stripe.Invoice & {
+      subscription?: string | Stripe.Subscription;
+    };
     // Only grant credits on subscription renewal (first invoice is handled by checkout.session.completed)
     if (invoice.billing_reason !== "subscription_cycle") {
       return NextResponse.json({ received: true, skipped: "not a renewal" });

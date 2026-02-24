@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import CheckoutRedirect from "./(marketing)/components/CheckoutRedirect";
 import Header from "./(marketing)/components/Header";
 import Hero from "./(marketing)/components/Hero";
@@ -24,7 +25,9 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
-      <CheckoutRedirect />
+      <Suspense fallback={null}>
+        <CheckoutRedirect />
+      </Suspense>
       <Header />
       <main>
         <Hero />

@@ -211,7 +211,7 @@ export default function AuthForm() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required={mode !== "magiclink"}
+              required
               autoComplete={mode === "login" ? "current-password" : "new-password"}
               className="input"
               minLength={mode === "signup" ? 8 : undefined}

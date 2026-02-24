@@ -38,7 +38,7 @@ if (!key) {
   process.exit(1);
 }
 
-const stripe = new Stripe(key, { apiVersion: "2025-01-27.acacia" });
+const stripe = new Stripe(key);
 
 async function main() {
   const product = await stripe.products.create({

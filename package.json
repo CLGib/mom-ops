@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "stripe:listen": "./bin/stripe listen --forward-to localhost:3000/api/webhooks/stripe"
