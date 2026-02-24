@@ -1,40 +1,49 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
-export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({ request });
+export async function middleware(req: NextRequest) {
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+    // Fail open if env not set so prod never goes down
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.next();
+    }
+
+    let res = NextResponse.next({ request: req });
+
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+        getAll() {
+          return req.cookies.getAll();
         },
-        set(name: string, value: string, options: CookieOptions) {
-          const { maxAge, ...rest } = options;
-          const cookie = { name, value, ...rest, ...(maxAge !== undefined && { maxAge }) };
-          request.cookies.set(cookie);
-          response = NextResponse.next({ request });
-          response.cookies.set(cookie);
-        },
-        remove(name: string, options: CookieOptions) {
-          const { maxAge, ...rest } = options;
-          const cookie = { name, value: "", ...rest, ...(maxAge !== undefined && { maxAge }) };
-          request.cookies.set(cookie);
-          response = NextResponse.next({ request });
-          response.cookies.set(cookie);
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            res.cookies.set(name, value, options);
+          });
         },
       },
-    }
-  );
+    });
 
-  await supabase.auth.getUser();
-  return response;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      const loginUrl = req.nextUrl.clone();
+      loginUrl.pathname = "/login";
+      loginUrl.searchParams.set("next", req.nextUrl.pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    return res;
+  } catch (err) {
+    console.error("middleware error:", err);
+    return NextResponse.next();
+  }
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/va/:path*", "/member/:path*", "/login", "/"],
+  matcher: ["/member/:path*", "/va/:path*", "/admin/:path*"],
 };
