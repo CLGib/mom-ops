@@ -133,18 +133,8 @@ export default function AuthForm() {
       return;
     }
     setEmailCooldown(60);
-    if (data?.session != null && data?.user != null) {
-      const userId = data.user.id;
-      fetch("/api/emails/queue", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          template: "welcome_v1",
-          payload: { user_id: userId },
-          dedupe_key: `welcome:${userId}`,
-        }),
-      }).catch(() => {});
+    if (data?.session != null) {
+      // Welcome email disabled for now; can re-enable later via queueEmail("welcome_v1", ...)
       setRedirectingToCheckout(true);
       try {
         const res = await fetch("/api/stripe/checkout", {
