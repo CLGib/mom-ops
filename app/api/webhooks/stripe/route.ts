@@ -3,6 +3,15 @@ import Stripe from "stripe";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { queueEmail } from "@/lib/email/queue";
 
+// ---- Fix Stripe Invoice subscription typing ----
+type InvoiceWithSubscription = Stripe.Invoice & {
+  subscription?: string | Stripe.Subscription | null;
+  subscription_details?: {
+    subscription?: string | null;
+  };
+};
+// -----------------------------------------------
+
 function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error("STRIPE_SECRET_KEY is not set");
@@ -155,16 +164,17 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } else if (event.type === "invoice.paid") {
-    const invoice = event.data.object as Stripe.Invoice & {
-      subscription?: string | Stripe.Subscription;
-      parent?: { subscription_details?: { subscription?: string | Stripe.Subscription } };
-    };
+    const invoice = event.data.object as InvoiceWithSubscription;
     // Only grant credits on subscription renewal (first invoice is handled by checkout.session.completed)
     if (invoice.billing_reason !== "subscription_cycle") {
       return NextResponse.json({ received: true, skipped: "not a renewal" });
     }
-    const sub = invoice.parent?.subscription_details?.subscription ?? invoice.subscription;
-    const subscriptionId = typeof sub === "string" ? sub : sub?.id ?? null;
+    const subscriptionId: string | null =
+      (typeof invoice.subscription === "string"
+        ? invoice.subscription
+        : invoice.subscription?.id) ??
+      invoice.subscription_details?.subscription ??
+      null;
     if (!subscriptionId) {
       return NextResponse.json({ received: true, skipped: "no subscription" });
     }
@@ -234,12 +244,13 @@ export async function POST(request: NextRequest) {
     if (await claimEvent(supabase, event.id)) {
       return NextResponse.json({ received: true, idempotent: true });
     }
-    const invoice = event.data.object as Stripe.Invoice & {
-      subscription?: string | Stripe.Subscription;
-      parent?: { subscription_details?: { subscription?: string | Stripe.Subscription } };
-    };
-    const sub = invoice.parent?.subscription_details?.subscription ?? invoice.subscription;
-    const subscriptionId = typeof sub === "string" ? sub : sub?.id ?? null;
+    const invoice = event.data.object as InvoiceWithSubscription;
+    const subscriptionId: string | null =
+      (typeof invoice.subscription === "string"
+        ? invoice.subscription
+        : invoice.subscription?.id) ??
+      invoice.subscription_details?.subscription ??
+      null;
     let userId: string | null = null;
     if (subscriptionId) {
       try {
