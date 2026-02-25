@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { queueEmail } from "@/lib/email/queue";
 
-// ---- Fix Stripe Invoice subscription typing ----
+// ---- Fix Stripe Invoice subscription typing (InvoiceWithSubscription v2) ----
 type InvoiceWithSubscription = Stripe.Invoice & {
   subscription?: string | Stripe.Subscription | null;
   subscription_details?: {
