@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
     let userId =
       (session.client_reference_id as string) || session.metadata?.user_id;
 
+    let createdUserForGuest = false;
     if (!userId) {
       const email =
         session.customer_email ||
@@ -83,7 +84,34 @@ export async function POST(request: NextRequest) {
           data: { users },
         } = await supabase.auth.admin.listUsers({ perPage: 1000 });
         const match = users?.find((u) => u.email?.toLowerCase() === email.toLowerCase());
-        if (match) userId = match.id;
+        if (match) {
+          userId = match.id;
+        } else {
+          // Guest checkout: create user and send magic link later
+          const randomPassword = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, "");
+          const { data: newUser, error: createErr } = await supabase.auth.admin.createUser({
+            email,
+            password: randomPassword,
+            email_confirm: true,
+          });
+          if (createErr || !newUser?.user?.id) {
+            console.error("[webhook] createUser for guest checkout failed", createErr);
+            return NextResponse.json({
+              received: true,
+              skipped: "could not create user for guest checkout",
+            }, { status: 200 });
+          }
+          userId = newUser.user.id;
+          createdUserForGuest = true;
+          const subId = session.subscription as string | undefined;
+          if (subId) {
+            try {
+              await stripe.subscriptions.update(subId, { metadata: { user_id: userId } });
+            } catch (e) {
+              console.warn("[webhook] could not update subscription metadata", e);
+            }
+          }
+        }
       }
     }
 
@@ -108,9 +136,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Respond 200 quickly so Stripe can redirect the customer, then finish DB work
     const userIdFinal = userId;
     const isFoundingFinal = isFounding;
+    const createdForGuestFinal = createdUserForGuest;
+    const guestEmail =
+      session.customer_email ||
+      (session.customer_details?.email as string | undefined) ||
+      null;
     const customerId = typeof session.customer === "string" ? session.customer : (session.customer as { id?: string } | null)?.id ?? null;
     const subscriptionIdForProfile = typeof session.subscription === "string" ? session.subscription : (session.subscription as { id?: string } | null)?.id ?? null;
     const stripeName = session.customer_details?.name ?? null;
@@ -148,7 +180,7 @@ export async function POST(request: NextRequest) {
       if (profileError) {
         console.error("[webhook] profiles update failed", profileError);
       } else {
-        console.log("[webhook] checkout.session.completed: granted 45 credits + active for user", userIdFinal, isFoundingFinal ? "(founding member)" : "", profileUpdate.full_name ? "+ name" : "");
+        console.log("[webhook] checkout.session.completed: granted 45 credits + active for user", userIdFinal, isFoundingFinal ? "(founding member)" : "", createdForGuestFinal ? "(guest, sending magic link)" : "");
         try {
           await queueEmail({
             to_email: null,
@@ -158,6 +190,26 @@ export async function POST(request: NextRequest) {
           });
         } catch (e) {
           console.warn("[webhook] queueEmail payment_success_v1 failed", e);
+        }
+        if (createdForGuestFinal && guestEmail) {
+          try {
+            const { data: linkData } = await db.auth.admin.generateLink({
+              type: "magiclink",
+              email: guestEmail,
+              options: { redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://themomops.com"}/member` },
+            });
+            const magicLink = linkData?.properties?.action_link as string | undefined;
+            if (magicLink) {
+              await queueEmail({
+                to_email: null,
+                template: "account_ready_magic_link_v1",
+                payload: { member_id: userIdFinal, magic_link: magicLink },
+                dedupe_key: `account_ready_magic:${session.id}`,
+              });
+            }
+          } catch (e) {
+            console.warn("[webhook] generateLink or queue account_ready_magic_link_v1 failed", e);
+          }
         }
       }
     });

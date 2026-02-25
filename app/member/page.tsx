@@ -18,6 +18,9 @@ export default async function MemberPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const params = await searchParams;
+  const checkoutSuccess = params.checkout === "success";
+
   if (!user) redirect("/login?next=" + encodeURIComponent("/member"));
 
   const { data: profile } = await supabase
@@ -38,7 +41,6 @@ export default async function MemberPage({
 
   const isActive =
     profile?.subscription_status === "active" || (balance != null && (balance as number) > 0);
-  const params = await searchParams;
   const checkoutSuccess = params.checkout === "success";
 
   const showOnboardingBanner = profile?.onboarding_completed_at == null;

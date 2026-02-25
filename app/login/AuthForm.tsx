@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type Mode = "login" | "signup" | "magiclink" | "forgot";
+type Mode = "login" | "magiclink" | "forgot";
 
 function formatAuthError(message: string): string {
   if (
@@ -21,13 +21,11 @@ export default function AuthForm() {
   const next = searchParams.get("next") ?? "/";
   const isCheckoutIntent = next.includes("checkout=1");
 
-  const [mode, setMode] = useState<Mode>(isCheckoutIntent ? "signup" : "login");
+  const [mode, setMode] = useState<Mode>(isCheckoutIntent ? "magiclink" : "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [redirectingToCheckout, setRedirectingToCheckout] = useState(false);
-  const [signupSuccess, setSignupSuccess] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [resetLinkSent, setResetLinkSent] = useState(false);
   const [emailCooldown, setEmailCooldown] = useState(0);
@@ -62,7 +60,6 @@ export default function AuthForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    setSignupSuccess(false);
     setMagicLinkSent(false);
     setResetLinkSent(false);
     setLoading(true);
@@ -102,68 +99,23 @@ export default function AuthForm() {
       return;
     }
 
-    if (mode === "login") {
-      const { error: err } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (err) {
-        setLoading(false);
-        setError(formatAuthError(err.message));
-        return;
-      }
-      // Keep loading true until redirect so user sees "Redirecting…" during cookie persist delay
-      redirect();
-      return;
-    }
-
-    const { data, error: err } = await supabase.auth.signUp({
+    // login
+    const { error: err } = await supabase.auth.signInWithPassword({
       email,
       password,
-      options: {
-        // After they confirm via email, land on /?checkout=1 so CheckoutRedirect sends them to Stripe.
-        // Add this URL to Supabase Auth → URL Configuration → Redirect URLs (e.g. http://localhost:3000/?checkout=1).
-        emailRedirectTo: `${window.location.origin}/?checkout=1`,
-      },
     });
-    setLoading(false);
     if (err) {
+      setLoading(false);
       setError(formatAuthError(err.message));
-      if (/rate limit|too many/i.test(err.message)) setEmailCooldown(120);
       return;
     }
-    if (data?.user?.identities?.length === 0) {
-      setError("An account with this email already exists. Try logging in.");
-      return;
-    }
-    setEmailCooldown(60);
-    if (data?.session != null) {
-      // Welcome email disabled for now; can re-enable later via queueEmail("welcome_v1", ...)
-      setRedirectingToCheckout(true);
-      try {
-        const res = await fetch("/api/stripe/checkout", {
-          method: "POST",
-          credentials: "include",
-        });
-        const checkoutData = await res.json().catch(() => ({}));
-        if (res.ok && checkoutData.url) {
-          window.location.href = checkoutData.url;
-          return;
-        }
-      } catch {
-        // fall through to redirect()
-      }
-      setRedirectingToCheckout(false);
-      redirect();
-      return;
-    }
-    setSignupSuccess(true);
+    redirect();
   }
 
   const isEmailCooldown = emailCooldown > 0;
 
   return (
-    <>
+    <div className="auth-form">
       <div className="auth-tabs">
         <button
           type="button"
@@ -174,13 +126,6 @@ export default function AuthForm() {
         </button>
         <button
           type="button"
-          onClick={() => setMode("signup")}
-          className={mode === "signup" ? "auth-tab auth-tab--active" : "auth-tab"}
-        >
-          Sign up
-        </button>
-        <button
-          type="button"
           onClick={() => setMode("magiclink")}
           className={mode === "magiclink" ? "auth-tab auth-tab--active" : "auth-tab"}
         >
@@ -188,13 +133,18 @@ export default function AuthForm() {
         </button>
       </div>
 
+      {mode === "magiclink" && (
+        <p className="auth-form-note">
+          No account? We&apos;ll send you a link to sign in or create one.
+        </p>
+      )}
+
       {mode === "login" && (
-        <p style={{ marginTop: "var(--space-sm)", marginBottom: 0 }}>
+        <p className="auth-form-note" style={{ marginBottom: 0 }}>
           <button
             type="button"
             onClick={() => setMode("forgot")}
-            className="form-note"
-            style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline", color: "inherit" }}
+            className="auth-form-link"
           >
             Forgot password?
           </button>
@@ -203,7 +153,7 @@ export default function AuthForm() {
 
       {magicLinkSent && (
         <p className="auth-success-message" role="status">
-          Check your email for the sign-in link. Click it and you&apos;ll be signed in.
+          Check your email for the sign-in link. Click it to sign in or set your password.
         </p>
       )}
 
@@ -213,16 +163,9 @@ export default function AuthForm() {
         </p>
       )}
 
-      {isEmailCooldown && (mode === "magiclink" || mode === "signup" || mode === "forgot") && (
+      {isEmailCooldown && (mode === "magiclink" || mode === "forgot") && (
         <p className="form-note" role="status">
           You can request another link in {emailCooldown} seconds.
-        </p>
-      )}
-
-      {signupSuccess && (
-        <p className="auth-success-message" role="status">
-          Check your email to confirm your account. After confirming, log in and
-          you&apos;ll be taken to checkout.
         </p>
       )}
 
@@ -241,7 +184,7 @@ export default function AuthForm() {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
-            className="input"
+            className="input auth-input"
           />
         </div>
         {mode !== "magiclink" && mode !== "forgot" && (
@@ -253,51 +196,41 @@ export default function AuthForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
-              className="input"
-              minLength={mode === "signup" ? 8 : undefined}
+              autoComplete={mode === "login" ? "current-password" : "off"}
+              className="input auth-input"
             />
           </div>
         )}
-        {(mode === "forgot" || mode === "login" || mode === "signup" || mode === "magiclink") && (
+        {mode === "forgot" && (
           <p style={{ marginTop: "var(--space-xs)", marginBottom: 0 }}>
-            {mode === "forgot" && (
-              <button
-                type="button"
-                onClick={() => setMode("login")}
-                className="form-note"
-                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline", color: "inherit" }}
-              >
-                ← Back to log in
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setMode("login")}
+              className="auth-form-link"
+            >
+              ← Back to log in
+            </button>
           </p>
         )}
         <button
           type="submit"
-          disabled={loading || redirectingToCheckout || ((mode === "magiclink" || mode === "signup" || mode === "forgot") && isEmailCooldown)}
+          disabled={loading || ((mode === "magiclink" || mode === "forgot") && isEmailCooldown)}
           className="btn btn-primary"
           style={{ width: "100%", marginTop: "var(--space-sm)" }}
         >
-          {redirectingToCheckout
-            ? "Redirecting to checkout…"
-            : loading
-              ? mode === "magiclink"
-                ? "Sending link…"
-                : mode === "forgot"
-                  ? "Sending reset link…"
-                  : mode === "login"
-                    ? "Signing in…"
-                    : "Creating account…"
-              : mode === "magiclink"
-                ? "Send me a sign-in link"
-                : mode === "forgot"
-                  ? "Send reset link"
-                  : mode === "login"
-                    ? "Log in"
-                    : "Sign up"}
+          {loading
+            ? mode === "magiclink"
+              ? "Sending link…"
+              : mode === "forgot"
+                ? "Sending reset link…"
+                : "Signing in…"
+            : mode === "magiclink"
+              ? "Send me a link"
+              : mode === "forgot"
+                ? "Send reset link"
+                : "Log in"}
         </button>
       </form>
-    </>
+    </div>
   );
 }

@@ -22,23 +22,20 @@ export async function POST() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "Not logged in", code: "UNAUTHORIZED" },
-        { status: 401 }
-      );
-    }
-
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${siteUrl}/member?checkout=success`,
+      success_url: `${siteUrl}/checkout-success`,
       cancel_url: `${siteUrl}/?checkout=cancel`,
-      customer_email: user.email ?? undefined,
-      client_reference_id: user.id,
-      subscription_data: {
-        metadata: { user_id: user.id },
-      },
+      ...(user
+        ? {
+            customer_email: user.email ?? undefined,
+            client_reference_id: user.id,
+            subscription_data: { metadata: { user_id: user.id } },
+          }
+        : {
+            /* guest checkout: Stripe collects email; webhook will create user and send magic link */
+          }),
     });
 
     if (!session.url) {
@@ -48,7 +45,7 @@ export async function POST() {
       );
     }
 
-    console.log("[stripe/checkout] Session created for", user.email, "→", session.url?.slice(0, 50) + "...");
+    console.log("[stripe/checkout] Session created", user ? `for ${user.email}` : "(guest)", "→", session.url?.slice(0, 50) + "...");
     return NextResponse.json({ url: session.url });
   } catch (err) {
     const message =

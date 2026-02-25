@@ -1154,6 +1154,39 @@ details[open] .faq-question::after {
   border-bottom-color: var(--accent);
 }
 
+.auth-form-note {
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-sm);
+}
+
+.auth-form-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  color: var(--text-muted);
+  font: inherit;
+}
+
+.auth-form-link:hover {
+  color: var(--text);
+}
+
+/* Clean auth inputs: hide browser validation/autofill chrome that can look like errors */
+.auth-input {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.auth-input::-webkit-credentials-auto-fill-button,
+.auth-input::-webkit-contacts-auto-fill-button {
+  visibility: hidden;
+  pointer-events: none;
+  position: absolute;
+}
+
 .auth-success-message {
   font-size: 0.9375rem;
   color: var(--text-muted);

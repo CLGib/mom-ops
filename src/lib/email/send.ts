@@ -90,6 +90,17 @@ function getTemplate(
         <p>— The Mom Ops Team</p>
       `.trim(),
     }),
+    account_ready_magic_link_v1: () => {
+      const link = typeof payload.magic_link === "string" ? payload.magic_link : memberDashboard;
+      return {
+        subject: "Your Mom Ops account is ready",
+        html: `
+          <p>Your payment was successful. Click the link below to access your dashboard and set your password.</p>
+          <p><a href="${link}">Access your dashboard</a></p>
+          <p>— The Mom Ops Team</p>
+        `.trim(),
+      };
+    },
   };
   const fn = templates[template];
   if (!fn) throw new Error(`Unknown template: ${template}`);
