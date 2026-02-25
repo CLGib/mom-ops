@@ -253,6 +253,20 @@ body {
 }
 
 /* Founders page */
+.founders-first50 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 0 0 var(--space-xs);
+  letter-spacing: 0.02em;
+}
+
+.founders-lock-copy {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin: var(--space-md) 0 var(--space-sm);
+}
+
 .founders-price {
   margin-bottom: var(--space-md);
 }

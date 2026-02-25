@@ -11,9 +11,25 @@ export default function FoundersHero({ claimed }: Props) {
       <div className="container">
         <p className="hero-brand">Mom Ops</p>
         <h1 className="hero-headline">
-          Founding Members: Lock in $15.95/month (First 50 only)
+          Your Personal Household Virtual Assistant (VA), without Hiring
+          Full-Time
         </h1>
         <p className="hero-subhead">
+          Household admin, handled by a real mom VA.
+          <br />
+          Structured membership.
+          <br />
+          Clear timelines.
+          <br />
+          No hourly billing. No guesswork.
+        </p>
+        <p className="hero-price">
+          $29.95/month includes 45 Task Credits. Roll over up to 3 months. Add
+          more anytime.
+        </p>
+        <p className="founders-first50">First 50 only</p>
+        <FoundersCounter claimed={claimed} />
+        <p className="founders-lock-copy">
           Same membership, discounted for early adopters. Locked in for life
           unless you cancel.
         </p>
@@ -21,7 +37,6 @@ export default function FoundersHero({ claimed }: Props) {
           <span className="founders-price-was">$29.95/month</span>{" "}
           <strong>$15.95/month</strong>
         </p>
-        <FoundersCounter claimed={claimed} />
         {isFull ? (
           <a href="/" className="btn btn-primary">
             Join at standard price

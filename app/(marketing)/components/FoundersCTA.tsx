@@ -17,7 +17,7 @@ export default function FoundersCTA({ claimed }: Props) {
             <a href="/#credits">in the member portal</a>
           </li>
         </ul>
-        <p className="section-lead">
+        <p className="section-lead founders-cta-lead">
           Same 45 Task Credits per month, same support—just $15.95/month locked in
           for life (first 50 only).
         </p>
