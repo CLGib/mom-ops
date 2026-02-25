@@ -1,19 +1,27 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 
 export async function createTicket(
   subject: string,
   description: string | null
 ): Promise<{ ticketId?: string; error?: string }> {
-  const supabase = await createClient();
+  const serverClient = await createServerClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await serverClient.auth.getUser();
   if (!user) {
     return { error: "Not logged in." };
   }
 
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) {
+    return { error: "Server configuration error." };
+  }
+
+  const supabase = createClient(url, serviceKey);
   const { data: ticket, error } = await supabase
     .from("tickets")
     .insert({
