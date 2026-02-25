@@ -41,7 +41,6 @@ export default async function MemberPage({
 
   const isActive =
     profile?.subscription_status === "active" || (balance != null && (balance as number) > 0);
-  const checkoutSuccess = params.checkout === "success";
 
   const showOnboardingBanner = profile?.onboarding_completed_at == null;
 
