@@ -155,12 +155,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } else if (event.type === "invoice.paid") {
-    const invoice = event.data.object as Stripe.Invoice;
+    const invoice = event.data.object as Stripe.Invoice & {
+      subscription?: string | Stripe.Subscription;
+      parent?: { subscription_details?: { subscription?: string | Stripe.Subscription } };
+    };
     // Only grant credits on subscription renewal (first invoice is handled by checkout.session.completed)
     if (invoice.billing_reason !== "subscription_cycle") {
       return NextResponse.json({ received: true, skipped: "not a renewal" });
     }
-    const sub = invoice.parent?.subscription_details?.subscription;
+    const sub = invoice.parent?.subscription_details?.subscription ?? invoice.subscription;
     const subscriptionId = typeof sub === "string" ? sub : sub?.id ?? null;
     if (!subscriptionId) {
       return NextResponse.json({ received: true, skipped: "no subscription" });
@@ -231,10 +234,12 @@ export async function POST(request: NextRequest) {
     if (await claimEvent(supabase, event.id)) {
       return NextResponse.json({ received: true, idempotent: true });
     }
-    const invoice = event.data.object as Stripe.Invoice;
-    const sub = invoice.parent?.subscription_details?.subscription;
-    const subscriptionId =
-      typeof sub === "string" ? sub : sub?.id ?? null;
+    const invoice = event.data.object as Stripe.Invoice & {
+      subscription?: string | Stripe.Subscription;
+      parent?: { subscription_details?: { subscription?: string | Stripe.Subscription } };
+    };
+    const sub = invoice.parent?.subscription_details?.subscription ?? invoice.subscription;
+    const subscriptionId = typeof sub === "string" ? sub : sub?.id ?? null;
     let userId: string | null = null;
     if (subscriptionId) {
       try {
