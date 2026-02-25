@@ -44,39 +44,14 @@ export default function HowItWorks() {
         </div>
         <div className="how-it-works-example transformation-block">
           <p className="how-it-works-example-label">Real example</p>
-          <div className="transformation-grid">
-            <div className="transformation-card transformation-card--request">
-              <span className="transformation-card-label">Your request</span>
-              <div className="transformation-card-inner">
-                <img
-                  src="/assets/example-email.png"
-                  alt="Example task email: a request for a printable 8.5 x 11 piano recital flyer with event details, tone, and deliverables."
-                  width={560}
-                  height={373}
-                />
-              </div>
-              <p className="transformation-card-caption">
-                Just email your request. Event details, tone, and what you
-                need; we take it from there.
-              </p>
-            </div>
-            <div className="transformation-arrow" aria-hidden>
-              →
-            </div>
-            <div className="transformation-card transformation-card--deliverable">
-              <span className="transformation-card-label">Final deliverable</span>
-              <div className="transformation-card-inner">
-                <img
-                  src="/assets/melodies-in-may.png"
-                  alt="Melodies in May piano recital invitation: elegant floral design with event date, time, and details."
-                  width={560}
-                  height={747}
-                />
-              </div>
-              <p className="transformation-card-caption">
-                Polished invitation, ready to print or share.
-              </p>
-            </div>
+          <div className="transformation-single">
+            <img
+              src="/assets/example-request-deliverable.png"
+              alt="Your request: email with event details and tone for a piano recital flyer. Final deliverable: polished Melodies in May invitation with soft spring colors, ready to print or share."
+              width={900}
+              height={600}
+              className="transformation-single-image"
+            />
           </div>
         </div>
       </div>

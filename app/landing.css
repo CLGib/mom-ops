@@ -165,11 +165,14 @@ body {
   border-radius: var(--radius-lg);
   padding: var(--space-sm);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  max-width: 320px;
+  justify-self: end;
 }
 
 .problem-image {
   width: 100%;
-  height: auto;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
   display: block;
   border-radius: var(--radius);
 }
@@ -415,6 +418,20 @@ body {
   text-transform: uppercase;
   color: var(--text-soft);
   margin: 0 0 var(--space-lg);
+}
+
+.transformation-single {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.transformation-single-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .transformation-grid {
@@ -723,6 +740,8 @@ body {
   border-radius: var(--radius-lg);
   padding: var(--space-sm);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  max-width: 308px;
+  justify-self: end;
 }
 
 .efficiency-image {
@@ -910,7 +929,9 @@ details[open] .faq-question::after {
 
 .footer-links {
   display: flex;
-  gap: var(--space-lg);
+  flex-wrap: wrap;
+  gap: var(--space-md) var(--space-lg);
+  align-items: center;
 }
 
 .footer-links a {
@@ -968,6 +989,14 @@ details[open] .faq-question::after {
   }
   .footer-inner {
     flex-direction: column;
+  }
+  .footer-links {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+  .footer-cta-button {
+    margin-top: var(--space-xs);
   }
 }
 

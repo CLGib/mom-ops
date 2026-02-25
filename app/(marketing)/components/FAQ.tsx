@@ -7,7 +7,7 @@ const FAQ_ITEMS = [
   {
     question: "How do Task Credits work?",
     answer:
-      "Your $29.95/month membership includes 45 Task Credits. Unused monthly credits roll over up to 3 months. You can add more (100, 250, or 500 Task Credits) in the member portal - credits you purchase never expire. Each task uses a set number of credits based on scope; you'll see how many before we begin. No hourly billing.",
+      "Your $29.95/month membership includes 45 Task Credits. Unused monthly credits roll over up to 3 months. You can add more (10, 30, or 50 Task Credits) in the member portal - credits you purchase never expire. Each task uses a set number of credits based on scope; you'll see how many before we begin. No hourly billing.",
   },
   {
     question: "Who actually does my tasks?",

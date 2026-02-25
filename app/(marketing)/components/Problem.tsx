@@ -23,9 +23,9 @@ export default function Problem() {
           <div className="problem-image-card">
             <img
               src="/assets/pta-email.png"
-              alt="PTA email example: newsletter with logo and message about enrollment and family time."
-              width={480}
-              height={320}
+              alt="Cluttered desk with to-do lists, sticky notes, and reminders—the invisible mental load of mom life."
+              width={320}
+              height={480}
               className="problem-image"
             />
           </div>
