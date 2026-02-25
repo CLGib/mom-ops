@@ -989,6 +989,10 @@ details[open] .faq-question::after {
   line-height: 1.6;
 }
 
+.faq-answer p + p {
+  margin-top: var(--space-sm);
+}
+
 .site-footer {
   background: var(--text);
   color: var(--text-soft);

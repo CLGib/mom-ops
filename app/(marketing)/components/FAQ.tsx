@@ -1,5 +1,10 @@
 const FAQ_ITEMS = [
   {
+    question: "Do I have to be a mom to use Mom Ops?",
+    answer:
+      "No. Everyone could use an extra mom in their corner. We were built by moms and specialize in the mental load they carry—but Mom Ops is for anyone who wants life to run smoother, with systems, support, and a little less chaos.",
+  },
+  {
     question: "What is the turnaround time for tasks?",
     answer:
       "Standard turnaround is 1 business day. Some tasks may take longer depending on scope; we'll communicate clearly if that's the case.",
@@ -55,7 +60,11 @@ export default function FAQ() {
           {FAQ_ITEMS.map((item) => (
             <details key={item.question} className="faq-item">
               <summary className="faq-question">{item.question}</summary>
-              <p className="faq-answer">{item.answer}</p>
+              <div className="faq-answer">
+                {item.answer.split("\n\n").map((paragraph, i) => (
+                  <p key={i}>{paragraph}</p>
+                ))}
+              </div>
             </details>
           ))}
         </div>

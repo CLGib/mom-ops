@@ -17,7 +17,7 @@ const STEPS = [
   {
     num: "04",
     title: "Review + Refine",
-    body: "Receive your completed work by email.\nNeed an edit? You can request revisions within scope.\nOptionally say thanks with a $1 coffee; tips go directly to your Virtual Assistant.",
+    body: "Receive your completed work by email.\nNeed an edit? You can request revisions within scope.",
   },
 ];
 
