@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
+import { submitOnboarding } from "./actions";
 
 export type HelpOption = string;
 
@@ -55,23 +55,9 @@ export default function OnboardingSurvey({ memberId, helpOptions }: Props) {
       constraints: constraints.trim() || null,
       upcoming: upcoming.trim() || null,
     };
-    const supabase = createClient();
-    const { error: insertErr } = await supabase.from("onboarding_responses").insert({
-      member_id: memberId,
-      version: 1,
-      answers,
-    });
-    if (insertErr) {
-      setError(insertErr.message);
-      setSubmitting(false);
-      return;
-    }
-    const { error: profileErr } = await supabase
-      .from("profiles")
-      .update({ onboarding_completed_at: new Date().toISOString() })
-      .eq("id", memberId);
-    if (profileErr) {
-      setError(profileErr.message);
+    const { error: submitErr } = await submitOnboarding(answers);
+    if (submitErr) {
+      setError(submitErr);
       setSubmitting(false);
       return;
     }
