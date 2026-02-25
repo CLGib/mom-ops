@@ -15,6 +15,12 @@ export default async function MemberLayout({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=" + encodeURIComponent("/member"));
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_founding_member")
+    .eq("id", user.id)
+    .single();
+
   return (
     <div className="app-shell" style={{ width: "100%" }}>
       <header
@@ -29,16 +35,34 @@ export default async function MemberLayout({
           borderBottom: "1px solid var(--color-border, #e5e5e5)",
         }}
       >
-        <span
-          className="member-profile-email"
-          style={{
-            fontSize: "0.9rem",
-            color: "var(--text-muted, #666)",
-            fontWeight: 500,
-          }}
-          title="Logged in as"
-        >
-          {user.email}
+        <span style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", flexWrap: "wrap" }}>
+          <span
+            className="member-profile-email"
+            style={{
+              fontSize: "0.9rem",
+              color: "var(--text-muted, #666)",
+              fontWeight: 500,
+            }}
+            title="Logged in as"
+          >
+            {user.email}
+          </span>
+          {profile?.is_founding_member && (
+            <span
+              className="founder-badge"
+              style={{
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                padding: "0.2rem 0.5rem",
+                borderRadius: "4px",
+                background: "var(--accent-soft-bg, #f8f5ed)",
+                color: "var(--accent, #b8860b)",
+                letterSpacing: "0.02em",
+              }}
+            >
+              Founding Member
+            </span>
+          )}
         </span>
         <Link
           href="/api/auth/signout"

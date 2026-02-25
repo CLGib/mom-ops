@@ -5,22 +5,26 @@ import { useState } from "react";
 type Props = {
   children: React.ReactNode;
   className?: string;
+  priceType?: "default" | "founders";
 };
 
-export default function CheckoutButton({ children, className }: Props) {
+export default function CheckoutButton({ children, className, priceType = "default" }: Props) {
   const [loading, setLoading] = useState(false);
+  const isFounders = priceType === "founders";
+  const endpoint = isFounders ? "/api/stripe/checkout/founders" : "/api/stripe/checkout";
+  const loginNext = isFounders ? "/founders?checkout=1" : "/?checkout=1";
 
   async function handleClick() {
     setLoading(true);
     try {
-      const res = await fetch("/api/stripe/checkout", {
+      const res = await fetch(endpoint, {
         method: "POST",
         credentials: "include",
       });
       const data = await res.json().catch(() => ({}));
       if (res.status === 401) {
         window.location.href =
-          "/login?next=" + encodeURIComponent("/?checkout=1");
+          "/login?next=" + encodeURIComponent(loginNext);
         return;
       }
       if (!res.ok) {

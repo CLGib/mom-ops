@@ -85,8 +85,22 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    let isFounding = false;
+    const subscriptionId = session.subscription as string | undefined;
+    if (subscriptionId) {
+      try {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const priceId = subscription.items.data[0]?.price?.id;
+        const foundersPriceId = process.env.STRIPE_FOUNDERS_PRICE_ID;
+        isFounding = !!foundersPriceId && priceId === foundersPriceId;
+      } catch (e) {
+        console.warn("[webhook] could not retrieve subscription for founding check", e);
+      }
+    }
+
     // Respond 200 quickly so Stripe can redirect the customer, then finish DB work
     const userIdFinal = userId;
+    const isFoundingFinal = isFounding;
     setImmediate(() => {
       getSupabase()
         .from("credit_transactions")
@@ -96,12 +110,14 @@ export async function POST(request: NextRequest) {
             console.error("[webhook] credit_transactions insert failed", creditError);
             return;
           }
+          const profileUpdate: { subscription_status: string; is_founding_member?: boolean } = { subscription_status: "active" };
+          if (isFoundingFinal) profileUpdate.is_founding_member = true;
           getSupabase()
             .from("profiles")
-            .update({ subscription_status: "active" })
+            .update(profileUpdate)
             .eq("id", userIdFinal)
             .then(() => {
-              console.log("[webhook] checkout.session.completed: granted 45 credits + active for user", userIdFinal);
+              console.log("[webhook] checkout.session.completed: granted 45 credits + active for user", userIdFinal, isFoundingFinal ? "(founding member)" : "");
             });
         });
     });

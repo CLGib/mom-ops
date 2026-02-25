@@ -252,6 +252,80 @@ body {
   margin: 0 0 var(--space-lg);
 }
 
+/* Founders page */
+.founders-price {
+  margin-bottom: var(--space-md);
+}
+
+.founders-price-was {
+  text-decoration: line-through;
+  color: var(--text-soft);
+  font-weight: 400;
+}
+
+.founders-counter {
+  margin-bottom: var(--space-lg);
+}
+
+.founders-counter-text {
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-xs);
+}
+
+.founders-progress-wrap {
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.founders-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.founders-trust {
+  font-size: 0.875rem;
+  color: var(--text-soft);
+  margin: var(--space-md) 0 0;
+}
+
+.founders-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-lg);
+  color: var(--text-muted);
+}
+
+.founders-benefits li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: var(--space-sm);
+}
+
+.founders-benefits li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+.founders-benefits a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.founders-benefits a:hover {
+  text-decoration: underline;
+}
+
 .btn {
   display: inline-block;
   padding: 0.875rem 1.75rem;
