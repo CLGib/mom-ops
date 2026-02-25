@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useState, useRef } from "react";
+import { createTicket } from "./actions";
 
 const BUCKET = "task-attachments";
 const MAX_FILE_SIZE_MB = 50;
@@ -112,26 +113,15 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
     e.preventDefault();
     setError(null);
     setSubmitting(true);
-    const supabase = createClient();
 
-    const { data: ticket, error: insertError } = await supabase
-      .from("tickets")
-      .insert({
-        member_id: memberId,
-        subject,
-        description: description || null,
-        status: "new",
-      })
-      .select("id")
-      .single();
-
-    if (insertError || !ticket) {
-      setError(insertError?.message ?? "Failed to create task.");
+    const { ticketId, error: createError } = await createTicket(subject, description || null);
+    if (createError || !ticketId) {
+      setError(createError ?? "Failed to create task.");
       setSubmitting(false);
       return;
     }
 
-    const ticketId = ticket.id;
+    const supabase = createClient();
     for (const file of files) {
       const ext = file.name.split(".").pop() || "";
       const safeName = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
