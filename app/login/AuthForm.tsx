@@ -133,15 +133,16 @@ export default function AuthForm() {
       return;
     }
     setEmailCooldown(60);
-    if (data?.session != null) {
+    if (data?.session != null && data?.user != null) {
+      const userId = data.user.id;
       fetch("/api/emails/queue", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           template: "welcome_v1",
-          payload: { user_id: data.user.id },
-          dedupe_key: `welcome:${data.user.id}`,
+          payload: { user_id: userId },
+          dedupe_key: `welcome:${userId}`,
         }),
       }).catch(() => {});
       setRedirectingToCheckout(true);
