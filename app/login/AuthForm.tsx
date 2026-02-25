@@ -52,8 +52,11 @@ export default function AuthForm() {
   }, [next]);
 
   function redirect() {
-    // Full page load so the server receives the session cookies set by Supabase
-    window.location.href = next;
+    // Full page load so the server receives the session cookies set by Supabase.
+    // Brief delay so the session cookie is persisted before the next request (fixes prod redirect loop to /member/onboarding).
+    setTimeout(() => {
+      window.location.href = next;
+    }, 150);
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -104,11 +107,12 @@ export default function AuthForm() {
         email,
         password,
       });
-      setLoading(false);
       if (err) {
+        setLoading(false);
         setError(formatAuthError(err.message));
         return;
       }
+      // Keep loading true until redirect so user sees "Redirecting…" during cookie persist delay
       redirect();
       return;
     }
