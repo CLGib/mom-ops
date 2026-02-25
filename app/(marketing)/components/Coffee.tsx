@@ -8,7 +8,7 @@ export default function Coffee() {
           contribution.
         </p>
         <p className="section-body">
-          100% goes directly to the mom who handled your work. It&apos;s
+          Tips go directly to the mom who handled your work. It&apos;s
           completely optional, just a simple way to say thanks and support
           another mom providing for her family.
         </p>

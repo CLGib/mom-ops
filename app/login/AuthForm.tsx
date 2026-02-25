@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type Mode = "login" | "signup" | "magiclink";
+type Mode = "login" | "signup" | "magiclink" | "forgot";
 
 function formatAuthError(message: string): string {
   if (
@@ -29,6 +29,7 @@ export default function AuthForm() {
   const [redirectingToCheckout, setRedirectingToCheckout] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [resetLinkSent, setResetLinkSent] = useState(false);
   const [emailCooldown, setEmailCooldown] = useState(0);
 
   // Cooldown countdown after sending an email (avoids hitting rate limit)
@@ -60,9 +61,25 @@ export default function AuthForm() {
     setError(null);
     setSignupSuccess(false);
     setMagicLinkSent(false);
+    setResetLinkSent(false);
     setLoading(true);
 
     const supabase = createClient();
+
+    if (mode === "forgot") {
+      const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      setLoading(false);
+      if (err) {
+        setError(formatAuthError(err.message));
+        if (/rate limit|too many/i.test(err.message)) setEmailCooldown(120);
+        return;
+      }
+      setResetLinkSent(true);
+      setEmailCooldown(60);
+      return;
+    }
 
     if (mode === "magiclink") {
       const { error: err } = await supabase.auth.signInWithOtp({
@@ -117,6 +134,16 @@ export default function AuthForm() {
     }
     setEmailCooldown(60);
     if (data?.session != null) {
+      fetch("/api/emails/queue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          template: "welcome_v1",
+          payload: { user_id: data.user.id },
+          dedupe_key: `welcome:${data.user.id}`,
+        }),
+      }).catch(() => {});
       setRedirectingToCheckout(true);
       try {
         const res = await fetch("/api/stripe/checkout", {
@@ -166,13 +193,32 @@ export default function AuthForm() {
         </button>
       </div>
 
+      {mode === "login" && (
+        <p style={{ marginTop: "var(--space-sm)", marginBottom: 0 }}>
+          <button
+            type="button"
+            onClick={() => setMode("forgot")}
+            className="form-note"
+            style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline", color: "inherit" }}
+          >
+            Forgot password?
+          </button>
+        </p>
+      )}
+
       {magicLinkSent && (
         <p className="auth-success-message" role="status">
           Check your email for the sign-in link. Click it and you&apos;ll be signed in.
         </p>
       )}
 
-      {isEmailCooldown && (mode === "magiclink" || mode === "signup") && (
+      {resetLinkSent && (
+        <p className="auth-success-message" role="status">
+          Check your email for the password reset link. Click it to set a new password.
+        </p>
+      )}
+
+      {isEmailCooldown && (mode === "magiclink" || mode === "signup" || mode === "forgot") && (
         <p className="form-note" role="status">
           You can request another link in {emailCooldown} seconds.
         </p>
@@ -203,7 +249,7 @@ export default function AuthForm() {
             className="input"
           />
         </div>
-        {mode !== "magiclink" && (
+        {mode !== "magiclink" && mode !== "forgot" && (
           <div className="form-group">
             <label htmlFor="auth-password">Password</label>
             <input
@@ -218,25 +264,43 @@ export default function AuthForm() {
             />
           </div>
         )}
+        {(mode === "forgot" || mode === "login" || mode === "signup" || mode === "magiclink") && (
+          <p style={{ marginTop: "var(--space-xs)", marginBottom: 0 }}>
+            {mode === "forgot" && (
+              <button
+                type="button"
+                onClick={() => setMode("login")}
+                className="form-note"
+                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline", color: "inherit" }}
+              >
+                ← Back to log in
+              </button>
+            )}
+          </p>
+        )}
         <button
           type="submit"
-          disabled={loading || redirectingToCheckout || ((mode === "magiclink" || mode === "signup") && isEmailCooldown)}
+          disabled={loading || redirectingToCheckout || ((mode === "magiclink" || mode === "signup" || mode === "forgot") && isEmailCooldown)}
           className="btn btn-primary"
-          style={{ width: "100%" }}
+          style={{ width: "100%", marginTop: "var(--space-sm)" }}
         >
           {redirectingToCheckout
             ? "Redirecting to checkout…"
             : loading
               ? mode === "magiclink"
                 ? "Sending link…"
-                : mode === "login"
-                  ? "Signing in…"
-                  : "Creating account…"
+                : mode === "forgot"
+                  ? "Sending reset link…"
+                  : mode === "login"
+                    ? "Signing in…"
+                    : "Creating account…"
               : mode === "magiclink"
                 ? "Send me a sign-in link"
-                : mode === "login"
-                  ? "Log in"
-                  : "Sign up"}
+                : mode === "forgot"
+                  ? "Send reset link"
+                  : mode === "login"
+                    ? "Log in"
+                    : "Sign up"}
         </button>
       </form>
     </>

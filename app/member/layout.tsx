@@ -17,9 +17,11 @@ export default async function MemberLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("is_founding_member")
+    .select("is_founding_member, profile_completion, preferred_name, full_name")
     .eq("id", user.id)
     .single();
+
+  const displayName = profile?.preferred_name?.trim() || profile?.full_name?.trim() || user.email;
 
   return (
     <div className="app-shell" style={{ width: "100%" }}>
@@ -36,6 +38,15 @@ export default async function MemberLayout({
         }}
       >
         <span style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", flexWrap: "wrap" }}>
+          <Link href="/member" className="link" style={{ fontSize: "0.9rem", fontWeight: 500 }}>
+            Home
+          </Link>
+          <Link href="/member/profile" className="link" style={{ fontSize: "0.9rem", fontWeight: 500 }}>
+            Profile
+            {profile?.profile_completion != null && profile.profile_completion < 100 && (
+              <span style={{ marginLeft: "var(--space-xs)", color: "var(--text-muted, #666)" }}>({profile.profile_completion}%)</span>
+            )}
+          </Link>
           <span
             className="member-profile-email"
             style={{
@@ -43,9 +54,9 @@ export default async function MemberLayout({
               color: "var(--text-muted, #666)",
               fontWeight: 500,
             }}
-            title="Logged in as"
+            title={user.email}
           >
-            {user.email}
+            {displayName}
           </span>
           {profile?.is_founding_member && (
             <span

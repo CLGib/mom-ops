@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import CreateTicketForm from "./CreateTicketForm";
 import ReactivateButton from "./ReactivateButton";
+import OnboardingBanner from "./OnboardingBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -19,9 +20,9 @@ export default async function MemberPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=" + encodeURIComponent("/member"));
 
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
-    .select("subscription_status")
+    .select("subscription_status, onboarding_completed_at")
     .eq("id", user.id)
     .single();
 
@@ -40,9 +41,13 @@ export default async function MemberPage({
   const params = await searchParams;
   const checkoutSuccess = params.checkout === "success";
 
+  const showOnboardingBanner = profile?.onboarding_completed_at == null;
+
   return (
     <main className="app-shell">
       <h1 className="page-title">Member Dashboard</h1>
+
+      {showOnboardingBanner && <OnboardingBanner />}
 
       {checkoutSuccess && isActive && (
         <p className="auth-success-message" role="status" style={{ marginBottom: "var(--space-md)" }}>
@@ -81,7 +86,7 @@ export default async function MemberPage({
         <div className="card">
           {isActive ? (
             <>
-              <CreateTicketForm memberId={user.id} />
+              <CreateTicketForm memberId={user.id} aiEnabled={!!process.env.ANTHROPIC_API_KEY} />
               {process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL && (
                 <p className="form-note" style={{ marginTop: "var(--space-md)" }}>
                   You can also email your task to{" "}

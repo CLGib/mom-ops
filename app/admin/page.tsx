@@ -19,6 +19,12 @@ export default async function AdminPage() {
     .from("profiles")
     .select("id, role");
 
+  const { data: memberProfiles } = await supabase
+    .from("profiles")
+    .select("id, full_name, preferred_name, profile_completion, onboarding_completed_at")
+    .eq("role", "member")
+    .order("id");
+
   const { data: txRows } = await supabase
     .from("credit_transactions")
     .select("member_id, amount");
@@ -54,6 +60,35 @@ export default async function AdminPage() {
           <li>Total credits in circulation: {totalCreditsInCirculation}</li>
           <li>Profiles: {profiles?.length ?? 0}</li>
         </ul>
+      </section>
+      <section style={{ marginBottom: "var(--space-2xl)" }}>
+        <h2 className="section-heading">Members</h2>
+        <div className="card">
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid var(--color-border, #e5e5e5)" }}>
+                <th style={{ textAlign: "left", padding: "var(--space-sm)" }}>Name</th>
+                <th style={{ textAlign: "left", padding: "var(--space-sm)" }}>Profile completion</th>
+                <th style={{ textAlign: "left", padding: "var(--space-sm)" }}>Onboarding completed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(memberProfiles ?? []).map((p) => (
+                <tr key={p.id} style={{ borderBottom: "1px solid var(--color-border, #e5e5e5)" }}>
+                  <td style={{ padding: "var(--space-sm)" }}>
+                    {p.preferred_name || p.full_name || "—"}
+                  </td>
+                  <td style={{ padding: "var(--space-sm)" }}>
+                    {p.profile_completion != null ? `${p.profile_completion}%` : "—"}
+                  </td>
+                  <td style={{ padding: "var(--space-sm)" }}>
+                    {p.onboarding_completed_at ? "Yes" : "No"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
       <section style={{ marginBottom: "var(--space-2xl)" }}>
         <h2 className="section-heading">Adjust credit balance</h2>

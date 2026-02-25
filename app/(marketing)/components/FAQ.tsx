@@ -22,7 +22,7 @@ const FAQ_ITEMS = [
   {
     question: "What is the coffee contribution?",
     answer:
-      "When your task is complete, you'll have the option to add a $1 contribution. 100% goes directly to the mom who handled your work. It's completely optional - just a simple way to say thanks and support another mom providing for her family.",
+      "When your task is complete, you'll have the option to add a $1 contribution. Tips go directly to the mom who handled your work. It's completely optional - just a simple way to say thanks and support another mom providing for her family.",
   },
   {
     question: "What is your refund policy?",

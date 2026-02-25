@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
+import { queueEmail } from "@/lib/email/queue";
 
 const BUCKET = "task-attachments";
 
@@ -134,6 +135,16 @@ export async function POST(request: NextRequest) {
   }
 
   const ticketId = ticket.id;
+  try {
+    await queueEmail({
+      to_email: senderEmail,
+      template: "task_submitted_v1",
+      payload: { ticket_id: ticketId, subject: subject ?? "(No subject)" },
+      dedupe_key: `task_submitted:${ticketId}`,
+    });
+  } catch (e) {
+    console.warn("[inbound-email] queueEmail failed:", e);
+  }
   const { data: attachmentsData } = await resend.emails.receiving.attachments.list({
     emailId: email_id,
   });

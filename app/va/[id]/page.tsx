@@ -38,6 +38,11 @@ export default async function VATicketPage({
     .eq("ticket_id", id)
     .order("created_at", { ascending: true });
 
+  const { data: memberContextRows } = await supabase.rpc("get_va_member_context", {
+    p_ticket_id: id,
+  });
+  const memberContext = Array.isArray(memberContextRows) && memberContextRows.length > 0 ? memberContextRows[0] : null;
+
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/task-attachments`
     : "";
@@ -59,6 +64,31 @@ export default async function VATicketPage({
         currentCreditCost={ticket.credit_cost}
         currentTipAmount={ticket.tip_amount}
       />
+      {memberContext && (
+        <section style={{ marginBottom: "var(--space-lg)" }}>
+          <h2 className="section-heading">Member context</h2>
+          <div className="card" style={{ padding: "var(--space-md)" }}>
+            <dl style={{ margin: 0, display: "grid", gap: "var(--space-xs)", fontSize: "0.9rem" }}>
+              <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Name</dt><dd>{(memberContext as { preferred_name?: string | null; full_name?: string | null }).preferred_name || (memberContext as { full_name?: string | null }).full_name || "—"}</dd></div>
+              {(memberContext as { timezone?: string | null }).timezone && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Timezone</dt><dd>{(memberContext as { timezone: string }).timezone}</dd></div>}
+              {((memberContext as { city?: string | null }).city || (memberContext as { state?: string | null }).state) && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Location</dt><dd>{[(memberContext as { city?: string | null }).city, (memberContext as { state?: string | null }).state].filter(Boolean).join(", ") || "—"}</dd></div>}
+              {((memberContext as { kids_count?: number | null }).kids_count != null || ((memberContext as { kids_ages?: unknown }).kids_ages && Array.isArray((memberContext as { kids_ages: unknown }).kids_ages))) && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Kids</dt><dd>{(memberContext as { kids_count?: number | null }).kids_count != null ? `Count: ${(memberContext as { kids_count: number }).kids_count}` : ""}{(memberContext as { kids_ages?: unknown }).kids_ages && Array.isArray((memberContext as { kids_ages: unknown }).kids_ages) ? ` · Ages: ${(memberContext as { kids_ages: unknown[] }).kids_ages.join(", ")}` : ""}</dd></div>}
+              {(memberContext as { schools?: unknown }).schools && Array.isArray((memberContext as { schools: unknown }).schools) && (memberContext as { schools: { name?: string }[] }).schools.length > 0 && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Schools</dt><dd>{(memberContext as { schools: { name?: string }[] }).schools.map((s) => s.name || "—").join("; ")}</dd></div>}
+              {(memberContext as { activities?: unknown }).activities && Array.isArray((memberContext as { activities: unknown }).activities) && (memberContext as { activities: { name?: string }[] }).activities.length > 0 && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Activities</dt><dd>{(memberContext as { activities: { name?: string }[] }).activities.map((a) => a.name || "—").join("; ")}</dd></div>}
+              {(memberContext as { constraints?: string | null }).constraints && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Constraints</dt><dd>{(memberContext as { constraints: string }).constraints}</dd></div>}
+              {(memberContext as { communication_tone?: string | null }).communication_tone && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Tone</dt><dd style={{ textTransform: "capitalize" }}>{(memberContext as { communication_tone: string }).communication_tone}</dd></div>}
+              {(memberContext as { important_dates?: unknown }).important_dates && Array.isArray((memberContext as { important_dates: unknown }).important_dates) && (memberContext as { important_dates: { label?: string; date?: string }[] }).important_dates.length > 0 && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Important dates</dt><dd>{(memberContext as { important_dates: { label?: string; date?: string }[] }).important_dates.map((d) => `${d.label || "—"}: ${d.date || ""}`).join("; ")}</dd></div>}
+              {((memberContext as { task_submission_preference?: string | null }).task_submission_preference || (memberContext as { typical_turnaround?: string | null }).typical_turnaround) && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Preferences</dt><dd>Task submission: {(memberContext as { task_submission_preference?: string | null }).task_submission_preference || "—"} · Turnaround: {(memberContext as { typical_turnaround?: string | null }).typical_turnaround || "—"}</dd></div>}
+            </dl>
+          </div>
+        </section>
+      )}
+      {!memberContext && (
+        <section style={{ marginBottom: "var(--space-lg)" }}>
+          <h2 className="section-heading">Member context</h2>
+          <p className="form-note">No member context available.</p>
+        </section>
+      )}
       {ticket.description && (
         <div className="ticket-description">{ticket.description}</div>
       )}
@@ -78,6 +108,16 @@ export default async function VATicketPage({
                         style={{ maxWidth: 200, maxHeight: 200, objectFit: "cover", borderRadius: 4 }}
                       />
                     </a>
+                  ) : a.media_type === "audio" ? (
+                    <div>
+                      <p className="form-note" style={{ marginBottom: "var(--space-xs)" }}>Voice note</p>
+                      <audio src={url} controls style={{ maxWidth: 320 }} />
+                      {a.file_name && (
+                        <p className="form-note" style={{ marginTop: "var(--space-xs)" }}>
+                          <a href={url} target="_blank" rel="noopener noreferrer">{a.file_name}</a>
+                        </p>
+                      )}
+                    </div>
                   ) : (
                     <div>
                       <video
@@ -112,7 +152,7 @@ export default async function VATicketPage({
             </li>
           ))}
         </ul>
-        <TicketThread ticketId={id} senderId={user.id} senderRole="va" />
+        <TicketThread ticketId={id} ticketSubject={ticket.subject} senderId={user.id} senderRole="va" />
       </section>
     </main>
   );

@@ -45,7 +45,7 @@ export default async function VAPage() {
         <p style={{ fontSize: "1.25rem", fontWeight: 600, color: "var(--text)", margin: "0 0 var(--space-xs)" }}>
           ${payoutSummary.toFixed(2)}
         </p>
-        <p className="ticket-meta">20% of credit_cost + 100% of tip</p>
+        <p className="ticket-meta">20% of credit_cost + tips</p>
       </section>
       <section style={{ marginBottom: "var(--space-2xl)" }}>
         <h2 className="section-heading">Unassigned tasks (new)</h2>

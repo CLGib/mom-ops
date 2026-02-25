@@ -69,6 +69,16 @@ export default async function MemberTicketPage({
                         style={{ maxWidth: 200, maxHeight: 200, objectFit: "cover", borderRadius: 4 }}
                       />
                     </a>
+                  ) : a.media_type === "audio" ? (
+                    <div>
+                      <p className="form-note" style={{ marginBottom: "var(--space-xs)" }}>Voice note</p>
+                      <audio src={url} controls style={{ maxWidth: 320 }} />
+                      {a.file_name && (
+                        <p className="form-note" style={{ marginTop: "var(--space-xs)" }}>
+                          <a href={url} target="_blank" rel="noopener noreferrer">{a.file_name}</a>
+                        </p>
+                      )}
+                    </div>
                   ) : (
                     <div>
                       <video

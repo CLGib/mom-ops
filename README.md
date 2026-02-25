@@ -47,6 +47,10 @@ Members can create a task by sending or forwarding an email to a dedicated addre
 
 4. Tell members the inbound address; they can email or forward messages there to create tasks.
 
+## Forgot password
+
+The login page has a "Forgot password?" link. Users enter their email and receive a reset link. Add your reset-password URL to **Supabase Auth → URL Configuration → Redirect URLs** (e.g. `https://themomops.com/reset-password` and `http://localhost:3000/reset-password` for local dev).
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { queueEmail } from "@/lib/email/queue";
 
 function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -101,25 +102,55 @@ export async function POST(request: NextRequest) {
     // Respond 200 quickly so Stripe can redirect the customer, then finish DB work
     const userIdFinal = userId;
     const isFoundingFinal = isFounding;
-    setImmediate(() => {
-      getSupabase()
+    const customerId = typeof session.customer === "string" ? session.customer : (session.customer as { id?: string } | null)?.id ?? null;
+    const subscriptionIdForProfile = typeof session.subscription === "string" ? session.subscription : (session.subscription as { id?: string } | null)?.id ?? null;
+    const stripeName = session.customer_details?.name ?? null;
+    setImmediate(async () => {
+      const db = getSupabase();
+      const { error: creditError } = await db
         .from("credit_transactions")
-        .insert({ member_id: userIdFinal, amount: 45, type: "purchase" })
-        .then(({ error: creditError }) => {
-          if (creditError) {
-            console.error("[webhook] credit_transactions insert failed", creditError);
-            return;
-          }
-          const profileUpdate: { subscription_status: string; is_founding_member?: boolean } = { subscription_status: "active" };
-          if (isFoundingFinal) profileUpdate.is_founding_member = true;
-          getSupabase()
-            .from("profiles")
-            .update(profileUpdate)
-            .eq("id", userIdFinal)
-            .then(() => {
-              console.log("[webhook] checkout.session.completed: granted 45 credits + active for user", userIdFinal, isFoundingFinal ? "(founding member)" : "");
-            });
-        });
+        .insert({ member_id: userIdFinal, amount: 45, type: "purchase" });
+      if (creditError) {
+        console.error("[webhook] credit_transactions insert failed", creditError);
+        return;
+      }
+      const profileUpdate: {
+        subscription_status: string;
+        is_founding_member?: boolean;
+        stripe_customer_id?: string | null;
+        stripe_subscription_id?: string | null;
+        full_name?: string | null;
+      } = { subscription_status: "active" };
+      if (isFoundingFinal) profileUpdate.is_founding_member = true;
+      if (customerId) profileUpdate.stripe_customer_id = customerId;
+      if (subscriptionIdForProfile) profileUpdate.stripe_subscription_id = subscriptionIdForProfile;
+      const { data: existingProfile } = await db
+        .from("profiles")
+        .select("full_name")
+        .eq("id", userIdFinal)
+        .single();
+      if (existingProfile?.full_name == null && stripeName && typeof stripeName === "string" && stripeName.trim()) {
+        profileUpdate.full_name = stripeName.trim();
+      }
+      const { error: profileError } = await db
+        .from("profiles")
+        .update(profileUpdate)
+        .eq("id", userIdFinal);
+      if (profileError) {
+        console.error("[webhook] profiles update failed", profileError);
+      } else {
+        console.log("[webhook] checkout.session.completed: granted 45 credits + active for user", userIdFinal, isFoundingFinal ? "(founding member)" : "", profileUpdate.full_name ? "+ name" : "");
+        try {
+          await queueEmail({
+            to_email: null,
+            template: "payment_success_v1",
+            payload: { member_id: userIdFinal },
+            dedupe_key: `payment_success:${session.id}`,
+          });
+        } catch (e) {
+          console.warn("[webhook] queueEmail payment_success_v1 failed", e);
+        }
+      }
     });
 
     return NextResponse.json({ received: true });
@@ -189,6 +220,58 @@ export async function POST(request: NextRequest) {
         { error: "Failed to mark subscription canceled", detail: updateError.message },
         { status: 500 }
       );
+    }
+    try {
+      await queueEmail({
+        to_email: null,
+        template: "subscription_canceled_v1",
+        payload: { member_id: userId },
+        dedupe_key: `subscription_canceled:${userId}:${event.id}`,
+      });
+    } catch (e) {
+      console.warn("[webhook] queueEmail subscription_canceled_v1 failed", e);
+    }
+  } else if (event.type === "invoice.payment_failed") {
+    if (await claimEvent(supabase, event.id)) {
+      return NextResponse.json({ received: true, idempotent: true });
+    }
+    const invoice = event.data.object as Stripe.Invoice;
+    const subscriptionId =
+      typeof invoice.subscription === "string"
+        ? invoice.subscription
+        : (invoice.subscription as Stripe.Subscription)?.id;
+    let userId: string | null = null;
+    if (subscriptionId) {
+      try {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        userId = subscription.metadata?.user_id ?? null;
+      } catch {
+        // ignore
+      }
+    }
+    if (!userId && invoice.customer) {
+      const custId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+      if (custId) {
+        const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+        const customer = await stripe.customers.retrieve(custId);
+        const email = (customer as Stripe.Customer).email;
+        if (email && users?.length) {
+          const match = users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+          if (match) userId = match.id;
+        }
+      }
+    }
+    if (userId) {
+      try {
+        await queueEmail({
+          to_email: null,
+          template: "payment_failed_v1",
+          payload: { member_id: userId },
+          dedupe_key: `payment_failed:${invoice.id}`,
+        });
+      } catch (e) {
+        console.warn("[webhook] queueEmail payment_failed_v1 failed", e);
+      }
     }
   }
 
