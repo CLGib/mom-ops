@@ -106,7 +106,7 @@ function escapeHtml(s: string): string {
 
 /** Resolve recipient email: use row.to_email or look up by payload.member_id via Auth Admin. */
 async function resolveToEmail(
-  supabase: ReturnType<typeof createClient>,
+  supabase: ReturnType<typeof getServiceSupabase>,
   row: OutboxRow
 ): Promise<string | null> {
   if (row.to_email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.to_email))
