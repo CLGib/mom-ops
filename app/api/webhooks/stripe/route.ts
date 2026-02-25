@@ -236,10 +236,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true, idempotent: true });
     }
     const invoice = event.data.object as Stripe.Invoice;
+    const sub = invoice.parent?.subscription_details?.subscription;
     const subscriptionId =
-      typeof invoice.subscription === "string"
-        ? invoice.subscription
-        : (invoice.subscription as Stripe.Subscription)?.id;
+      typeof sub === "string" ? sub : sub?.id ?? null;
     let userId: string | null = null;
     if (subscriptionId) {
       try {
