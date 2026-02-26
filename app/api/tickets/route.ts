@@ -1,15 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { createClient as createServerClient } from "@/lib/supabase/server";
+import { createServerClient } from "@supabase/ssr";
+
+import { createClient as createServerClientFromCookies } from "@/lib/supabase/server";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export async function POST(request: NextRequest) {
   try {
-    const serverClient = await createServerClient();
-    const {
-      data: { user },
-    } = await serverClient.auth.getUser();
+    // Try request cookies first (what the client sent)
+    let serverClient = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll() {},
+      },
+    });
+    let { data: { user } } = await serverClient.auth.getUser();
+
+    // Fallback: use next/headers cookies() — on Vercel it sometimes has the session when request.cookies doesn't
     if (!user) {
-      return NextResponse.json({ error: "Not logged in." }, { status: 401 });
+      const serverClientAlt = await createServerClientFromCookies();
+      const { data } = await serverClientAlt.auth.getUser();
+      user = data.user ?? undefined;
+    }
+
+    if (!user) {
+      const cookieCount = request.cookies.getAll().length;
+      const hasAuthCookie = request.cookies
+        .getAll()
+        .some((c) => c.name.includes("supabase") || c.name.includes("sb-"));
+      return NextResponse.json(
+        {
+          error: "Not logged in.",
+          debug: {
+            cookieCount,
+            hasAuthCookie,
+            hint:
+              cookieCount === 0
+                ? "No cookies sent with request — check credentials: 'include' and same origin."
+                : !hasAuthCookie
+                  ? "Cookies sent but no Supabase auth cookie. Log in again; if it persists, check Supabase Auth URL config uses themomops.com."
+                  : "Auth cookie sent but getUser() returned null — session may be expired or invalid.",
+          },
+        },
+        { status: 401 }
+      );
     }
 
     const body = await request.json().catch(() => ({}));

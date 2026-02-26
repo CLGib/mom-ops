@@ -126,8 +126,12 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
       const data = await res.json().catch(() => ({}));
       const ticketId = data?.ticketId;
       const createError = data?.error;
+      const debugHint = data?.debug?.hint;
       if (!res.ok || createError || !ticketId) {
-        setError(createError ?? "Failed to create task.");
+        const message = createError
+          ? (debugHint ? `${createError} ${debugHint}` : createError)
+          : "Failed to create task.";
+        setError(message);
         return;
       }
 
