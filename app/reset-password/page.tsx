@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 
 export default function ResetPasswordPage() {
@@ -18,17 +19,19 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     const supabase = createClient();
     let cancelled = false;
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       if (session && !cancelled) setReady(true);
     });
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data }: { data: { session: Session | null } }) => {
+      const session = data.session;
       if (cancelled) return;
       if (session) {
         setReady(true);
       } else {
         const t = setTimeout(() => {
           if (cancelled) return;
-          supabase.auth.getSession().then(({ data: { session: s } }) => {
+          supabase.auth.getSession().then(({ data }: { data: { session: Session | null } }) => {
+            const s = data.session;
             if (!cancelled && !s) setInvalidLink(true);
           });
         }, 2000);
