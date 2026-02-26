@@ -115,9 +115,13 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
     setSubmitting(true);
 
     try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token ?? null;
+
       let result: { ticketId?: string; error?: string };
       try {
-        result = await createTicket(subject, description || null);
+        result = await createTicket(subject, description || null, accessToken);
       } catch (actionErr) {
         setError("Something went wrong. Please try again.");
         return;
@@ -129,7 +133,6 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
         return;
       }
 
-      const supabase = createClient();
       for (const file of files) {
         const ext = file.name.split(".").pop() || "";
         const safeName = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;

@@ -3,6 +3,11 @@ import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(req: NextRequest) {
   try {
+    // Let server action POSTs through; they authenticate via token in the action
+    if (req.method === "POST" && req.headers.get("next-action")) {
+      return NextResponse.next();
+    }
+
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 

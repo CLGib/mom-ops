@@ -5,13 +5,25 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 
 export async function createTicket(
   subject: string,
-  description: string | null
+  description: string | null,
+  accessToken?: string | null
 ): Promise<{ ticketId?: string; error?: string }> {
   try {
-    const serverClient = await createServerClient();
-    const {
-      data: { user },
-    } = await serverClient.auth.getUser();
+    let user: { id: string } | null = null;
+    if (accessToken?.trim()) {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (url && anon) {
+        const supabase = createClient(url, anon);
+        const { data } = await supabase.auth.getUser(accessToken.trim());
+        user = data.user ?? null;
+      }
+    }
+    if (!user) {
+      const serverClient = await createServerClient();
+      const { data } = await serverClient.auth.getUser();
+      user = data.user ?? null;
+    }
     if (!user) {
       return { error: "Not logged in." };
     }
