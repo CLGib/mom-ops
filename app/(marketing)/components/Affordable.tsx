@@ -5,20 +5,28 @@ export default function Affordable() {
         <h2 className="section-title">How is this so affordable?</h2>
         <p className="section-lead">Great question.</p>
         <p className="section-body">
-          We keep Mom Ops accessible by building a remote, global team. Many of
-          our virtual assistants are based in the Philippines, where the cost of
-          living is different from the United States. We pay competitive, fair
-          wages in their local market and provide consistent, structured work.
+          Mom Ops is built on an on-demand model. You&apos;re not paying for
+          full-time staff, idle hours, or traditional agency overhead. You only
+          pay for completed tasks.
         </p>
         <p className="section-body">
-          You benefit from the currency difference.
+          Our specialists work flexibly, choosing jobs that fit their schedule
+          and getting paid per task. Because we operate without layers of
+          management, office space, or retainers, we&apos;re able to keep
+          pricing sustainable for families.
+        </p>
+        <p className="section-body">
+          It&apos;s simple:
           <br />
-          They benefit from stable, flexible income.
+          You pay for the work you need.
+          <br />
+          Our team gets flexible, structured income.
+          <br />
+          No bloated overhead. No wasted time.
         </p>
         <p className="section-body">
-          It&apos;s a model used by companies of all sizes - from startups to
-          Fortune 500 brands - and it allows us to offer meaningful support at a
-          price most families can sustain.
+          That efficiency is what makes Mom Ops accessible — without cutting
+          corners on quality.
         </p>
         <p className="section-body">
           We believe in transparency, fair pay, and long-term partnerships.

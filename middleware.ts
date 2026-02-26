@@ -9,6 +9,17 @@ function dashboardForRole(role: Role): string {
 
 export async function middleware(req: NextRequest) {
   try {
+    // Canonical domain: redirect www to apex so cookies stay on one host
+    const host = req.nextUrl.hostname;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    const apexHost = siteUrl ? new URL(siteUrl).hostname : "themomops.com";
+    if (host === `www.${apexHost}`) {
+      const url = req.nextUrl.clone();
+      url.host = apexHost;
+      url.protocol = "https:";
+      return NextResponse.redirect(url, 308);
+    }
+
     // Let server action POSTs through; they authenticate via token in the action
     const nextAction = req.headers.get("next-action") ?? req.headers.get("Next-Action");
     if (req.method === "POST" && nextAction) {

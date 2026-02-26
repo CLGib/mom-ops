@@ -84,10 +84,12 @@ export default function AuthForm() {
     }
 
     if (mode === "magiclink") {
+      // Use canonical origin so cookies are set on production domain (themomops.com), not preview URLs
+      const origin = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       const { error: err } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/login?next=${encodeURIComponent(next)}`,
+          emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
         },
       });
       setLoading(false);
