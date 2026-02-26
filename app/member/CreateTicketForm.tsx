@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useState, useRef } from "react";
-import { createTicket } from "./actions";
 
 const BUCKET = "task-attachments";
 const MAX_FILE_SIZE_MB = 50;
@@ -115,8 +114,19 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
     setSubmitting(true);
 
     try {
-      const { ticketId, error: createError } = await createTicket(subject, description || null);
-      if (createError || !ticketId) {
+      const res = await fetch("/api/tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          subject,
+          description: description || null,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      const ticketId = data?.ticketId;
+      const createError = data?.error;
+      if (!res.ok || createError || !ticketId) {
         setError(createError ?? "Failed to create task.");
         return;
       }
