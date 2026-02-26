@@ -10,7 +10,8 @@ function dashboardForRole(role: Role): string {
 export async function middleware(req: NextRequest) {
   try {
     // Let server action POSTs through; they authenticate via token in the action (R4)
-    if (req.method === "POST" && req.headers.get("next-action")) {
+    const nextAction = req.headers.get("next-action") ?? req.headers.get("Next-Action");
+    if (req.method === "POST" && nextAction) {
       return NextResponse.next();
     }
 
