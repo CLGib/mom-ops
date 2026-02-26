@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import type { Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 
 type Mode = "login" | "magiclink" | "forgot";
@@ -42,7 +43,7 @@ export default function AuthForm() {
   // When returning from magic link click, session exists — full page redirect so server sees cookies
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
       if (session) {
         window.location.href = next;
       }
