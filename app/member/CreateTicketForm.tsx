@@ -115,10 +115,15 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
     setSubmitting(true);
 
     try {
-      const { ticketId, error: createError } = await createTicket(
-        subject,
-        description || null
-      );
+      let result: { ticketId?: string; error?: string };
+      try {
+        result = await createTicket(subject, description || null);
+      } catch (actionErr) {
+        setError("Something went wrong. Please try again.");
+        return;
+      }
+      const ticketId = result?.ticketId;
+      const createError = result?.error;
       if (createError || !ticketId) {
         setError(createError ?? "Failed to create task.");
         return;

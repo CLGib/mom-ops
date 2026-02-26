@@ -38,12 +38,12 @@ export async function createTicket(
       return { error: error.message };
     }
     const id = ticket?.id;
-    if (!id || typeof id !== "string") {
+    if (id == null) {
       return { error: "Failed to create task." };
     }
-    return { ticketId: id };
+    return { ticketId: String(id) };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Something went wrong.";
-    return { error: message };
+    return { error: String(message) };
   }
 }
