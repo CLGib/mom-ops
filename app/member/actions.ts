@@ -12,6 +12,8 @@ function supabaseFromToken(token: string) {
   });
 }
 
+const AUTH_DEBUG = process.env.NODE_ENV === "development" || process.env.DEBUG_AUTH === "1";
+
 export async function createTicket(
   subject: string,
   description: string | null,
@@ -20,13 +22,24 @@ export async function createTicket(
   try {
     let user: { id: string } | null = null;
     const token = accessToken?.trim();
+    let bearerOk = false;
+    let cookieOk = false;
+
+    if (AUTH_DEBUG) {
+      console.debug("[createTicket] auth input:", {
+        tokenPassed: !!token,
+        tokenLength: token?.length ?? 0,
+      });
+    }
+
     if (token) {
       const supabase = supabaseFromToken(token);
       const { data, error } = await supabase.auth.getUser();
       if (!error && data?.user) {
         user = data.user;
-      } else if (process.env.NODE_ENV === "development") {
-        console.warn("[createTicket] token branch:", {
+        bearerOk = true;
+      } else if (AUTH_DEBUG) {
+        console.warn("[createTicket] bearer path:", {
           hasError: !!error,
           errorMessage: error?.message,
           errorStatus: (error as { status?: number } | undefined)?.status,
@@ -38,8 +51,17 @@ export async function createTicket(
       const serverClient = await createServerClient();
       const { data } = await serverClient.auth.getUser();
       user = data.user ?? null;
+      cookieOk = !!user;
     }
     if (!user) {
+      if (AUTH_DEBUG) {
+        console.warn("[createTicket] Not logged in:", {
+          tokenPassed: !!token,
+          tokenLength: token?.length ?? 0,
+          bearerOk,
+          cookieOk,
+        });
+      }
       return { error: "Not logged in." };
     }
 

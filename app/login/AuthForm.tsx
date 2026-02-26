@@ -21,6 +21,7 @@ export default function AuthForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/";
   const isCheckoutIntent = next.includes("checkout=1");
+  const roleNotSet = searchParams.get("error") === "role_not_set";
 
   const [mode, setMode] = useState<Mode>(isCheckoutIntent ? "magiclink" : "login");
   const [email, setEmail] = useState("");
@@ -40,15 +41,15 @@ export default function AuthForm() {
     return () => clearInterval(t);
   }, [emailCooldown]);
 
-  // When returning from magic link click, session exists — full page redirect so server sees cookies
+  // When returning from magic link, server handles redirect by role on full page load; this is a fallback
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
       if (session) {
-        window.location.href = next;
+        window.location.reload();
       }
     });
-  }, [next]);
+  }, []);
 
   function redirect() {
     // Full page load so the server receives the session cookies set by Supabase.
@@ -171,6 +172,11 @@ export default function AuthForm() {
       )}
 
       <form onSubmit={handleSubmit}>
+        {roleNotSet && (
+          <p className="form-error" role="alert">
+            Account role not set. Contact support.
+          </p>
+        )}
         {error && (
           <p className="form-error" role="alert">
             {error}

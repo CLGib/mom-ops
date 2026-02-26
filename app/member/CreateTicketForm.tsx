@@ -142,6 +142,14 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
     }
 
     try {
+      // Debug: verify session/token before submit (safe: no token value logged)
+      if (process.env.NODE_ENV === "development") {
+        console.debug("[CreateTicketForm] submit:", {
+          sessionLoaded,
+          hasToken: !!accessToken,
+          tokenLength: accessToken?.length ?? 0,
+        });
+      }
       const supabase = createClient();
       let result: { ticketId?: string; error?: string };
       try {
