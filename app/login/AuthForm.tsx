@@ -52,10 +52,11 @@ export default function AuthForm() {
   }, []);
 
   function redirect() {
-    // Full page load so the server receives the session cookies set by Supabase.
-    // Brief delay so the session cookie is persisted before the next request (fixes prod redirect loop to /member/onboarding).
+    // Full page load so the server receives the session cookies and can redirect by role (A1).
+    // Go to /login (with optional next) so the login page server component runs and redirects to dashboard or next.
+    const url = next && next !== "/" ? `/login?next=${encodeURIComponent(next)}` : "/login";
     setTimeout(() => {
-      window.location.href = next;
+      window.location.href = url;
     }, 150);
   }
 
