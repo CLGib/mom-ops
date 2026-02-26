@@ -28,14 +28,15 @@ export default async function LoginPage({
   } = await supabase.auth.getUser();
 
   if (user) {
-    const { data: roleRow } = await supabase
+    const { data: roleRow, error: roleErr } = await supabase
       .from("user_roles")
       .select("role")
+      .eq("user_id", user.id)
       .maybeSingle();
     const role = (roleRow?.role as Role | undefined) ?? null;
 
-    if (!role || !["member", "va", "admin"].includes(role)) {
-      redirect("/login?error=role_not_set");
+    if (roleErr || !role || !["member", "va", "admin"].includes(role)) {
+      redirect("/no-access?reason=role_not_set");
     }
 
     const params = await searchParams;

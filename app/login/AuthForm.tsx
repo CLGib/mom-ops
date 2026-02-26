@@ -174,13 +174,9 @@ export default function AuthForm() {
       {clientHasSession === true && (
         <p className="form-note" style={{ marginBottom: "var(--space-md)" }}>
           You’re already signed in.{" "}
-          <button
-            type="button"
-            className="auth-form-link"
-            onClick={() => { window.location.href = "/login"; }}
-          >
+          <a href="/member" className="auth-form-link">
             Go to your dashboard
-          </button>
+          </a>
         </p>
       )}
       <form onSubmit={handleSubmit}>

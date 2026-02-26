@@ -9,7 +9,7 @@ function dashboardForRole(role: Role): string {
 
 export async function middleware(req: NextRequest) {
   try {
-    // Let server action POSTs through; they authenticate via token in the action (R4)
+    // Let server action POSTs through; they authenticate via token in the action
     const nextAction = req.headers.get("next-action") ?? req.headers.get("Next-Action");
     if (req.method === "POST" && nextAction) {
       return NextResponse.next();
@@ -17,13 +17,10 @@ export async function middleware(req: NextRequest) {
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) return NextResponse.next();
 
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.next();
-    }
-
-    let res = NextResponse.next({ request: req });
-    const path = req.nextUrl.pathname;
+    const res = NextResponse.next({ request: req });
+    const pathWithQuery = req.nextUrl.pathname + req.nextUrl.search;
 
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
@@ -38,45 +35,54 @@ export async function middleware(req: NextRequest) {
       },
     });
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    const user = userData?.user ?? null;
 
     if (!user) {
       const loginUrl = req.nextUrl.clone();
       loginUrl.pathname = "/login";
-      loginUrl.searchParams.set("next", path);
+      loginUrl.searchParams.set("next", pathWithQuery);
       return NextResponse.redirect(loginUrl);
     }
 
-    // Role-based access (R1, R2, R3): get role from user_roles (RLS allows own row)
-    const { data: roleRow } = await supabase
+    // Fetch role for THIS user
+    const { data: roleRow, error: roleErr } = await supabase
       .from("user_roles")
       .select("role")
+      .eq("user_id", user.id)
       .maybeSingle();
+
+    if (process.env.NODE_ENV === "development" && roleErr) {
+      console.warn("[middleware] user_roles fetch:", roleErr.message);
+    }
+
     const role = (roleRow?.role as Role | undefined) ?? null;
 
-    if (!role || !["member", "va", "admin"].includes(role)) {
-      const loginUrl = req.nextUrl.clone();
-      loginUrl.pathname = "/login";
-      loginUrl.searchParams.set("next", path);
-      loginUrl.searchParams.set("error", "role_not_set");
-      return NextResponse.redirect(loginUrl);
+    if (roleErr || !role || !["member", "va", "admin"].includes(role)) {
+      // Authenticated but missing role -> send to dedicated page (avoid login loop)
+      const noAccessUrl = req.nextUrl.clone();
+      noAccessUrl.pathname = "/no-access";
+      noAccessUrl.searchParams.set("reason", "role_not_set");
+      return NextResponse.redirect(noAccessUrl);
     }
 
     // Enforce route by role
+    const path = req.nextUrl.pathname;
+
     if (path.startsWith("/member")) {
       if (role !== "member" && role !== "admin") {
         return NextResponse.redirect(new URL(dashboardForRole(role), req.url));
       }
       return res;
     }
+
     if (path.startsWith("/va")) {
       if (role !== "va" && role !== "admin") {
         return NextResponse.redirect(new URL(dashboardForRole(role), req.url));
       }
       return res;
     }
+
     if (path.startsWith("/admin")) {
       if (role !== "admin") {
         return NextResponse.redirect(new URL(dashboardForRole(role), req.url));
