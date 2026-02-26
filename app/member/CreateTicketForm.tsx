@@ -114,55 +114,63 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
     setError(null);
     setSubmitting(true);
 
-    const { ticketId, error: createError } = await createTicket(subject, description || null);
-    if (createError || !ticketId) {
-      setError(createError ?? "Failed to create task.");
-      setSubmitting(false);
-      return;
-    }
-
-    const supabase = createClient();
-    for (const file of files) {
-      const ext = file.name.split(".").pop() || "";
-      const safeName = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
-      const path = `${ticketId}/${safeName}`;
-      const { error: uploadError } = await supabase.storage
-        .from(BUCKET)
-        .upload(path, file, { contentType: file.type, upsert: false });
-
-      if (uploadError) {
-        setError(`Upload failed for "${file.name}": ${uploadError.message}`);
-        setSubmitting(false);
-        router.refresh();
+    try {
+      const { ticketId, error: createError } = await createTicket(subject, description || null);
+      if (createError || !ticketId) {
+        setError(createError ?? "Failed to create task.");
         return;
       }
 
-      await supabase.from("ticket_attachments").insert({
-        ticket_id: ticketId,
-        file_path: path,
-        file_name: file.name,
-        media_type: getMediaType(file),
-      });
+      const supabase = createClient();
+      for (const file of files) {
+        const ext = file.name.split(".").pop() || "";
+        const safeName = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+        const path = `${ticketId}/${safeName}`;
+        const { error: uploadError } = await supabase.storage
+          .from(BUCKET)
+          .upload(path, file, { contentType: file.type, upsert: false });
+
+        if (uploadError) {
+          setError(`Upload failed for "${file.name}": ${uploadError.message}`);
+          router.refresh();
+          return;
+        }
+
+        const { error: attachError } = await supabase.from("ticket_attachments").insert({
+          ticket_id: ticketId,
+          file_path: path,
+          file_name: file.name,
+          media_type: getMediaType(file),
+        });
+        if (attachError) {
+          setError(`Could not attach "${file.name}". Task was created; you can add details in the task.`);
+          router.refresh();
+          return;
+        }
+      }
+
+      fetch("/api/emails/queue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          template: "task_submitted_v1",
+          payload: { ticket_id: ticketId, subject },
+          dedupe_key: `task_submitted:${ticketId}`,
+        }),
+      }).catch(() => {});
+
+      setSubject("");
+      setDescription("");
+      setFiles([]);
+      setTemplateId("other");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
-
-    fetch("/api/emails/queue", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        template: "task_submitted_v1",
-        payload: { ticket_id: ticketId, subject },
-        dedupe_key: `task_submitted:${ticketId}`,
-      }),
-    }).catch(() => {});
-
-    setSubject("");
-    setDescription("");
-    setFiles([]);
-    setTemplateId("other");
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    setSubmitting(false);
-    router.refresh();
   }
 
   async function handleExpandWithAi() {

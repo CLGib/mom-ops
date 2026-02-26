@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -61,9 +60,9 @@ export default function OnboardingBanner() {
         Want us to work faster for you? Take a 60-second setup survey (optional).
       </p>
       <div style={{ display: "flex", gap: "var(--space-sm)", flexWrap: "wrap" }}>
-        <Link href="/member/onboarding" className="btn btn-primary">
+        <a href="/member/onboarding" className="btn btn-primary">
           Take survey
-        </Link>
+        </a>
         <button type="button" onClick={handleSkip} className="btn">
           Skip for now
         </button>
