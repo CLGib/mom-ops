@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createTicket } from "./actions";
 
 const BUCKET = "task-attachments";
@@ -37,9 +37,25 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
   const [submitting, setSubmitting] = useState(false);
   const [expanding, setExpanding] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [sessionLoaded, setSessionLoaded] = useState(false);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const load = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setAccessToken(session?.access_token ?? null);
+      setSessionLoaded(true);
+    };
+    load();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      load();
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   async function startRecording() {
     try {
@@ -114,11 +130,19 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
     setError(null);
     setSubmitting(true);
 
+    if (!sessionLoaded) {
+      setError("Loading session…");
+      setSubmitting(false);
+      return;
+    }
+    if (!accessToken?.trim()) {
+      setError("Not logged in. Please refresh the page or log in again.");
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token ?? null;
-
       let result: { ticketId?: string; error?: string };
       try {
         result = await createTicket(subject, description || null, accessToken);
@@ -295,8 +319,12 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
           {error}
         </p>
       )}
-      <button type="submit" className="btn btn-primary" disabled={submitting}>
-        {submitting ? "Submitting…" : "Submit task"}
+      <button
+        type="submit"
+        className="btn btn-primary"
+        disabled={submitting || !sessionLoaded || !accessToken}
+      >
+        {!sessionLoaded ? "Loading…" : submitting ? "Submitting…" : "Submit task"}
       </button>
     </form>
   );
