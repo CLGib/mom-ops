@@ -60,7 +60,14 @@ export default function OnboardingBanner() {
         Want us to work faster for you? Take a 60-second setup survey (optional).
       </p>
       <div style={{ display: "flex", gap: "var(--space-sm)", flexWrap: "wrap" }}>
-        <a href="/member/onboarding" className="btn btn-primary">
+        <a
+          href="/member/onboarding"
+          className="btn btn-primary"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = "/member/onboarding";
+          }}
+        >
           Take survey
         </a>
         <button type="button" onClick={handleSkip} className="btn">

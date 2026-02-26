@@ -14,9 +14,19 @@ const sourceSans = Source_Sans_3({
   variable: "--font-body",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://themomops.com";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Mom Ops",
   description: "Virtual assistant support built by moms. Systems, support, and a little less chaos.",
+  openGraph: {
+    images: ["/assets/got-this.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/assets/got-this.png"],
+  },
 };
 
 export default function RootLayout({

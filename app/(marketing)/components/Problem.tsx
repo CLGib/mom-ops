@@ -22,8 +22,8 @@ export default function Problem() {
           </div>
           <div className="problem-image-card">
             <img
-              src="/assets/pta-email.png"
-              alt="Cluttered desk with to-do lists, sticky notes, and reminders—the invisible mental load of mom life."
+              src="/assets/got-this.png"
+              alt="Organized planning: to-do lists, calendars, reminders, and encouragement—you got this."
               width={320}
               height={480}
               className="problem-image"

@@ -31,6 +31,7 @@ export default function AuthForm() {
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [resetLinkSent, setResetLinkSent] = useState(false);
   const [emailCooldown, setEmailCooldown] = useState(0);
+  const [clientHasSession, setClientHasSession] = useState<boolean | null>(null);
 
   // Cooldown countdown after sending an email (avoids hitting rate limit)
   useEffect(() => {
@@ -41,13 +42,11 @@ export default function AuthForm() {
     return () => clearInterval(t);
   }, [emailCooldown]);
 
-  // When returning from magic link, server handles redirect by role on full page load; this is a fallback
+  // If client has a session but server showed the form (e.g. cookie not yet sent), offer one click to retry—no auto-reload to avoid loop that blocks typing
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
-      if (session) {
-        window.location.reload();
-      }
+      setClientHasSession(!!session);
     });
   }, []);
 
@@ -172,6 +171,18 @@ export default function AuthForm() {
         </p>
       )}
 
+      {clientHasSession === true && (
+        <p className="form-note" style={{ marginBottom: "var(--space-md)" }}>
+          You’re already signed in.{" "}
+          <button
+            type="button"
+            className="auth-form-link"
+            onClick={() => { window.location.href = "/login"; }}
+          >
+            Go to your dashboard
+          </button>
+        </p>
+      )}
       <form onSubmit={handleSubmit}>
         {roleNotSet && (
           <p className="form-error" role="alert">

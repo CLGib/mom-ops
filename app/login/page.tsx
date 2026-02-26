@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import AuthForm from "./AuthForm";
+import RedirectToDashboard from "./RedirectToDashboard";
 import { createClient } from "@/lib/supabase/server";
 
 type Role = "member" | "va" | "admin";
@@ -42,7 +43,8 @@ export default async function LoginPage({
     const dashboard = dashboardForRole(role);
     const target =
       next && roleCanAccessPath(role, next) ? next : dashboard;
-    redirect(target);
+    // Client-side redirect so the browser sends cookies on the next request (avoids redirect loop)
+    return <RedirectToDashboard target={target} />;
   }
 
   return (
