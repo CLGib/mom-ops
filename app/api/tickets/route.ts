@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       const serverClientAlt = await createServerClientFromCookies();
       const { data } = await serverClientAlt.auth.getUser();
-      user = data.user ?? undefined;
+      user = data.user ?? null;
     }
 
     if (!user) {
