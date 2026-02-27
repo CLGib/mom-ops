@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 export const metadata = {
   title: "Access pending - Mom Ops",
   description: "Your account does not have access yet. Contact support.",
@@ -21,9 +19,9 @@ export default function NoAccessPage({
           Please contact support so we can get you in.
         </p>
         <p style={{ marginBottom: 0 }}>
-          <Link href="/api/auth/signout" className="btn btn-secondary">
+          <a href="/api/auth/signout" className="btn btn-secondary">
             Sign out
-          </Link>
+          </a>
         </p>
       </div>
     </div>

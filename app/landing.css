@@ -1058,23 +1058,28 @@ details[open] .faq-question::after {
   opacity: 0.8;
 }
 
+/* Mobile: show only Login link, no hamburger */
+.nav-mobile {
+  display: none;
+}
+.nav-mobile a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.nav-mobile a:hover {
+  color: var(--text);
+}
+
 @media (max-width: 768px) {
   .nav {
     display: none;
   }
-  .nav.is-open {
+  .nav-mobile {
     display: flex;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    flex-direction: column;
-    padding: var(--space-md);
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
+    align-items: center;
   }
   .menu-toggle {
-    display: flex;
+    display: none;
   }
   .token-cards {
     grid-template-columns: 1fr;
@@ -1122,6 +1127,54 @@ details[open] .faq-question::after {
 
 .app-shell--narrow {
   max-width: 28rem;
+}
+
+/* Member dashboard header - responsive so "Log out" doesn't wrap on mobile */
+.member-profile-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  margin-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--color-border, #e5e5e5);
+}
+
+.member-profile-bar__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.member-profile-bar__user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.member-profile-bar__user .member-profile-email {
+  font-size: 0.875rem;
+  color: var(--text-muted, #666);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 12rem;
+}
+
+@media (max-width: 480px) {
+  .member-profile-bar__user .member-profile-email {
+    max-width: 8rem;
+  }
+}
+
+.member-profile-bar__user .member-profile-bar__logout {
+  white-space: nowrap;
+  font-size: 0.875rem;
 }
 
 .auth-tabs {
@@ -1469,4 +1522,98 @@ textarea.input {
 .not-found-link:hover {
   background: var(--accent);
   color: var(--surface);
+}
+
+/* ============================================
+   Member dashboard – mobile-first (Submit a task)
+   ============================================ */
+
+/* On mobile: full-width container with comfortable padding; safe area at bottom */
+.app-shell--member {
+  max-width: 100%;
+  padding: 1rem 1rem calc(6rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 768px) {
+  .app-shell--member {
+    max-width: var(--container);
+    margin-left: auto;
+    margin-right: auto;
+    padding: var(--space-2xl) var(--space-lg) var(--space-2xl);
+  }
+}
+
+/* Credits line: one line, smaller, no awkward wrap */
+.member-credits-line {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-md);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 480px) {
+  .member-credits-line {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+}
+
+.member-credits-line strong {
+  color: var(--text);
+}
+
+/* Submit section: card full width on mobile, tighter padding */
+.member-submit-card {
+  width: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .member-submit-card {
+    padding: var(--space-lg);
+  }
+}
+
+/* Form: full-width inputs, no clipping, consistent spacing */
+.member-submit-form .form-group {
+  margin-bottom: 1rem;
+}
+
+.member-submit-form .form-group:last-of-type {
+  margin-bottom: 0;
+}
+
+.member-submit-form .input,
+.member-submit-form textarea.input,
+.member-submit-form select.input {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Select: room for chevron so text doesn't clip */
+.member-submit-form select.input {
+  padding-right: 2.5rem;
+  appearance: auto;
+}
+
+/* Description textarea: comfortable min height on mobile */
+.member-submit-form textarea.input {
+  min-height: 140px;
+}
+
+@media (min-width: 768px) {
+  .member-submit-form textarea.input {
+    min-height: 120px;
+  }
+}
+
+/* Request VA select: full width on mobile (override any max-width) */
+.member-submit-form #request-va {
+  max-width: none;
 }

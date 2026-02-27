@@ -1,8 +1,10 @@
 /**
  * Server-only: send a single outbound email from a queue row. Resolves to_email from payload.member_id if needed.
+ * Copy follows Mom Ops brand: calm, competent, warm authority, relief-oriented. Short and skimmable.
  */
 import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
+import { sanitizeMessageBody } from "@/lib/sanitize-html";
 
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? "support@themomops.com";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://themomops.com";
@@ -36,37 +38,72 @@ function getTemplate(
     welcome_v1: () => ({
       subject: "Welcome to Mom Ops",
       html: `
-        <p>Thanks for signing up!</p>
-        <p>Complete your checkout to get started, then head to your dashboard to submit your first task.</p>
+        <p>You're in. Complete checkout to get started.</p>
         <p><a href="${memberDashboard}">Go to your dashboard</a></p>
-        <p>— The Mom Ops Team</p>
+        <p>— Mom Ops</p>
+      `.trim(),
+    }),
+    welcome_after_signup_v1: () => ({
+      subject: "You're in — here's how it works",
+      html: `
+        <p>Send us a task by email or from your dashboard. We assign the right specialist and keep you updated.</p>
+        <p>When you're in a rush, you can send a voice note. We've got it.</p>
+        <p><a href="${memberDashboard}">Open your dashboard</a></p>
+        <p>Mom's got you.</p>
+        <p>— Mom Ops</p>
       `.trim(),
     }),
     task_submitted_v1: () => ({
-      subject: `We got your task: ${String(payload.subject ?? "New task")}`,
+      subject: "It's in motion.",
       html: `
-        <p>We received your task and will assign it to a VA soon.</p>
-        <p><strong>Subject:</strong> ${escapeHtml(String(payload.subject ?? "—"))}</p>
-        <p><a href="${taskLink}">View task</a></p>
-        <p>— The Mom Ops Team</p>
+        <p>We received your task. It's already being assigned to the right specialist.</p>
+        <p>If we need clarification, we'll reach out. Otherwise, expect an update soon.</p>
+        <p><a href="${taskLink}">View your task</a></p>
+        <p>You don't need to think about this anymore.</p>
+        <p>Mom's got you.</p>
+        <p>— Mom Ops</p>
       `.trim(),
     }),
-    new_message_v1: () => ({
-      subject: `Your VA replied: ${String(payload.subject ?? "New message")}`,
-      html: `
-        <p>Your VA replied on a task.</p>
-        <p><a href="${taskLink}">View conversation</a></p>
-        <p>— The Mom Ops Team</p>
-      `.trim(),
-    }),
-    task_complete_v1: () => ({
-      subject: "Your task is complete",
-      html: `
-        <p>Your task has been marked complete.</p>
-        <p><a href="${taskLink}">View task</a></p>
-        <p>— The Mom Ops Team</p>
-      `.trim(),
-    }),
+    va_claimed_v1: () => {
+      const vaName = escapeHtml(String(payload.va_display_name ?? "Your specialist"));
+      return {
+        subject: `${vaName} has your task`,
+        html: `
+          <p>${vaName} has your task and is working on it.</p>
+          <p>You'll get an update in the thread. No need to do anything else right now.</p>
+          <p><a href="${taskLink}">View task</a></p>
+          <p>We're on it.</p>
+          <p>— Mom Ops</p>
+        `.trim(),
+      };
+    },
+    new_message_v1: () => {
+      const messageBody = typeof payload.message_body === "string" && payload.message_body.trim()
+        ? sanitizeMessageBody(payload.message_body.trim())
+        : "";
+      return {
+        subject: `Update on your task: ${String(payload.subject ?? "New message").slice(0, 50)}`,
+        html: `
+          <p>Your specialist replied on a task.</p>
+          ${messageBody ? `<div style="margin: 1rem 0; padding: 0.75rem; background: #f5f5f5; border-radius: 4px;">${messageBody}</div>` : ""}
+          <p><a href="${taskLink}">View full conversation</a></p>
+          <p>— Mom Ops</p>
+        `.trim(),
+      };
+    },
+    task_complete_v1: () => {
+      const surveyLink = `${taskLink}#rate`;
+      return {
+        subject: "Task complete",
+        html: `
+          <p>Your task is done.</p>
+          <p>We'd love a quick rating so we can keep improving. It takes a few seconds.</p>
+          <p><a href="${surveyLink}">Rate this task</a></p>
+          <p>Consider it handled.</p>
+          <p>— Mom Ops</p>
+        `.trim(),
+      };
+    },
     payment_success_v1: () => ({
       subject: "Payment received – Mom Ops",
       html: `
@@ -98,6 +135,18 @@ function getTemplate(
           <p>Your payment was successful. Click the link below to access your dashboard and set your password.</p>
           <p><a href="${link}">Access your dashboard</a></p>
           <p>— The Mom Ops Team</p>
+        `.trim(),
+      };
+    },
+    tip_received_v1: () => {
+      const amount = escapeHtml(String(payload.amount ?? "0"));
+      const taskName = escapeHtml(String(payload.task_name ?? "Your task"));
+      return {
+        subject: "You got a tip ☕",
+        html: `
+          <p>A member sent you a $${amount} tip for the task: ${taskName}.</p>
+          <p>Nice work.</p>
+          <p>— Mom Ops</p>
         `.trim(),
       };
     },

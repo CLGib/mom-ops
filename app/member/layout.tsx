@@ -24,20 +24,9 @@ export default async function MemberLayout({
   const displayName = profile?.preferred_name?.trim() || profile?.full_name?.trim() || user.email;
 
   return (
-    <div className="app-shell" style={{ width: "100%" }}>
-      <header
-        className="member-profile-bar"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "var(--space-md)",
-          padding: "var(--space-sm) 0",
-          marginBottom: "var(--space-lg)",
-          borderBottom: "1px solid var(--color-border, #e5e5e5)",
-        }}
-      >
-        <span style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", flexWrap: "wrap" }}>
+    <div className="app-shell app-shell--member" style={{ width: "100%" }}>
+      <header className="member-profile-bar">
+        <div className="member-profile-bar__nav">
           <Link href="/member" className="link" style={{ fontSize: "0.9rem", fontWeight: 500 }}>
             Home
           </Link>
@@ -47,17 +36,6 @@ export default async function MemberLayout({
               <span style={{ marginLeft: "var(--space-xs)", color: "var(--text-muted, #666)" }}>({profile.profile_completion}%)</span>
             )}
           </Link>
-          <span
-            className="member-profile-email"
-            style={{
-              fontSize: "0.9rem",
-              color: "var(--text-muted, #666)",
-              fontWeight: 500,
-            }}
-            title={user.email}
-          >
-            {displayName}
-          </span>
           {profile?.is_founding_member && (
             <span
               className="founder-badge"
@@ -74,14 +52,15 @@ export default async function MemberLayout({
               Founding Member
             </span>
           )}
-        </span>
-        <Link
-          href="/api/auth/signout"
-          className="link"
-          style={{ fontSize: "0.875rem" }}
-        >
-          Log out
-        </Link>
+        </div>
+        <div className="member-profile-bar__user">
+          <span className="member-profile-email" title={user.email}>
+            {displayName}
+          </span>
+          <a href="/api/auth/signout" className="link member-profile-bar__logout">
+            Log out
+          </a>
+        </div>
       </header>
       {children}
     </div>

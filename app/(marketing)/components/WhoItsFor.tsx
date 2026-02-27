@@ -2,7 +2,7 @@ export default function WhoItsFor() {
   return (
     <section id="who" className="section section-alt">
       <div className="container">
-        <h2 className="section-title">Who it&apos;s for</h2>
+        <h2 className="section-title">Do I have to be a mom to use Mom Ops?</h2>
         <p className="section-lead">
           No. In fact… everyone could use an extra mom in their corner.
         </p>

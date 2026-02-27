@@ -71,6 +71,51 @@ export async function POST(request: NextRequest) {
     }
 
     const session = event.data.object as Stripe.Checkout.Session;
+
+    if (session.metadata?.mode === "task_tip") {
+      const taskId = session.metadata.task_id as string | undefined;
+      const vaId = session.metadata.va_id as string | undefined;
+      const memberId = session.metadata.member_id as string | undefined;
+      const amountCents = parseInt(session.metadata.amount_cents as string, 10);
+      if (taskId && vaId && memberId && !isNaN(amountCents) && amountCents >= 100 && amountCents <= 2500) {
+        const db = getSupabase();
+        const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : (session.payment_intent as { id?: string } | null)?.id ?? session.id;
+        const amountDollars = (amountCents / 100).toFixed(2);
+        const { error: tipErr } = await db.from("task_tips").insert({
+          task_id: taskId,
+          va_id: vaId,
+          member_id: memberId,
+          amount: amountDollars,
+          stripe_payment_intent_id: paymentIntentId,
+        });
+        if (tipErr) {
+          console.error("[webhook] task_tips insert failed", tipErr);
+          return NextResponse.json({ received: true, error: "task_tips insert failed" });
+        }
+        const { data: ticketRow } = await db.from("tickets").select("subject, tip_amount").eq("id", taskId).single();
+        const currentTipCents = ticketRow?.tip_amount ?? 0;
+        const vaShareCents = Math.round(amountCents * 0.98);
+        await db.from("tickets").update({ tip_amount: currentTipCents + vaShareCents }).eq("id", taskId);
+        const taskName = ticketRow?.subject ?? "Your task";
+        const { data: vaData } = await db.auth.admin.getUserById(vaId);
+        const vaEmail = vaData?.user?.email;
+        if (vaEmail) {
+          try {
+            await queueEmail({
+              to_email: vaEmail,
+              template: "tip_received_v1",
+              payload: { amount: amountDollars, task_name: taskName },
+              dedupe_key: `tip:${session.id}`,
+            });
+          } catch (e) {
+            console.warn("[webhook] queueEmail tip_received_v1 failed", e);
+          }
+        }
+        return NextResponse.json({ received: true, handled: "task_tip" });
+      }
+      return NextResponse.json({ received: true });
+    }
+
     let userId =
       (session.client_reference_id as string) || session.metadata?.user_id;
 
@@ -190,6 +235,16 @@ export async function POST(request: NextRequest) {
           });
         } catch (e) {
           console.warn("[webhook] queueEmail payment_success_v1 failed", e);
+        }
+        try {
+          await queueEmail({
+            to_email: null,
+            template: "welcome_after_signup_v1",
+            payload: { member_id: userIdFinal },
+            dedupe_key: `welcome_after_signup:${userIdFinal}`,
+          });
+        } catch (e) {
+          console.warn("[webhook] queueEmail welcome_after_signup_v1 failed", e);
         }
         if (createdForGuestFinal && guestEmail) {
           try {

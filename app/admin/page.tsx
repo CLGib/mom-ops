@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { formatInCentral } from "@/lib/format-date";
+import AdminClaimTicketButton from "./AdminClaimTicketButton";
+import AdminTicketList from "./AdminTicketList";
 import AdjustCreditForm from "./AdjustCreditForm";
 
 export default async function AdminPage() {
@@ -12,18 +15,12 @@ export default async function AdminPage() {
 
   const { data: tickets } = await supabase
     .from("tickets")
-    .select("id, subject, status, member_id, assigned_va_id, created_at")
+    .select("id, subject, description, status, member_id, assigned_va_id, created_at, rating, feedback, completed_at")
     .order("created_at", { ascending: false });
 
   const { data: profiles } = await supabase
     .from("profiles")
     .select("id, role");
-
-  const { data: memberProfiles } = await supabase
-    .from("profiles")
-    .select("id, full_name, preferred_name, profile_completion, onboarding_completed_at")
-    .eq("role", "member")
-    .order("id");
 
   const { data: txRows } = await supabase
     .from("credit_transactions")
@@ -49,9 +46,37 @@ export default async function AdminPage() {
     {} as Record<string, number>
   );
 
+  const unassignedTickets = (tickets ?? []).filter(
+    (t) => t.status === "new" && t.assigned_va_id == null
+  );
+
+  const myClaimedTickets = (tickets ?? []).filter(
+    (t) => t.assigned_va_id === user.id
+  );
+
   return (
-    <main className="app-shell app-shell--wide">
+    <>
       <h1 className="page-title">Admin Dashboard</h1>
+      {myClaimedTickets.length > 0 && (
+        <section className="card card--highlight" style={{ marginBottom: "var(--space-2xl)" }}>
+          <h2 className="section-heading">My claimed tickets</h2>
+          <ul className="ticket-list">
+            {myClaimedTickets.map((t) => (
+              <li key={t.id} className="ticket-item">
+                <div>
+                  <Link href={`/admin/${t.id}`}>{t.subject}</Link>
+                  <span className="ticket-meta" style={{ marginLeft: "var(--space-sm)" }}>
+                    {t.status} · {formatInCentral(t.created_at)}
+                  </span>
+                </div>
+                <Link href={`/admin/${t.id}`} className="btn btn-secondary">
+                  Open
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <section className="card card--highlight" style={{ marginBottom: "var(--space-2xl)" }}>
         <h2 className="section-heading">System summary</h2>
         <ul className="summary-list">
@@ -62,56 +87,33 @@ export default async function AdminPage() {
         </ul>
       </section>
       <section style={{ marginBottom: "var(--space-2xl)" }}>
-        <h2 className="section-heading">Members</h2>
-        <div className="card">
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid var(--color-border, #e5e5e5)" }}>
-                <th style={{ textAlign: "left", padding: "var(--space-sm)" }}>Name</th>
-                <th style={{ textAlign: "left", padding: "var(--space-sm)" }}>Profile completion</th>
-                <th style={{ textAlign: "left", padding: "var(--space-sm)" }}>Onboarding completed</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(memberProfiles ?? []).map((p) => (
-                <tr key={p.id} style={{ borderBottom: "1px solid var(--color-border, #e5e5e5)" }}>
-                  <td style={{ padding: "var(--space-sm)" }}>
-                    {p.preferred_name || p.full_name || "—"}
-                  </td>
-                  <td style={{ padding: "var(--space-sm)" }}>
-                    {p.profile_completion != null ? `${p.profile_completion}%` : "—"}
-                  </td>
-                  <td style={{ padding: "var(--space-sm)" }}>
-                    {p.onboarding_completed_at ? "Yes" : "No"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section style={{ marginBottom: "var(--space-2xl)" }}>
         <h2 className="section-heading">Adjust credit balance</h2>
         <div className="card">
           <AdjustCreditForm />
         </div>
       </section>
+      {unassignedTickets.length > 0 && (
+        <section style={{ marginBottom: "var(--space-2xl)" }}>
+          <h2 className="section-heading">Unassigned tickets (claim as admin)</h2>
+          <ul className="ticket-list">
+            {unassignedTickets.map((t) => (
+              <li key={t.id} className="ticket-item">
+                <div>
+                  <Link href={`/admin/${t.id}`}>{t.subject}</Link>
+                  <span className="ticket-meta" style={{ marginLeft: "var(--space-sm)" }}>
+                    {formatInCentral(t.created_at)}
+                  </span>
+                </div>
+                <AdminClaimTicketButton ticketId={t.id} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <section>
         <h2 className="section-heading">All tickets</h2>
-        <ul className="ticket-list">
-          {(tickets ?? []).map((t) => (
-            <li key={t.id} className="ticket-item">
-              <div>
-                <Link href={`/admin/${t.id}`}>{t.subject}</Link>
-                <span className="ticket-meta" style={{ marginLeft: "var(--space-sm)" }}>
-                  {t.status} - member: {t.member_id?.slice(0, 8)}… - {" "}
-                  {new Date(t.created_at).toLocaleString()}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <AdminTicketList tickets={tickets ?? []} />
       </section>
-    </main>
+    </>
   );
 }

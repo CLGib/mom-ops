@@ -19,11 +19,6 @@ export default function SetTicketCost({
   const [creditCost, setCreditCost] = useState(
     currentCreditCost != null ? String(currentCreditCost) : ""
   );
-  const [tipAmount, setTipAmount] = useState(
-    currentTipAmount != null && currentTipAmount > 0
-      ? (currentTipAmount / 100).toFixed(2)
-      : ""
-  );
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -32,7 +27,6 @@ export default function SetTicketCost({
       .from("tickets")
       .update({
         credit_cost: creditCost ? parseInt(creditCost, 10) : null,
-        tip_amount: tipAmount ? Math.round(parseFloat(tipAmount) * 100) : 0,
       })
       .eq("id", ticketId);
     router.refresh();
@@ -51,20 +45,13 @@ export default function SetTicketCost({
           className="input"
         />
       </div>
-      <div className="form-group" style={{ width: "6rem" }}>
-        <label htmlFor="tip-amount">Tip ($)</label>
-        <input
-          id="tip-amount"
-          type="number"
-          min="0"
-          step="0.01"
-          value={tipAmount}
-          onChange={(e) => setTipAmount(e.target.value)}
-          className="input"
-        />
-      </div>
+      {currentTipAmount != null && currentTipAmount > 0 && (
+        <div className="form-group" style={{ marginLeft: "var(--space-sm)" }}>
+          <span className="form-note">Tip: ${(currentTipAmount / 100).toFixed(2)} (set by member)</span>
+        </div>
+      )}
       <button type="submit" className="btn btn-secondary">
-        Set cost & tip
+        Set cost
       </button>
     </form>
   );

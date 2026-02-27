@@ -10,7 +10,7 @@ export default function Footer() {
               Mom Ops
             </a>
             <p className="footer-product">
-              Structured virtual assistant support for moms.
+              Structured virtual assistant support by moms.
             </p>
           </div>
           <div className="footer-links">

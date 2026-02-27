@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useState, useRef, useEffect } from "react";
 import { createTicket } from "./actions";
+import SpecialistRequestSelect from "../components/SpecialistRequestSelect";
 
 const BUCKET = "task-attachments";
 const MAX_FILE_SIZE_MB = 50;
@@ -18,7 +19,8 @@ const TASK_TEMPLATES = [
   { id: "gifts", label: "Gifts & sourcing", subject: "Gifts or sourcing", description: "" },
 ] as const;
 
-type Props = { memberId: string; aiEnabled?: boolean };
+type VaOption = { id: string; label: string; imageUrl?: string | null };
+type Props = { memberId: string; aiEnabled?: boolean; pastVas?: VaOption[] };
 
 function getMediaType(file: File): "image" | "video" | "audio" {
   if (file.type.startsWith("image/")) return "image";
@@ -27,11 +29,16 @@ function getMediaType(file: File): "image" | "video" | "audio" {
   return "video";
 }
 
-export default function CreateTicketForm({ memberId, aiEnabled = false }: Props) {
+function isAudioFile(file: File): boolean {
+  return file.type.startsWith("audio/") || getMediaType(file) === "audio";
+}
+
+export default function CreateTicketForm({ memberId, aiEnabled = false, pastVas = [] }: Props) {
   const router = useRouter();
   const [templateId, setTemplateId] = useState<string>("other");
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
+  const [requestedVaId, setRequestedVaId] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -42,6 +49,15 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+
+  const [objectUrls, setObjectUrls] = useState<string[]>([]);
+  useEffect(() => {
+    const urls = files.map((f) => URL.createObjectURL(f));
+    setObjectUrls(urls);
+    return () => {
+      urls.forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, [files]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -125,6 +141,11 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
     e.target.value = "";
   }
 
+  function removeFile(index: number) {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+    setError(null);
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
@@ -153,7 +174,12 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
       const supabase = createClient();
       let result: { ticketId?: string; error?: string };
       try {
-        result = await createTicket(subject, description || null, accessToken);
+        result = await createTicket(
+          subject,
+          description || null,
+          accessToken,
+          requestedVaId.trim() || null
+        );
       } catch (actionErr) {
         setError("Something went wrong. Please try again.");
         return;
@@ -205,6 +231,7 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
 
       setSubject("");
       setDescription("");
+      setRequestedVaId("");
       setFiles([]);
       setTemplateId("other");
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -242,7 +269,7 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="member-submit-form">
       <div className="form-group">
         <label htmlFor="task-template">Quick pick</label>
         <select
@@ -250,6 +277,7 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
           value={templateId}
           onChange={onTemplateChange}
           className="input"
+          style={{ width: "100%", minWidth: 0, boxSizing: "border-box" }}
         >
           {TASK_TEMPLATES.map((t) => (
             <option key={t.id} value={t.id}>
@@ -266,6 +294,7 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
           onChange={(e) => setSubject(e.target.value)}
           required
           className="input"
+          style={{ width: "100%", minWidth: 0, boxSizing: "border-box" }}
         />
       </div>
       <div className="form-group">
@@ -275,6 +304,7 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="input"
+          style={{ width: "100%", minWidth: 0, boxSizing: "border-box", minHeight: 140 }}
         />
         {aiEnabled && (subject.trim() || description.trim()) && (
           <button
@@ -288,6 +318,21 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
           </button>
         )}
       </div>
+      {pastVas.length > 0 && (
+        <div className="form-group">
+          <label htmlFor="request-va">Request a specialist (optional)</label>
+          <p id="request-va-hint" className="form-note" style={{ marginBottom: "var(--space-xs)" }}>
+            If they&apos;re available, we&apos;ll route your task to them.
+          </p>
+          <SpecialistRequestSelect
+            id="request-va"
+            options={pastVas}
+            value={requestedVaId}
+            onChange={setRequestedVaId}
+            ariaDescribedBy="request-va-hint"
+          />
+        </div>
+      )}
       <div className="form-group">
         <label htmlFor="attachments">Photos, video &amp; audio (optional)</label>
         <input
@@ -304,21 +349,75 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
           Up to {MAX_FILES} files, {MAX_FILE_SIZE_MB}MB each. Images, video, or audio. Or record a voice note below.
         </p>
         {files.length > 0 && (
-          <ul className="form-note" style={{ marginTop: "var(--space-xs)" }}>
+          <ul style={{ marginTop: "var(--space-sm)", listStyle: "none", padding: 0 }}>
             {files.map((f, i) => (
-              <li key={i}>{f.name}</li>
+              <li
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "var(--space-sm)",
+                  marginBottom: "var(--space-md)",
+                  padding: "var(--space-sm)",
+                  background: "var(--color-bg-subtle, #f5f5f5)",
+                  borderRadius: 4,
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p className="form-note" style={{ margin: "0 0 var(--space-xs)", fontWeight: 500 }}>
+                    {f.name}
+                  </p>
+                  {isAudioFile(f) && objectUrls[i] && (
+                    <audio
+                      src={objectUrls[i]}
+                      controls
+                      style={{ width: "100%", maxWidth: 320, marginTop: "var(--space-xs)" }}
+                      preload="metadata"
+                    />
+                  )}
+                  {getMediaType(f) === "image" && objectUrls[i] && (
+                    <img
+                      src={objectUrls[i]}
+                      alt={f.name}
+                      style={{ maxWidth: 120, maxHeight: 120, objectFit: "cover", borderRadius: 4, marginTop: "var(--space-xs)" }}
+                    />
+                  )}
+                  {getMediaType(f) === "video" && !isAudioFile(f) && objectUrls[i] && (
+                    <video
+                      src={objectUrls[i]}
+                      controls
+                      style={{ maxWidth: 240, maxHeight: 160, marginTop: "var(--space-xs)" }}
+                      preload="metadata"
+                    />
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeFile(i)}
+                  className="btn btn-secondary"
+                  style={{ flexShrink: 0, color: "var(--color-error, #c00)" }}
+                  aria-label={`Remove ${f.name}`}
+                >
+                  Remove
+                </button>
+              </li>
             ))}
           </ul>
         )}
-        <div style={{ marginTop: "var(--space-sm)" }}>
+        <div style={{ marginTop: "var(--space-md)" }}>
           {!recording ? (
-            <button type="button" onClick={startRecording} className="btn btn-secondary">
+            <button type="button" onClick={startRecording} className="btn btn-secondary" disabled={files.length >= MAX_FILES}>
               Record voice note
             </button>
           ) : (
             <button type="button" onClick={stopRecording} className="btn btn-secondary" style={{ color: "var(--color-error, #c00)" }}>
               Stop recording
             </button>
+          )}
+          {files.length >= MAX_FILES && (
+            <p className="form-note" style={{ marginTop: "var(--space-xs)" }}>
+              Max {MAX_FILES} files. Remove one to add another.
+            </p>
           )}
         </div>
       </div>
@@ -331,6 +430,7 @@ export default function CreateTicketForm({ memberId, aiEnabled = false }: Props)
         type="submit"
         className="btn btn-primary"
         disabled={submitting || !sessionLoaded || !accessToken}
+        style={{ marginTop: "var(--space-lg)" }}
       >
         {!sessionLoaded ? "Loading…" : submitting ? "Submitting…" : "Submit task"}
       </button>

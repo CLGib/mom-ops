@@ -14,6 +14,7 @@ const ALLOWED_TEMPLATES = [
   "welcome_v1",
   "task_submitted_v1",
   "new_message_v1",
+  "va_claimed_v1",
 ] as const;
 
 export async function POST(request: NextRequest) {
@@ -128,6 +129,7 @@ export async function POST(request: NextRequest) {
           ticket_id: ticketId,
           subject: payload.subject ?? "",
           member_id: ticket.member_id,
+          message_body: payload.message_body ?? "",
         },
         dedupe_key: `new_message:${messageId}`,
         send_after: send_after ? new Date(send_after) : undefined,
@@ -138,6 +140,41 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    return NextResponse.json({ ok: true });
+  }
+
+  if (template === "va_claimed_v1") {
+    const ticketId = payload.ticket_id;
+    if (typeof ticketId !== "string") {
+      return NextResponse.json({ error: "ticket_id required" }, { status: 400 });
+    }
+    const { data: ticket } = await service
+      .from("tickets")
+      .select("member_id, assigned_va_id")
+      .eq("id", ticketId)
+      .single();
+    if (!ticket) return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+    if (ticket.assigned_va_id !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    const { data: vaProfile } = await service
+      .from("va_profiles")
+      .select("display_name")
+      .eq("user_id", user.id)
+      .single();
+    const vaDisplayName = vaProfile?.display_name ?? "Your specialist";
+    await queueEmail({
+      to_email: null,
+      template: "va_claimed_v1",
+      payload: {
+        ticket_id: ticketId,
+        subject: payload.subject ?? "",
+        member_id: ticket.member_id,
+        va_display_name: vaDisplayName,
+      },
+      dedupe_key: `va_claimed:${ticketId}`,
+      send_after: send_after ? new Date(send_after) : undefined,
+    });
     return NextResponse.json({ ok: true });
   }
 

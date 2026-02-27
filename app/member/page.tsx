@@ -2,9 +2,11 @@ import { unstable_noStore } from "next/cache";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { formatInCentral } from "@/lib/format-date";
 import CreateTicketForm from "./CreateTicketForm";
 import ReactivateButton from "./ReactivateButton";
 import OnboardingBanner from "./OnboardingBanner";
+import MemberTaskList from "./MemberTaskList";
 
 export const dynamic = "force-dynamic";
 
@@ -35,9 +37,45 @@ export default async function MemberPage({
 
   const { data: tickets } = await supabase
     .from("tickets")
-    .select("id, subject, status, created_at")
+    .select("id, subject, description, status, created_at, completed_at, updated_at")
     .eq("member_id", user.id)
     .order("created_at", { ascending: false });
+
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const recentlyClosed =
+    (tickets ?? []).filter((t) => {
+      if (t.status !== "completed" && t.status !== "closed") return false;
+      const closedAt = t.completed_at ?? t.updated_at ?? t.created_at;
+      return closedAt >= sevenDaysAgo;
+    });
+
+  const { data: pastTickets } = await supabase
+    .from("tickets")
+    .select("assigned_va_id, completed_at")
+    .eq("member_id", user.id)
+    .not("assigned_va_id", "is", null)
+    .in("status", ["completed", "closed"])
+    .order("completed_at", { ascending: false });
+  const pastVaIdsOrdered = (pastTickets ?? [])
+    .map((t) => t.assigned_va_id!)
+    .filter(Boolean);
+  const pastVaIds = [...new Set(pastVaIdsOrdered)];
+  let pastVas: { id: string; label: string; imageUrl?: string | null }[] = [];
+  if (pastVaIds.length > 0) {
+    const { data: vaPublicProfiles } = await supabase
+      .from("va_profiles")
+      .select("user_id, display_name, profile_image_url")
+      .in("user_id", pastVaIds);
+    const vaProfileByUserId = new Map(vaPublicProfiles?.map((v) => [v.user_id, v]) ?? []);
+    pastVas = pastVaIds.map((id) => {
+      const vp = vaProfileByUserId.get(id);
+      return {
+        id,
+        label: vp?.display_name ?? "Previous specialist",
+        imageUrl: vp?.profile_image_url ?? null,
+      };
+    });
+  }
 
   const isActive =
     profile?.subscription_status === "active" || (balance != null && (balance as number) > 0);
@@ -71,27 +109,33 @@ export default async function MemberPage({
         </div>
       )}
 
-      <p className="section-lead" style={{ marginBottom: "var(--space-md)" }}>
+      <p className="member-credits-line" title={isActive ? `Credit Balance: ${balance ?? 0} · Purchase more credits (coming soon)` : undefined}>
         Credit Balance: <strong>{balance ?? 0}</strong>
         {isActive && (
           <>
             {" · "}
             <a href="#" className="link">Purchase more credits</a>
-            <span className="form-note" style={{ marginLeft: "var(--space-xs)" }}>(coming soon)</span>
+            <span> (coming soon)</span>
           </>
         )}
       </p>
 
       <section style={{ marginBottom: "var(--space-2xl)" }}>
-        <h2 className="section-heading">Submit a task</h2>
-        <div className="card">
+        <h2 className="section-heading" style={{ marginBottom: "var(--space-sm)" }}>Submit a task</h2>
+        <div className="card member-submit-card">
           {isActive ? (
             <>
-              <CreateTicketForm memberId={user.id} aiEnabled={!!process.env.ANTHROPIC_API_KEY} />
+              <CreateTicketForm memberId={user.id} aiEnabled={!!process.env.ANTHROPIC_API_KEY} pastVas={pastVas} />
               {process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL && (
                 <p className="form-note" style={{ marginTop: "var(--space-md)" }}>
                   You can also email your task to{" "}
-                  <strong>{process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL}</strong>{" "}
+                  <a
+                    href={`mailto:${process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL}`}
+                    className="link"
+                    style={{ fontWeight: 500 }}
+                  >
+                    {process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL}
+                  </a>{" "}
                   (or forward an email to that address).
                 </p>
               )}
@@ -104,24 +148,25 @@ export default async function MemberPage({
         </div>
       </section>
 
-      <section style={{ marginBottom: "var(--space-2xl)" }}>
-        <h2 className="section-heading">Your tasks</h2>
-        {(tickets ?? []).length === 0 ? (
-          <p className="form-note">No tasks yet. Submit one above when your subscription is active.</p>
-        ) : (
+      {recentlyClosed.length > 0 && (
+        <section style={{ marginBottom: "var(--space-2xl)" }}>
+          <h2 className="section-heading">Recently closed (last 7 days)</h2>
           <ul className="ticket-list">
-            {(tickets ?? []).map((t) => (
+            {recentlyClosed.map((t) => (
               <li key={t.id} className="ticket-item">
-                <div>
-                  <Link href={`/member/${t.id}`}>{t.subject}</Link>
-                  <span className="ticket-meta" style={{ marginLeft: "var(--space-sm)" }}>
-                    {t.status} – {new Date(t.created_at).toLocaleString()}
-                  </span>
-                </div>
+                <Link href={`/member/${t.id}`}>{t.subject}</Link>
+                <span className="ticket-meta" style={{ marginLeft: "var(--space-sm)" }}>
+                  {formatInCentral(t.completed_at ?? t.updated_at ?? t.created_at)}
+                </span>
               </li>
             ))}
           </ul>
-        )}
+        </section>
+      )}
+
+      <section style={{ marginBottom: "var(--space-2xl)" }}>
+        <h2 className="section-heading">Your tasks</h2>
+        <MemberTaskList tickets={tickets ?? []} />
       </section>
 
       <section>

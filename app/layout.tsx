@@ -1,18 +1,6 @@
 import type { Metadata } from "next";
-import { DM_Serif_Display, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 import "./landing.css";
-
-const dmSerif = DM_Serif_Display({
-  weight: ["400"],
-  subsets: ["latin"],
-  variable: "--font-display",
-});
-
-const sourceSans = Source_Sans_3({
-  subsets: ["latin"],
-  variable: "--font-body",
-});
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://themomops.com";
 
@@ -35,7 +23,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${dmSerif.variable} ${sourceSans.variable}`}>
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body>
         {children}
       </body>

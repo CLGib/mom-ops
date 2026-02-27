@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProfileForm, { type ProfileFormData } from "./ProfileForm";
+import AccountSettingsForm from "@/app/components/AccountSettingsForm";
 
 export const dynamic = "force-dynamic";
 
@@ -93,6 +94,9 @@ export default async function MemberProfilePage() {
   return (
     <main className="app-shell">
       <h1 className="page-title">Profile</h1>
+      <section style={{ marginBottom: "var(--space-xl)" }}>
+        <AccountSettingsForm initialEmail={user.email ?? ""} />
+      </section>
       <div className="card">
         <ProfileForm memberId={user.id} initial={initial} />
       </div>
