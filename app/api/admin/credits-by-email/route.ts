@@ -11,12 +11,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
+  const { data: roleRow } = await supabase
+    .from("user_roles")
     .select("role")
-    .eq("id", user.id)
-    .single();
-  if (profile?.role !== "admin") {
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const role = roleRow?.role ?? null;
+  const isAdmin = role === "admin";
+  const isDirector = role === "director";
+  if (!isAdmin && !isDirector) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -66,7 +69,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { error: insertError } = await supabase
+  // Use service client for insert: RLS allows only admin to insert; directors are permitted by this API
+  const { error: insertError } = await serviceSupabase
     .from("credit_transactions")
     .insert({
       member_id: member.id,
@@ -78,6 +82,16 @@ export async function POST(request: NextRequest) {
       { error: insertError.message },
       { status: 500 }
     );
+  }
+
+  if (isDirector) {
+    await supabase.from("audit_log").insert({
+      user_id: user.id,
+      action_type: "credit_adjustment",
+      affected_entity_type: "member",
+      affected_entity_id: member.id,
+      details: { amount, email: member.email },
+    });
   }
 
   return NextResponse.json({

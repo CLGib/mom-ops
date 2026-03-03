@@ -30,6 +30,10 @@ export default function AccountSettingsForm({ initialEmail }: Props) {
       setError("Enter a new email address.");
       return;
     }
+    if (trimmed.toLowerCase() === initialEmail.toLowerCase()) {
+      setError("That's the same email (only capitalization changed). No confirmation is needed.");
+      return;
+    }
     setEmailLoading(true);
     const supabase = createClient();
     const { error: err } = await supabase.auth.updateUser({ email: trimmed });

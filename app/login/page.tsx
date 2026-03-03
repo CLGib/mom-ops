@@ -4,16 +4,22 @@ import AuthForm from "./AuthForm";
 import RedirectToDashboard from "./RedirectToDashboard";
 import { createClient } from "@/lib/supabase/server";
 
-type Role = "member" | "va" | "admin";
+type Role = "member" | "va" | "admin" | "director" | "cfo";
 
 function dashboardForRole(role: Role): string {
-  return role === "member" ? "/member" : role === "va" ? "/va" : "/admin";
+  if (role === "member") return "/member";
+  if (role === "va") return "/va";
+  if (role === "director") return "/director";
+  if (role === "cfo") return "/cfo";
+  return "/admin";
 }
 
 function roleCanAccessPath(role: Role, path: string): boolean {
   if (path.startsWith("/member")) return role === "member" || role === "admin";
   if (path.startsWith("/va")) return role === "va" || role === "admin";
-  if (path.startsWith("/admin")) return role === "admin";
+  if (path.startsWith("/admin")) return role === "admin" || role === "director";
+  if (path.startsWith("/director")) return role === "director";
+  if (path.startsWith("/cfo")) return role === "cfo";
   return false;
 }
 
@@ -35,7 +41,7 @@ export default async function LoginPage({
       .maybeSingle();
     const role = (roleRow?.role as Role | undefined) ?? null;
 
-    if (roleErr || !role || !["member", "va", "admin"].includes(role)) {
+    if (roleErr || !role || !["member", "va", "admin", "director", "cfo"].includes(role)) {
       redirect("/no-access?reason=role_not_set");
     }
 

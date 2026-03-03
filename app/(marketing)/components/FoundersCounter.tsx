@@ -7,12 +7,14 @@ export default function FoundersCounter({ claimed }: Props) {
   const displayClaimed = Math.min(50, Math.max(0, claimed));
   const pct = (displayClaimed / 50) * 100;
 
+  const spotsLeft = 50 - displayClaimed;
+
   return (
     <div className="founders-counter">
       <p className="founders-counter-text">
         {isFull
           ? "Founding Member spots are full"
-          : `${displayClaimed} of 50 Founding Member spots claimed`}
+          : `${displayClaimed} of 50 claimed · ${spotsLeft} spots left`}
       </p>
       <div className="founders-progress-wrap" role="progressbar" aria-valuenow={displayClaimed} aria-valuemin={0} aria-valuemax={50} aria-label="Founding Member spots claimed">
         <div

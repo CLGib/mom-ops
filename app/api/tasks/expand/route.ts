@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 const SYSTEM_PROMPT = `You help turn a member's short or messy task idea into a clear, brief task for a virtual assistant.
 Return ONLY valid JSON with exactly two keys: "subject" (string, short title) and "description" (string, 1-2 sentences).
@@ -17,6 +18,18 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const limitResult = await checkRateLimit(`tasks-expand:${user.id}`, RATE_LIMITS.tasksExpand);
+  if (!limitResult.success) {
+    const retryAfter = Math.max(1, limitResult.reset - Math.floor(Date.now() / 1000));
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(retryAfter) },
+      }
+    );
   }
 
   let body: { text?: string };
@@ -39,7 +52,7 @@ export async function POST(request: NextRequest) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-3-5-sonnet-20241022",
+        model: process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4",
         max_tokens: 512,
         system: SYSTEM_PROMPT,
         messages: [{ role: "user", content: text }],

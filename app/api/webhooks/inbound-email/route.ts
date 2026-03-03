@@ -32,39 +32,35 @@ function isImageOrVideo(contentType: string): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  const rawBody = await request.text();
   const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    return NextResponse.json(
+      { error: "Webhook not configured" },
+      { status: 503 }
+    );
+  }
+
+  const rawBody = await request.text();
   const apiKey = process.env.RESEND_API_KEY;
 
   let payload: { type: string; data?: { email_id: string; from: string; subject: string; attachments?: Array<{ id: string; filename: string | null; content_type: string }> } };
-  if (webhookSecret) {
-    try {
-      const resend = new Resend(apiKey);
-      payload = resend.webhooks.verify({
-        payload: rawBody,
-        headers: {
-          id: request.headers.get("svix-id") ?? "",
-          timestamp: request.headers.get("svix-timestamp") ?? "",
-          signature: request.headers.get("svix-signature") ?? "",
-        },
-        webhookSecret,
-      }) as typeof payload;
-    } catch (err) {
-      console.error("[inbound-email] Webhook verification failed:", err);
-      return NextResponse.json(
-        { error: "Invalid webhook signature" },
-        { status: 400 }
-      );
-    }
-  } else {
-    try {
-      payload = JSON.parse(rawBody) as typeof payload;
-    } catch {
-      return NextResponse.json(
-        { error: "Invalid JSON body" },
-        { status: 400 }
-      );
-    }
+  try {
+    const resend = new Resend(apiKey);
+    payload = resend.webhooks.verify({
+      payload: rawBody,
+      headers: {
+        id: request.headers.get("svix-id") ?? "",
+        timestamp: request.headers.get("svix-timestamp") ?? "",
+        signature: request.headers.get("svix-signature") ?? "",
+      },
+      webhookSecret,
+    }) as typeof payload;
+  } catch (err) {
+    console.error("[inbound-email] Webhook verification failed:", err);
+    return NextResponse.json(
+      { error: "Invalid webhook signature" },
+      { status: 400 }
+    );
   }
 
   if (payload?.type !== "email.received" || !payload?.data?.email_id) {

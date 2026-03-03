@@ -3,12 +3,13 @@
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type Props = { ticketId: string; subject?: string };
+type Props = { ticketId: string; subject?: string; onboardingComplete?: boolean };
 
-export default function ClaimTicketButton({ ticketId, subject = "" }: Props) {
+export default function ClaimTicketButton({ ticketId, subject = "", onboardingComplete = true }: Props) {
   const router = useRouter();
 
   async function handleClaim() {
+    if (!onboardingComplete) return;
     const supabase = createClient();
     const {
       data: { user },
@@ -40,7 +41,13 @@ export default function ClaimTicketButton({ ticketId, subject = "" }: Props) {
   }
 
   return (
-    <button type="button" onClick={handleClaim} className="btn btn-primary">
+    <button
+      type="button"
+      onClick={handleClaim}
+      className="btn btn-primary"
+      disabled={!onboardingComplete}
+      title={!onboardingComplete ? "Complete onboarding first" : undefined}
+    >
       Claim
     </button>
   );

@@ -2,7 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProfileForm, { type ProfileFormData } from "./ProfileForm";
-import AccountSettingsForm from "@/app/components/AccountSettingsForm";
+import AccountSettingsForm from "../../components/AccountSettingsForm";
+import MyReviewsSection from "./MyReviewsSection";
+import PublicProfileForm from "./PublicProfileForm";
 
 export const dynamic = "force-dynamic";
 
@@ -76,19 +78,28 @@ export default async function MemberProfilePage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, preferred_name, city, state, timezone, partner_name, kids_count, kids_ages, schools, activities, preferred_stores, preferred_brands, communication_tone, constraints, important_dates, task_submission_preference, typical_turnaround")
+    .select("full_name, preferred_name, display_name, avatar_url, city, state, timezone, partner_name, kids_count, kids_ages, schools, activities, preferred_stores, preferred_brands, communication_tone, constraints, important_dates, task_submission_preference, typical_turnaround")
     .eq("id", user.id)
     .single();
 
-  const [quizzesRes, resultsRes, responsesRes] = await Promise.all([
+  const [quizzesRes, resultsRes, responsesRes, reviewsRes] = await Promise.all([
     supabase.from("quizzes").select("id, slug, title, description").order("created_at", { ascending: true }),
     supabase.from("quiz_results").select("quiz_id, outcome_slug, outcome_title, completed_at").eq("member_id", user.id).order("completed_at", { ascending: false }),
     supabase.from("quiz_responses").select("quiz_id, status").eq("member_id", user.id),
+    supabase.from("task_reviews").select("id, task_subject, rating, comment, visibility, created_at").eq("member_id", user.id).order("created_at", { ascending: false }),
   ]);
 
   const quizzes = quizzesRes.data ?? [];
   const resultsByQuiz = new Map((resultsRes.data ?? []).map((r) => [r.quiz_id, r]));
   const responseByQuiz = new Map((responsesRes.data ?? []).map((r) => [r.quiz_id, r]));
+  const myReviews = (reviewsRes.data ?? []).map((r) => ({
+    id: r.id,
+    task_subject: r.task_subject ?? "Task",
+    rating: r.rating ?? 0,
+    comment: r.comment ?? null,
+    visibility: (r.visibility === "public" ? "public" : "private") as "private" | "public",
+    created_at: r.created_at ?? new Date().toISOString(),
+  }));
 
   const initial = toFormData(profile ?? null);
   return (
@@ -97,6 +108,11 @@ export default async function MemberProfilePage() {
       <section style={{ marginBottom: "var(--space-xl)" }}>
         <AccountSettingsForm initialEmail={user.email ?? ""} />
       </section>
+      <PublicProfileForm
+        memberId={user.id}
+        initialDisplayName={profile?.display_name ?? null}
+        initialAvatarUrl={profile?.avatar_url ?? null}
+      />
       <div className="card">
         <ProfileForm memberId={user.id} initial={initial} />
       </div>
@@ -117,7 +133,7 @@ export default async function MemberProfilePage() {
                   <div>
                     <span className="font-medium">{quiz.title}</span>
                     {result && (
-                      <span className="ml-2 text-sm text-gray-500">— {result.outcome_title}</span>
+                      <span className="ml-2 text-sm text-gray-500">- {result.outcome_title}</span>
                     )}
                   </div>
                   <div className="flex gap-2">
@@ -142,6 +158,8 @@ export default async function MemberProfilePage() {
           </ul>
         </section>
       )}
+
+      <MyReviewsSection reviews={myReviews} />
     </main>
   );
 }

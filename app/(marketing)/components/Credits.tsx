@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import CreditsAccordionTrigger from "./CreditsAccordionTrigger";
-
+import type { TaskLibraryItem } from "@/lib/task-library";
+import ExploreTasksLibrary from "../../components/ExploreTasksLibrary";
 const CATEGORY_ICONS: Record<string, ReactNode> = {
   "Events & Celebrations": (
     <svg
@@ -81,50 +81,10 @@ const CATEGORY_ICONS: Record<string, ReactNode> = {
 };
 
 const TASK_CATEGORIES = [
-  {
-    id: "events",
-    title: "Events & Celebrations",
-    description: "Invitations, timelines, vendor research, signage.",
-    items: [
-      "Birthday invitation design - 15 Task Credits",
-      "Holiday card layout - 30 Task Credits",
-      "Party timeline + checklist - 40 Task Credits",
-      "Vendor research (3 options) - 25 Task Credits",
-      "Printable signage set (up to 3 pieces) - 35 Task Credits",
-    ],
-  },
-  {
-    id: "school",
-    title: "School & Activities",
-    description: "Camp comparisons, private school research, tutor sourcing.",
-    items: [
-      "Summer camp comparison (up to 5 options) - 45 Task Credits",
-      "Private school comparison (up to 5 schools) - 60 Task Credits",
-      "After-school activity shortlist (3 options) - 20 Task Credits",
-      "Tutor research (3 options) - 20 Task Credits",
-    ],
-  },
-  {
-    id: "sourcing",
-    title: "Sourcing & Gifts",
-    description: "Curated gift lists, outfit sourcing, holiday planning.",
-    items: [
-      "Teacher gift ideas (3 curated options) - 10 Task Credits",
-      "Holiday gift shortlist (per person) - 12 Task Credits",
-      "Event outfit sourcing (3 options) - 15 Task Credits",
-    ],
-  },
-  {
-    id: "org",
-    title: "Organization & Admin",
-    description: "Spreadsheets, comparison tables, polished communication.",
-    items: [
-      "Spreadsheet cleanup or formatting - 20 Task Credits",
-      "Comparison table creation - 25 Task Credits",
-      "Vendor email draft - 10 Task Credits",
-      "Polished communication draft - 8 Task Credits",
-    ],
-  },
+  { title: "Events & Celebrations", description: "Invitations, timelines, vendor research, signage." },
+  { title: "School & Activities", description: "Camp comparisons, private school research, tutor sourcing." },
+  { title: "Sourcing & Gifts", description: "Curated gift lists, outfit sourcing, holiday planning." },
+  { title: "Organization & Admin", description: "Spreadsheets, comparison tables, polished communication." },
 ];
 
 const TOKEN_CARDS = [
@@ -133,7 +93,23 @@ const TOKEN_CARDS = [
   { label: "50 Task Credits", price: "$59" },
 ];
 
-export default function Credits() {
+type CreditsProps = {
+  /** When provided, skip async fetch (for static pages like /founders). */
+  tasks?: TaskLibraryItem[];
+  categories?: string[];
+};
+
+export default async function Credits(props: CreditsProps) {
+  let tasks: TaskLibraryItem[];
+  let categories: string[];
+  if (props.tasks != null && props.categories != null) {
+    tasks = props.tasks;
+    categories = props.categories;
+  } else {
+    const { getTaskLibrary, getCategories } = await import("@/lib/task-library");
+    [tasks, categories] = await Promise.all([getTaskLibrary(), getCategories()]);
+  }
+
   return (
     <section id="credits" className="section">
       <div className="container">
@@ -151,36 +127,20 @@ export default function Credits() {
               </div>
               <h3 className="credits-card-title">{cat.title}</h3>
               <p className="credits-card-description">{cat.description}</p>
-              <a
-                href={`#credits-accordion-${cat.id}`}
-                className="credits-card-link"
-              >
-                See common requests →
-              </a>
             </article>
           ))}
         </div>
 
-        <CreditsAccordionTrigger />
-        <div id="credits-requests" className="credits-accordion">
-          <h3 className="credits-accordion-title">Common requests by category</h3>
-          {TASK_CATEGORIES.map((cat) => (
-            <details
-              key={cat.title}
-              id={`credits-accordion-${cat.id}`}
-              className="credits-accordion-item"
-            >
-              <summary className="credits-accordion-summary">
-                {cat.title}
-              </summary>
-              <ul className="credits-accordion-list">
-                {cat.items.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </details>
-          ))}
+        <div className="credits-task-library">
+          <h3 className="credits-accordion-title" style={{ marginBottom: "var(--space-md)" }}>
+            Search our task library
+          </h3>
+          <ExploreTasksLibrary tasks={tasks} categories={categories} mode="guest" showOnlyWhenFiltered />
         </div>
+
+        <p className="section-lead" style={{ marginTop: "var(--space-xl)", marginBottom: "var(--space-lg)" }}>
+          Don&apos;t see what you&apos;re looking for? Just ask. Think Moms—we&apos;re sure we can help.
+        </p>
 
         <p className="credits-custom-note">
           Custom requests welcome; we&apos;ll quote credits before we begin. More

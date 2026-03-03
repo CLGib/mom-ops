@@ -7,7 +7,7 @@ export default function WhoItsFor() {
           No. In fact… everyone could use an extra mom in their corner.
         </p>
         <p className="section-lead">
-          Mom Ops was built by moms, because we deeply understand mental load—the
+          Mom Ops was built by moms, because we deeply understand mental load: the
           invisible planning, remembering, coordinating, and anticipating that
           keeps life running. But you don&apos;t need kids to carry mental load.
         </p>
@@ -21,7 +21,7 @@ export default function WhoItsFor() {
         <p className="section-lead">You belong here.</p>
         <p className="section-lead">
           We specialize in moms because we understand the weight they carry. But
-          Mom Ops is for anyone who wants their life to run smoother—with
+          Mom Ops is for anyone who wants their life to run smoother, with
           systems, support, and a little less chaos.
         </p>
         <p className="section-lead" style={{ fontWeight: 600 }}>Built by moms.</p>

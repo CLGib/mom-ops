@@ -2,7 +2,7 @@ const STEPS = [
   {
     num: "01",
     title: "Join + Get Task Credits",
-    body: "Sign up for $29.95/month.\nYou'll receive 45 Task Credits to get started.\nNo hourly billing. No surprise invoices.",
+    body: "Sign up for $29.95/month.\nYou'll receive 35 Task Credits to get started.\nNo hourly billing. No surprise invoices.",
   },
   {
     num: "02",

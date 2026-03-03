@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { queueEmail } from "@/lib/email/queue";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 // ---- Fix Stripe Invoice subscription typing (InvoiceWithSubscription v2) ----
 type InvoiceWithSubscription = Stripe.Invoice & {
@@ -116,6 +117,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
+    if (session.metadata?.mode === "credit_package") {
+      const memberId = session.metadata.member_id as string | undefined;
+      const creditsStr = session.metadata.credits as string | undefined;
+      const credits = creditsStr != null ? parseInt(creditsStr, 10) : NaN;
+      const validCredits = [10, 30, 50].includes(credits);
+      if (memberId && validCredits) {
+        const db = getSupabase();
+        const { error: creditErr } = await db.from("credit_transactions").insert({
+          member_id: memberId,
+          amount: credits,
+          type: "purchase",
+        });
+        if (creditErr) {
+          console.error("[webhook] credit_transactions insert (credit_package) failed", creditErr);
+          return NextResponse.json({ received: true, error: "credit_transactions insert failed" });
+        }
+        console.log("[webhook] credit_package: granted", credits, "credits");
+        return NextResponse.json({ received: true, handled: "credit_package" });
+      }
+      return NextResponse.json({ received: true });
+    }
+
     let userId =
       (session.client_reference_id as string) || session.metadata?.user_id;
 
@@ -195,7 +218,7 @@ export async function POST(request: NextRequest) {
       const db = getSupabase();
       const { error: creditError } = await db
         .from("credit_transactions")
-        .insert({ member_id: userIdFinal, amount: 45, type: "purchase" });
+        .insert({ member_id: userIdFinal, amount: 35, type: "purchase" });
       if (creditError) {
         console.error("[webhook] credit_transactions insert failed", creditError);
         return;
@@ -225,7 +248,30 @@ export async function POST(request: NextRequest) {
       if (profileError) {
         console.error("[webhook] profiles update failed", profileError);
       } else {
-        console.log("[webhook] checkout.session.completed: granted 45 credits + active for user", userIdFinal, isFoundingFinal ? "(founding member)" : "", createdForGuestFinal ? "(guest, sending magic link)" : "");
+        console.log("[webhook] checkout.session.completed: granted 35 credits + active", isFoundingFinal ? "(founding member)" : "", createdForGuestFinal ? "(guest, sending magic link)" : "");
+        try {
+          const posthog = getPostHogClient();
+          posthog.capture({
+            distinctId: userIdFinal,
+            event: "subscription_activated",
+            properties: {
+              is_founding_member: isFoundingFinal,
+              is_guest_signup: createdForGuestFinal,
+              stripe_session_id: session.id,
+              credits_granted: 35,
+            },
+          });
+          posthog.identify({
+            distinctId: userIdFinal,
+            properties: {
+              subscription_status: "active",
+              is_founding_member: isFoundingFinal,
+            },
+          });
+          await posthog.shutdown();
+        } catch (e) {
+          console.warn("[webhook] PostHog subscription_activated capture failed", e);
+        }
         try {
           await queueEmail({
             to_email: null,
@@ -266,6 +312,29 @@ export async function POST(request: NextRequest) {
             console.warn("[webhook] generateLink or queue account_ready_magic_link_v1 failed", e);
           }
         }
+
+        // Referral program: referrer and referred each get 15 credits when referred subscribes
+        const referrerId = session.metadata?.referred_by as string | undefined;
+        if (referrerId && referrerId !== userIdFinal) {
+          const { data: referrerProfile } = await db.from("profiles").select("id").eq("id", referrerId).single();
+          if (referrerProfile?.id) {
+            const { error: refInsertErr } = await db.from("referrals").insert({
+              referrer_id: referrerId,
+              referred_id: userIdFinal,
+            });
+            if (!refInsertErr) {
+              await db.from("credit_transactions").insert([
+                { member_id: referrerId, amount: 15, type: "referral" },
+                { member_id: userIdFinal, amount: 15, type: "referral" },
+              ]);
+              console.log("[webhook] referral: granted 15 credits to referrer and referred");
+            } else if (refInsertErr.code === "23505") {
+              // unique violation: referred already had a referral, skip
+            } else {
+              console.warn("[webhook] referral insert failed", refInsertErr);
+            }
+          }
+        }
       }
     });
 
@@ -300,7 +369,7 @@ export async function POST(request: NextRequest) {
       .from("credit_transactions")
       .insert({
         member_id: userId,
-        amount: 45,
+        amount: 35,
         type: "purchase",
       });
     if (creditError) {
@@ -310,7 +379,21 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-    console.log("[webhook] invoice.paid (renewal): granted 45 credits for user", userId);
+    console.log("[webhook] invoice.paid (renewal): granted 35 credits");
+    try {
+      const posthog = getPostHogClient();
+      posthog.capture({
+        distinctId: userId,
+        event: "subscription_renewed",
+        properties: {
+          credits_granted: 35,
+          stripe_invoice_id: (event.data.object as InvoiceWithSubscription).id,
+        },
+      });
+      await posthog.shutdown();
+    } catch (e) {
+      console.warn("[webhook] PostHog subscription_renewed capture failed", e);
+    }
   } else if (event.type === "customer.subscription.deleted") {
     if (await claimEvent(supabase, event.id)) {
       return NextResponse.json({ received: true, idempotent: true });
@@ -346,6 +429,23 @@ export async function POST(request: NextRequest) {
       });
     } catch (e) {
       console.warn("[webhook] queueEmail subscription_canceled_v1 failed", e);
+    }
+    try {
+      const posthog = getPostHogClient();
+      posthog.capture({
+        distinctId: userId,
+        event: "subscription_canceled",
+        properties: {
+          stripe_subscription_id: subscription.id,
+        },
+      });
+      posthog.identify({
+        distinctId: userId,
+        properties: { subscription_status: "canceled" },
+      });
+      await posthog.shutdown();
+    } catch (e) {
+      console.warn("[webhook] PostHog subscription_canceled capture failed", e);
     }
   } else if (event.type === "invoice.payment_failed") {
     if (await claimEvent(supabase, event.id)) {

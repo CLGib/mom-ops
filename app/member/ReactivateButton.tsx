@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import posthog from "posthog-js";
 
 type Props = { className?: string; children?: React.ReactNode };
 
@@ -12,6 +13,7 @@ export default function ReactivateButton({
 
   async function handleClick() {
     setLoading(true);
+    posthog.capture("reactivate_subscription_initiated");
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",

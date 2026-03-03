@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useCallback, useEffect, useState } from "react";
 import type { QuizForRunner } from "./page";
+import posthog from "posthog-js";
 
 type AnswersState = Record<string, string | string[]>;
 
@@ -95,6 +96,11 @@ export default function QuizRunner({ quiz, memberId, initialAnswers }: Props) {
         setSubmitting(false);
         return;
       }
+      posthog.capture("quiz_completed", {
+        quiz_slug: quiz.slug,
+        question_count: questions.length,
+        outcome_slug: data.outcome_slug ?? null,
+      });
       router.push(`/member/quizzes/${quiz.slug}/result`);
       router.refresh();
     } catch {

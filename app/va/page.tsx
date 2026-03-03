@@ -26,12 +26,6 @@ export default async function VAPage() {
     .eq("assigned_va_id", user.id)
     .order("updated_at", { ascending: false });
 
-  const { data: completed } = await supabase
-    .from("tickets")
-    .select("credit_cost, tip_amount")
-    .eq("assigned_va_id", user.id)
-    .in("status", ["completed", "closed"]);
-
   const { data: reviewedTickets } = await supabase
     .from("tickets")
     .select("id, subject, rating, feedback, completed_at")
@@ -39,28 +33,39 @@ export default async function VAPage() {
     .not("rating", "is", null)
     .order("completed_at", { ascending: false });
 
-  const VA_PAYOUT_RATE = 0.2;
-  const taskEarnings =
-    completed?.reduce((sum, t) => sum + (t.credit_cost ?? 0) * VA_PAYOUT_RATE, 0) ?? 0;
-  const tipsTotal =
-    completed?.reduce((sum, t) => sum + (t.tip_amount ?? 0) / 100, 0) ?? 0;
-  const payoutSummary = taskEarnings + tipsTotal;
-
   const reviewCount = reviewedTickets?.length ?? 0;
-  const avgRating =
-    reviewCount > 0
-      ? (reviewedTickets!.reduce((sum, t) => sum + (t.rating ?? 0), 0) / reviewCount).toFixed(1)
-      : null;
 
   const assignedTicketIds = (assigned ?? []).map((t) => t.id);
   const inProgressTasks = (assigned ?? []).filter(
-    (t) => t.status !== "completed" && t.status !== "closed"
+    (t) =>
+      t.status !== "completed" &&
+      t.status !== "closed" &&
+      t.status !== "cancelled_by_va" &&
+      t.status !== "cancelled_by_admin"
   );
+
+  const { data: vaProfile } = await supabase
+    .from("va_profiles")
+    .select("onboarding_complete")
+    .eq("user_id", user.id)
+    .single();
+  const onboardingComplete = vaProfile?.onboarding_complete === true;
 
   return (
     <main className="app-shell">
       {assignedTicketIds.length > 0 && <RealtimeAssignedTasks assignedTicketIds={assignedTicketIds} />}
       <h1 className="page-title">VA Dashboard</h1>
+
+      {!onboardingComplete && (
+        <div className="card" style={{ marginBottom: "var(--space-lg)", borderColor: "var(--accent)" }}>
+          <p style={{ margin: 0, marginBottom: "var(--space-sm)" }}>
+            <strong>Complete onboarding before you can claim tasks.</strong>
+          </p>
+          <Link href="/va/onboarding" className="btn btn-primary">
+            Go to Onboarding
+          </Link>
+        </div>
+      )}
 
       {/* 1. Inbox: in-progress tasks first */}
       <section style={{ marginBottom: "var(--space-2xl)" }}>
@@ -101,41 +106,13 @@ export default async function VAPage() {
                   {formatInCentral(t.created_at)}
                 </span>
               </div>
-              <ClaimTicketButton ticketId={t.id} subject={t.subject} />
+              <ClaimTicketButton ticketId={t.id} subject={t.subject} onboardingComplete={onboardingComplete} />
             </li>
           ))}
         </ul>
       </section>
 
-      {/* 3. Payout, rating, reviews */}
-      <section className="card card--highlight" style={{ marginBottom: "var(--space-2xl)" }}>
-        <h2 className="section-heading">Your payout (completed tasks)</h2>
-        <p style={{ fontSize: "1.25rem", fontWeight: 600, color: "var(--text)", margin: "0 0 var(--space-sm)" }}>
-          ${payoutSummary.toFixed(2)} total
-        </p>
-        <p className="ticket-meta" style={{ marginBottom: "var(--space-sm)" }}>
-          20% per credit + tips (98% after 2% processing)
-        </p>
-        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          <li style={{ marginBottom: "var(--space-xs)" }}>
-            <span className="ticket-meta">From tasks:</span>{" "}
-            <strong>${taskEarnings.toFixed(2)}</strong>
-          </li>
-          <li>
-            <span className="ticket-meta">From tips (98%):</span>{" "}
-            <strong>${tipsTotal.toFixed(2)}</strong>
-          </li>
-        </ul>
-      </section>
-      {avgRating != null && (
-        <section className="card" style={{ marginBottom: "var(--space-2xl)" }}>
-          <h2 className="section-heading">Your rating</h2>
-          <p style={{ fontSize: "1.25rem", fontWeight: 600, color: "var(--text)", margin: "0 0 var(--space-xs)" }}>
-            {avgRating} out of 5
-          </p>
-          <p className="ticket-meta">{reviewCount} review{reviewCount !== 1 ? "s" : ""}</p>
-        </section>
-      )}
+      {/* Payout and rating are shown in the sidebar nav */}
       {reviewCount > 0 && (
         <section style={{ marginBottom: "var(--space-2xl)" }}>
           <h2 className="section-heading">Your reviews</h2>

@@ -16,6 +16,9 @@ type Ticket = {
   feedback?: string | null;
 };
 
+const HIDDEN_STATUSES = ["closed", "cancelled_by_va", "cancelled_by_admin"] as const;
+const isHidden = (status: string) => HIDDEN_STATUSES.includes(status as (typeof HIDDEN_STATUSES)[number]);
+
 export default function AdminTicketList({ tickets }: { tickets: Ticket[] }) {
   const [search, setSearch] = useState("");
   const [includeClosed, setIncludeClosed] = useState(false);
@@ -31,11 +34,11 @@ export default function AdminTicketList({ tickets }: { tickets: Ticket[] }) {
       });
     }
     if (includeClosed) return tickets;
-    return tickets.filter((t) => t.status !== "closed");
+    return tickets.filter((t) => !isHidden(t.status));
   }, [tickets, search, includeClosed]);
 
-  const openCount = tickets.filter((t) => t.status !== "closed").length;
-  const closedCount = tickets.filter((t) => t.status === "closed").length;
+  const openCount = tickets.filter((t) => !isHidden(t.status)).length;
+  const closedCount = tickets.filter((t) => isHidden(t.status)).length;
 
   return (
     <>
@@ -56,16 +59,16 @@ export default function AdminTicketList({ tickets }: { tickets: Ticket[] }) {
             type="checkbox"
             checked={includeClosed}
             onChange={(e) => setIncludeClosed(e.target.checked)}
-            aria-label="Include closed tickets"
+            aria-label="Include closed and cancelled tickets"
           />
-          Include closed
+          Include closed / cancelled
         </label>
         <p id="admin-ticket-search-hint" className="form-note" style={{ margin: 0, width: "100%" }}>
           {search.trim()
             ? `Showing ${filtered.length} matching ticket${filtered.length !== 1 ? "s" : ""}`
             : includeClosed
               ? `Showing all ${tickets.length} tickets.`
-              : `Showing ${openCount} open ticket${openCount !== 1 ? "s" : ""}. ${closedCount > 0 ? `${closedCount} closed — search or enable "Include closed" to see them.` : ""}`}
+              : `Showing ${openCount} open ticket${openCount !== 1 ? "s" : ""}. ${closedCount > 0 ? `${closedCount} closed/cancelled. Search or enable "Include closed / cancelled" to see them.` : ""}`}
         </p>
       </div>
       {filtered.length === 0 ? (
@@ -74,7 +77,7 @@ export default function AdminTicketList({ tickets }: { tickets: Ticket[] }) {
             ? "No tickets match your search."
             : includeClosed
               ? "No tickets."
-              : "No open tickets. Enable \"Include closed\" or search to find closed tickets."}
+              : "No open tickets. Enable \"Include closed / cancelled\" or search to find them."}
         </p>
       ) : (
         <ul className="ticket-list">
@@ -85,7 +88,7 @@ export default function AdminTicketList({ tickets }: { tickets: Ticket[] }) {
                 <span className="ticket-meta" style={{ marginLeft: "var(--space-sm)" }}>
                   {t.status}
                   {t.rating != null && ` · ${t.rating}/5`}
-                  {` – member: ${t.member_id?.slice(0, 8)}… – ${formatInCentral(t.created_at)}`}
+                  {` - member: ${t.member_id?.slice(0, 8)}… - ${formatInCentral(t.created_at)}`}
                 </span>
               </div>
             </li>

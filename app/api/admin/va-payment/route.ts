@@ -10,12 +10,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
+  const { data: roleRow } = await supabase
+    .from("user_roles")
     .select("role")
-    .eq("id", user.id)
-    .single();
-  if (profile?.role !== "admin") {
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (roleRow?.role !== "admin") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

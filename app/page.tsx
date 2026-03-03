@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import CheckoutRedirect from "./(marketing)/components/CheckoutRedirect";
+import ReferralCookieSetter from "./(marketing)/components/ReferralCookieSetter";
 import Header from "./(marketing)/components/Header";
 import Hero from "./(marketing)/components/Hero";
 import Problem from "./(marketing)/components/Problem";
@@ -26,6 +27,7 @@ export default function HomePage() {
   return (
     <>
       <Suspense fallback={null}>
+        <ReferralCookieSetter />
         <CheckoutRedirect />
       </Suspense>
       <Header />

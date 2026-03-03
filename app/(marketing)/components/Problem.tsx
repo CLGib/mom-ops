@@ -23,7 +23,7 @@ export default function Problem() {
           <div className="problem-image-card">
             <img
               src="/assets/got-this.png"
-              alt="Organized planning: to-do lists, calendars, reminders, and encouragement—you got this."
+              alt="Organized planning: to-do lists, calendars, reminders, and encouragement: you got this."
               width={320}
               height={480}
               className="problem-image"

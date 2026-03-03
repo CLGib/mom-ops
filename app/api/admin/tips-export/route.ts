@@ -10,12 +10,14 @@ export async function GET() {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (profile?.role !== "admin") {
+  const [{ data: roleRow }, { data: cfoRow }] = await Promise.all([
+    supabase.from("user_roles").select("role").eq("user_id", user.id).single(),
+    supabase.from("cfos").select("user_id").eq("user_id", user.id).maybeSingle(),
+  ]);
+  const role = roleRow?.role ?? null;
+  const isAdmin = role === "admin";
+  const isCfo = role === "cfo" || !!cfoRow;
+  if (!isAdmin && !isCfo) {
     return new NextResponse("Forbidden", { status: 403 });
   }
 

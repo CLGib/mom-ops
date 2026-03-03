@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import MemberPortalLayout from "../components/MemberPortalLayout";
+import HeaderUser from "../components/HeaderUser";
+import NPSPopover from "./NPSPopover";
 
 export const dynamic = "force-dynamic";
 
@@ -15,34 +17,51 @@ export default async function MemberLayout({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=" + encodeURIComponent("/member"));
 
+  await supabase.rpc("redeem_member_invite");
+
   const { data: profile } = await supabase
     .from("profiles")
-    .select("is_founding_member, profile_completion, preferred_name, full_name")
+    .select("is_founding_member, profile_completion, preferred_name, full_name, avatar_url")
     .eq("id", user.id)
     .single();
 
   const displayName = profile?.preferred_name?.trim() || profile?.full_name?.trim() || user.email;
 
+  const navLinks = [
+    { href: "/member", label: "Home" },
+    { href: "/member/pending", label: "Tasks" },
+    { href: "/member/completed", label: "Completed Tasks" },
+    { href: "/member/explore-tasks", label: "Explore tasks" },
+    { href: "/member/reviews", label: "Reviews" },
+    { href: "/member/discovery", label: "Just for Fun" },
+    { href: "/member/profile", label: profile?.profile_completion != null && profile.profile_completion < 100 ? `Profile (${profile.profile_completion}%)` : "Profile" },
+    { href: "/member/credits", label: "Credits" },
+    { href: "/member/referrals", label: "Referrals" },
+    { href: "mailto:support@themomops.com", label: "Help / Support" },
+    { href: "/member/feedback", label: "Request a Feature & Report Bug" },
+    { href: "/api/auth/signout", label: "Log out" },
+  ];
+
   return (
-    <div className="app-shell app-shell--member" style={{ width: "100%" }}>
-      <header className="member-profile-bar">
-        <div className="member-profile-bar__nav">
-          <Link href="/member" className="link" style={{ fontSize: "0.9rem", fontWeight: 500 }}>
-            Home
-          </Link>
-          <Link href="/member/profile" className="link" style={{ fontSize: "0.9rem", fontWeight: 500 }}>
-            Profile
-            {profile?.profile_completion != null && profile.profile_completion < 100 && (
-              <span style={{ marginLeft: "var(--space-xs)", color: "var(--text-muted, #666)" }}>({profile.profile_completion}%)</span>
-            )}
-          </Link>
+    <MemberPortalLayout
+      brandLabel="My Ops Hub"
+      brandHref="/member"
+      navLinks={navLinks}
+      headerRight={
+        <HeaderUser
+          displayName={displayName}
+          avatarUrl={profile?.avatar_url}
+          title={user.email ?? undefined}
+          nameClassName="member-profile-email"
+          logoutClassName="member-portal__header-logout"
+        >
           {profile?.is_founding_member && (
             <span
               className="founder-badge"
               style={{
                 fontSize: "0.75rem",
                 fontWeight: 600,
-                padding: "0.2rem 0.5rem",
+                padding: "0.25rem 0.5rem",
                 borderRadius: "4px",
                 background: "var(--accent-soft-bg, #f8f5ed)",
                 color: "var(--accent, #b8860b)",
@@ -52,17 +71,11 @@ export default async function MemberLayout({
               Founding Member
             </span>
           )}
-        </div>
-        <div className="member-profile-bar__user">
-          <span className="member-profile-email" title={user.email}>
-            {displayName}
-          </span>
-          <a href="/api/auth/signout" className="link member-profile-bar__logout">
-            Log out
-          </a>
-        </div>
-      </header>
+        </HeaderUser>
+      }
+    >
       {children}
-    </div>
+      <NPSPopover />
+    </MemberPortalLayout>
   );
 }

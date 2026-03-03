@@ -1,15 +1,16 @@
+"use client";
+
 import CheckoutButton from "./CheckoutButton";
 import FoundersCounter from "./FoundersCounter";
+import { useFoundersCount } from "./FoundersCountContext";
 
-type Props = { claimed: number };
-
-export default function FoundersHero({ claimed }: Props) {
+export default function FoundersHero() {
+  const claimed = useFoundersCount();
   const isFull = claimed >= 50;
 
   return (
     <section className="hero founders-hero">
       <div className="container">
-        <p className="hero-brand">Mom Ops</p>
         <h1 className="hero-headline">
           Your Personal Household Virtual Assistant (VA), without Hiring
           Full-Time
@@ -17,14 +18,12 @@ export default function FoundersHero({ claimed }: Props) {
         <p className="hero-subhead">
           Household admin, handled by a real mom VA.
           <br />
-          Structured membership.
-          <br />
           Clear timelines.
           <br />
           No hourly billing. No guesswork.
         </p>
         <p className="hero-price">
-          $29.95/month includes 45 Task Credits. Roll over up to 3 months. Add
+          $29.95/month includes 35 Task Credits. Roll over up to 3 months. Add
           more anytime.
         </p>
         <p className="founders-first50">First 50 only</p>

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { getReferralCode } from "@/lib/referral-cookie";
 
 export default function CheckoutRedirect() {
   const searchParams = useSearchParams();
@@ -16,8 +16,15 @@ export default function CheckoutRedirect() {
 
     const isFounders = pathname === "/founders";
     const endpoint = isFounders ? "/api/stripe/checkout/founders" : "/api/stripe/checkout";
+    const referralCode = getReferralCode();
+    const body = referralCode ? JSON.stringify({ referral_code: referralCode }) : undefined;
 
-    fetch(endpoint, { method: "POST", credentials: "include" })
+    fetch(endpoint, {
+      method: "POST",
+      credentials: "include",
+      headers: body ? { "Content-Type": "application/json" } : undefined,
+      body,
+    })
       .then(async (res) => {
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {

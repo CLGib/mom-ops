@@ -40,17 +40,17 @@ function getTemplate(
       html: `
         <p>You're in. Complete checkout to get started.</p>
         <p><a href="${memberDashboard}">Go to your dashboard</a></p>
-        <p>— Mom Ops</p>
+        <p>- Mom Ops</p>
       `.trim(),
     }),
     welcome_after_signup_v1: () => ({
-      subject: "You're in — here's how it works",
+      subject: "You're in. Here's how it works",
       html: `
         <p>Send us a task by email or from your dashboard. We assign the right specialist and keep you updated.</p>
         <p>When you're in a rush, you can send a voice note. We've got it.</p>
         <p><a href="${memberDashboard}">Open your dashboard</a></p>
         <p>Mom's got you.</p>
-        <p>— Mom Ops</p>
+        <p>- Mom Ops</p>
       `.trim(),
     }),
     task_submitted_v1: () => ({
@@ -61,7 +61,7 @@ function getTemplate(
         <p><a href="${taskLink}">View your task</a></p>
         <p>You don't need to think about this anymore.</p>
         <p>Mom's got you.</p>
-        <p>— Mom Ops</p>
+        <p>- Mom Ops</p>
       `.trim(),
     }),
     va_claimed_v1: () => {
@@ -73,7 +73,7 @@ function getTemplate(
           <p>You'll get an update in the thread. No need to do anything else right now.</p>
           <p><a href="${taskLink}">View task</a></p>
           <p>We're on it.</p>
-          <p>— Mom Ops</p>
+          <p>- Mom Ops</p>
         `.trim(),
       };
     },
@@ -87,7 +87,7 @@ function getTemplate(
           <p>Your specialist replied on a task.</p>
           ${messageBody ? `<div style="margin: 1rem 0; padding: 0.75rem; background: #f5f5f5; border-radius: 4px;">${messageBody}</div>` : ""}
           <p><a href="${taskLink}">View full conversation</a></p>
-          <p>— Mom Ops</p>
+          <p>- Mom Ops</p>
         `.trim(),
       };
     },
@@ -100,31 +100,31 @@ function getTemplate(
           <p>We'd love a quick rating so we can keep improving. It takes a few seconds.</p>
           <p><a href="${surveyLink}">Rate this task</a></p>
           <p>Consider it handled.</p>
-          <p>— Mom Ops</p>
+          <p>- Mom Ops</p>
         `.trim(),
       };
     },
     payment_success_v1: () => ({
-      subject: "Payment received – Mom Ops",
+      subject: "Payment received. Mom Ops",
       html: `
         <p>We received your payment. Your Task Credits are ready to use.</p>
         <p><a href="${memberDashboard}">Go to dashboard</a></p>
-        <p>— The Mom Ops Team</p>
+        <p>- The Mom Ops Team</p>
       `.trim(),
     }),
     subscription_canceled_v1: () => ({
       subject: "Your Mom Ops subscription has been canceled",
       html: `
         <p>Your subscription has been canceled. We're sorry to see you go.</p>
-        <p>— The Mom Ops Team</p>
+        <p>- The Mom Ops Team</p>
       `.trim(),
     }),
     payment_failed_v1: () => ({
-      subject: "Payment issue – Mom Ops",
+      subject: "Payment issue. Mom Ops",
       html: `
         <p>There was a problem with your payment. Please update your payment method in your account to avoid interruption.</p>
         <p><a href="${memberDashboard}">Update payment method</a></p>
-        <p>— The Mom Ops Team</p>
+        <p>- The Mom Ops Team</p>
       `.trim(),
     }),
     account_ready_magic_link_v1: () => {
@@ -134,7 +134,20 @@ function getTemplate(
         html: `
           <p>Your payment was successful. Click the link below to access your dashboard and set your password.</p>
           <p><a href="${link}">Access your dashboard</a></p>
-          <p>— The Mom Ops Team</p>
+          <p>- The Mom Ops Team</p>
+        `.trim(),
+      };
+    },
+    member_invite_v1: () => {
+      const link = typeof payload.magic_link === "string" ? payload.magic_link : memberDashboard;
+      const credits = typeof payload.credits === "number" ? payload.credits : 35;
+      return {
+        subject: "You're invited to Mom Ops",
+        html: `
+          <p>You've been invited to Mom Ops. You'll start with ${credits} task credits.</p>
+          <p><a href="${link}">Access your dashboard</a></p>
+          <p>We're on it.</p>
+          <p>- Mom Ops</p>
         `.trim(),
       };
     },
@@ -146,7 +159,52 @@ function getTemplate(
         html: `
           <p>A member sent you a $${amount} tip for the task: ${taskName}.</p>
           <p>Nice work.</p>
-          <p>— Mom Ops</p>
+          <p>- Mom Ops</p>
+        `.trim(),
+      };
+    },
+    feature_bug_done_v1: () => {
+      const title = escapeHtml(String(payload.title ?? "Your request"));
+      const typeLabel = payload.type === "bug" ? "Bug report" : "Feature request";
+      return {
+        subject: `Resolved: ${title}`,
+        html: `
+          <p>Your ${typeLabel} has been resolved.</p>
+          <p><strong>${title}</strong></p>
+          <p>Thanks for helping us improve Mom Ops.</p>
+          <p>- Mom Ops</p>
+        `.trim(),
+      };
+    },
+    task_cancelled_v1: () => {
+      const subject = escapeHtml(String(payload.subject ?? "Your task"));
+      const reasonLabel = formatCancellationReason(String(payload.cancellation_reason ?? ""));
+      const taskLink = typeof payload.task_link === "string" ? payload.task_link : "";
+      return {
+        subject: "Task canceled",
+        html: `
+          <p>Your task &ldquo;${subject}&rdquo; was canceled by your specialist.</p>
+          <p><strong>Reason:</strong> ${reasonLabel}</p>
+          ${payload.cancellation_notes ? `<p><strong>Note:</strong> ${escapeHtml(String(payload.cancellation_notes)).replace(/\n/g, "<br>")}</p>` : ""}
+          <p>You may resubmit this task from your dashboard if you&apos;d like.</p>
+          ${taskLink ? `<p><a href="${taskLink}">View your tasks</a></p>` : ""}
+          <p>- Mom Ops</p>
+        `.trim(),
+      };
+    },
+    task_cancelled_admin_v1: () => {
+      const subject = escapeHtml(String(payload.subject ?? "Task"));
+      const reasonLabel = formatCancellationReason(String(payload.cancellation_reason ?? ""));
+      const cancelledBy = payload.cancelled_by === "admin" ? "Admin" : "VA";
+      return {
+        subject: `Task canceled by ${cancelledBy}: ${subject.slice(0, 50)}`,
+        html: `
+          <p>A task was canceled.</p>
+          <p><strong>Task:</strong> ${subject}</p>
+          <p><strong>Canceled by:</strong> ${cancelledBy}</p>
+          <p><strong>Reason:</strong> ${reasonLabel}</p>
+          ${payload.cancellation_notes ? `<p><strong>Notes:</strong> ${escapeHtml(String(payload.cancellation_notes)).replace(/\n/g, "<br>")}</p>` : ""}
+          <p>- Mom Ops</p>
         `.trim(),
       };
     },
@@ -162,6 +220,21 @@ function escapeHtml(s: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+const CANCELLATION_REASON_LABELS: Record<string, string> = {
+  customer_request: "Customer request",
+  medical_emergency: "Medical / emergency",
+  personal_emergency: "Personal emergency",
+  scope_outside_skillset: "Scope outside skillset",
+  duplicate_task: "Duplicate task",
+  incomplete_details: "Incomplete task details",
+  system_technical: "System / technical issue",
+  other: "Other",
+};
+
+function formatCancellationReason(code: string): string {
+  return (CANCELLATION_REASON_LABELS[code] ?? code) || "Not specified";
 }
 
 /** Resolve recipient email: use row.to_email or look up by payload.member_id via Auth Admin. */

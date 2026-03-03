@@ -41,7 +41,7 @@ export default async function AdminVAProfilePage({
   return (
     <main className="app-shell">
       <Link href="/admin" className="back-link">
-        ← Back to admin
+        ← Back to CEO
       </Link>
       <h1 className="page-title">Edit VA profile</h1>
       <p className="form-note" style={{ marginBottom: "var(--space-md)" }}>

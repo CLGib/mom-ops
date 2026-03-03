@@ -3,11 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-type VaOption = { id: string; email: string };
+type VaOption = { id: string; email: string; payTo: string };
 
 export default function RecordVAPaymentForm({ vas }: { vas: VaOption[] }) {
   const router = useRouter();
   const [vaId, setVaId] = useState("");
+  const selectedPayTo = vaId ? (vas.find((v) => v.id === vaId)?.payTo ?? "-") : null;
   const [amountDollars, setAmountDollars] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -87,6 +88,11 @@ export default function RecordVAPaymentForm({ vas }: { vas: VaOption[] }) {
             </option>
           ))}
         </select>
+        {selectedPayTo && (
+          <p className="form-note" style={{ marginTop: "var(--space-2xs)", marginBottom: 0 }}>
+            Pay to: <strong>{selectedPayTo}</strong>
+          </p>
+        )}
       </div>
       <div className="form-group" style={{ width: "8rem" }}>
         <label htmlFor="admin-va-payment-amount">Amount ($)</label>

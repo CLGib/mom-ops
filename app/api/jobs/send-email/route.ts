@@ -11,10 +11,10 @@ function getServiceSupabase() {
   return createClient(url, key);
 }
 
-/** Secured by CRON_SECRET. Vercel Cron sends Authorization: Bearer <CRON_SECRET>. */
+/** When CRON_SECRET is set, require Authorization: Bearer <CRON_SECRET>. When unset, allow unauthenticated (Vercel has known issues not sending the header). */
 function isAuthorized(request: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
-  if (!secret) return true; // allow when not configured (e.g. local dev)
+  if (!secret) return true; // no secret configured → allow (for compatibility with Vercel cron bugs)
   const auth = request.headers.get("authorization");
   return auth === `Bearer ${secret}`;
 }

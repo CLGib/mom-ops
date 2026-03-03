@@ -21,7 +21,7 @@ export default function Efficiency() {
           <div className="efficiency-image-wrap">
             <img
               src="/assets/chatgpt-example.png"
-              alt="Phone on desk showing a ChatGPT conversation about planning a birthday party—Mom Ops is about execution, not another chat."
+              alt="Phone on desk showing a ChatGPT conversation about planning a birthday party. Mom Ops is about execution, not another chat."
               width={308}
               height={396}
               className="efficiency-image"

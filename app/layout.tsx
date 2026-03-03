@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./landing.css";
+import { AirbrakeProvider } from "./components/AirbrakeProvider";
+import { Hotjar } from "./components/Hotjar";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://themomops.com";
 
@@ -33,7 +35,8 @@ export default function RootLayout({
         />
       </head>
       <body>
-        {children}
+        {process.env.NODE_ENV === "production" && <Hotjar />}
+        <AirbrakeProvider>{children}</AirbrakeProvider>
       </body>
     </html>
   );

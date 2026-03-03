@@ -22,6 +22,20 @@ export default async function AdminPage() {
     .from("profiles")
     .select("id, role");
 
+  const { data: npsRows } = await supabase
+    .from("nps_responses")
+    .select("score, dismissed")
+    .eq("dismissed", false)
+    .not("score", "is", null);
+  const npsScores = (npsRows ?? []).map((r) => r.score as number).filter((s) => s >= 0 && s <= 10);
+  const npsResponseCount = npsScores.length;
+  const npsPromoters = npsScores.filter((s) => s >= 9).length;
+  const npsDetractors = npsScores.filter((s) => s <= 6).length;
+  const npsScore =
+    npsResponseCount > 0
+      ? Math.round(((npsPromoters - npsDetractors) / npsResponseCount) * 100)
+      : null;
+
   const { data: txRows } = await supabase
     .from("credit_transactions")
     .select("member_id, amount");
@@ -56,7 +70,7 @@ export default async function AdminPage() {
 
   return (
     <>
-      <h1 className="page-title">Admin Dashboard</h1>
+      <h1 className="page-title">CEO Dashboard</h1>
       {myClaimedTickets.length > 0 && (
         <section className="card card--highlight" style={{ marginBottom: "var(--space-2xl)" }}>
           <h2 className="section-heading">My claimed tickets</h2>
@@ -84,6 +98,10 @@ export default async function AdminPage() {
           <li>By status: {JSON.stringify(byStatus)}</li>
           <li>Total credits in circulation: {totalCreditsInCirculation}</li>
           <li>Profiles: {profiles?.length ?? 0}</li>
+          <li>
+            NPS score: {npsScore != null ? npsScore : "—"}
+            {npsResponseCount > 0 && ` (${npsResponseCount} response${npsResponseCount !== 1 ? "s" : ""})`}
+          </li>
         </ul>
       </section>
       <section style={{ marginBottom: "var(--space-2xl)" }}>
@@ -94,7 +112,7 @@ export default async function AdminPage() {
       </section>
       {unassignedTickets.length > 0 && (
         <section style={{ marginBottom: "var(--space-2xl)" }}>
-          <h2 className="section-heading">Unassigned tickets (claim as admin)</h2>
+          <h2 className="section-heading">Unassigned tickets (claim as CEO)</h2>
           <ul className="ticket-list">
             {unassignedTickets.map((t) => (
               <li key={t.id} className="ticket-item">

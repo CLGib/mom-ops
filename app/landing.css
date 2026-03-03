@@ -216,15 +216,6 @@ body {
   text-align: center;
 }
 
-.hero-brand {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-soft);
-  margin: 0 0 var(--space-sm);
-}
-
 .hero-headline {
   font-family: var(--font-display);
   font-size: clamp(2rem, 5vw, 3rem);
@@ -688,6 +679,12 @@ body {
   color: var(--accent-hover);
 }
 
+/* Task library block (search + list) between cards and accordion */
+.credits-task-library {
+  margin-top: var(--space-xl);
+  margin-bottom: var(--space-xl);
+}
+
 /* Accordion: common requests by category (below cards) */
 .credits-accordion {
   margin-bottom: var(--space-xl);
@@ -940,6 +937,118 @@ body {
   margin: var(--space-md) 0 0;
 }
 
+/* Founders CTA card – contained, elevated block */
+.founders-cta-card {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: var(--space-2xl) var(--space-xl);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 24px rgba(26, 25, 23, 0.08), 0 0 0 1px rgba(184, 134, 11, 0.06);
+  text-align: left;
+}
+
+.founders-cta-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 var(--space-sm);
+  padding: 0.25rem 0.5rem;
+  background: var(--accent-soft-bg);
+  border-radius: 4px;
+}
+
+.founders-cta-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3.5vw, 1.875rem);
+  font-weight: 400;
+  color: var(--text);
+  margin: 0 0 var(--space-lg);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.founders-cta-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-lg);
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.founders-cta-benefits li {
+  position: relative;
+  padding-left: 1.75rem;
+  margin-bottom: var(--space-sm);
+}
+
+.founders-cta-benefits li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.4em;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.founders-cta-benefits a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.founders-cta-benefits a:hover {
+  text-decoration: underline;
+}
+
+.founders-cta-price {
+  font-size: 1.0625rem;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-xl);
+  line-height: 1.5;
+}
+
+.founders-cta-price strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.founders-cta-actions {
+  margin-bottom: var(--space-md);
+}
+
+.founders-cta-btn {
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(184, 134, 11, 0.25);
+}
+
+.founders-cta-btn:hover {
+  box-shadow: 0 4px 12px rgba(184, 134, 11, 0.35);
+}
+
+.founders-cta-trust {
+  font-size: 0.8125rem;
+  color: var(--text-soft);
+  margin: 0;
+  text-align: center;
+}
+
+@media (min-width: 480px) {
+  .founders-cta-btn {
+    width: auto;
+    min-width: 260px;
+  }
+}
+
 .faq-list {
   margin-top: var(--space-xl);
   max-width: 600px;
@@ -1122,11 +1231,58 @@ details[open] .faq-question::after {
 }
 
 .app-shell--wide {
-  max-width: min(90vw, 960px);
+  max-width: min(94vw, 1280px);
 }
 
 .app-shell--narrow {
   max-width: 28rem;
+}
+
+/* Desktop: wider content area (80% viewport) for all app views */
+@media (min-width: 769px) {
+  .app-shell:not(.app-shell--narrow) {
+    max-width: min(80vw, 1400px);
+  }
+
+  .app-shell--wide {
+    max-width: min(80vw, 1400px);
+  }
+}
+
+/* VA task detail: two-column desktop layout, full width up to 1200px */
+.va-task-detail {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+@media (min-width: 769px) {
+  .va-task-detail {
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.4fr);
+    gap: var(--space-xl);
+    align-items: start;
+    padding: 0 var(--space-lg);
+  }
+
+  .va-task-detail__main {
+    min-width: 0;
+  }
+
+  .va-task-detail__side {
+    min-width: 0;
+    position: sticky;
+    top: var(--space-md);
+  }
+}
+
+@media (max-width: 768px) {
+  .va-task-detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
 }
 
 /* Member dashboard header - responsive so "Log out" doesn't wrap on mobile */
@@ -1423,6 +1579,15 @@ textarea.input {
   line-height: 1.5;
 }
 
+.thread-message-body a {
+  color: var(--accent, #b8860b);
+  text-decoration: underline;
+}
+
+.thread-message-body a:hover {
+  text-decoration: none;
+}
+
 .ticket-description {
   padding: var(--space-md);
   background: var(--bg-alt);
@@ -1536,7 +1701,7 @@ textarea.input {
 
 @media (min-width: 768px) {
   .app-shell--member {
-    max-width: var(--container);
+    max-width: min(80vw, 1400px);
     margin-left: auto;
     margin-right: auto;
     padding: var(--space-2xl) var(--space-lg) var(--space-2xl);
@@ -1616,4 +1781,350 @@ textarea.input {
 /* Request VA select: full width on mobile (override any max-width) */
 .member-submit-form #request-va {
   max-width: none;
+}
+
+/* Task cards: task full width, button always under (stacked layout) */
+.member-task-cards {
+  width: 100%;
+}
+.member-task-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+.member-task-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs, 0.25rem);
+  width: 100%;
+  min-width: 0;
+}
+.member-task-card__status {
+  font-size: 0.75rem;
+  color: var(--text-muted, #5c5955);
+  display: block;
+  width: 100%;
+}
+.member-task-card__subject {
+  font-size: 1rem;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  word-break: break-word;
+  line-height: 1.35;
+  flex: 0 1 auto;
+}
+.member-task-card__date {
+  font-size: 0.875rem;
+  color: var(--text-muted, #5c5955);
+  display: block;
+  width: 100%;
+}
+/* Button always below content, full width on mobile */
+.member-task-card__action {
+  margin-top: var(--space-sm, 0.5rem);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+@media (min-width: 768px) {
+  .member-task-card__action {
+    width: auto;
+    align-self: flex-start;
+    min-width: 120px;
+  }
+}
+
+/* ============================================
+   Sidebar layout (Admin / VA / Member) – mobile header + hamburger
+   ============================================ */
+.sidebar-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.sidebar-layout__body {
+  flex: 1;
+}
+
+/* Header: keep brand and right content on one line on mobile */
+.sidebar-layout__header {
+  flex-wrap: nowrap;
+}
+
+.sidebar-layout__brand {
+  white-space: nowrap;
+}
+
+.sidebar-layout__header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  flex-wrap: nowrap;
+}
+
+.sidebar-layout__header-right > * {
+  min-width: 0;
+}
+
+.sidebar-layout__header-right .member-profile-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.sidebar-layout__header-right a {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Hamburger: hidden on desktop */
+.sidebar-layout__hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text);
+  border-radius: var(--radius);
+}
+
+.sidebar-layout__hamburger:hover {
+  background: var(--accent-soft-bg);
+}
+
+.sidebar-layout__hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  margin: 0 auto;
+}
+
+/* Overlay: hidden by default, only on mobile when menu open */
+.sidebar-layout__overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-layout__overlay--open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (max-width: 768px) {
+  .sidebar-layout__hamburger {
+    display: flex;
+  }
+
+  .sidebar-layout__overlay {
+    display: block;
+  }
+
+  /* Drawer: off-screen by default, slides in when open */
+  .sidebar-layout__drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 101;
+    width: 220px;
+    max-width: 85vw;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: var(--space-md) 0;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    overflow-y: auto;
+  }
+
+  .sidebar-layout__drawer--open {
+    transform: translateX(0);
+  }
+}
+
+@media (min-width: 769px) {
+  .sidebar-layout__drawer {
+    position: relative;
+    transform: none;
+  }
+}
+
+/* VA onboarding collapsible sections */
+.va-onboarding-guide details summary {
+  display: block;
+}
+.va-onboarding-guide details summary::-webkit-details-marker {
+  display: none;
+}
+.va-onboarding-guide details summary::before {
+  content: "▸ ";
+  display: inline-block;
+  margin-right: 0.25rem;
+  transition: transform 0.15s ease;
+}
+.va-onboarding-guide details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+/* ============================================
+   Member portal — mobile first (no sidebar)
+   Tap targets 44px+, no horizontal scroll, full-width buttons on small screens
+   ============================================ */
+.member-portal {
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.member-portal__header-right {
+  overflow: hidden;
+  min-width: 0;
+}
+.member-portal__header-right .member-profile-email,
+.member-portal__header-logout {
+  display: none;
+}
+@media (min-width: 480px) {
+  .member-portal__header-right .member-profile-email {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 120px;
+  }
+  .member-portal__header-logout {
+    display: inline-flex;
+  }
+}
+
+/* Tap targets: min 44px for interactive elements */
+.member-portal .btn,
+.member-portal button,
+.member-portal a.btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 12px 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.member-portal .btn:not(.btn-primary):not(.btn-secondary) {
+  min-width: 44px;
+}
+
+.member-portal .ticket-item a,
+.member-portal .card a.link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 4px;
+}
+
+/* Discovery quiz card: actions never overflow, full-width stacked on small screens */
+.member-portal .discovery-quiz-actions .btn {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+@media (max-width: 480px) {
+  .member-portal .discovery-quiz-actions {
+    flex-basis: 100%;
+  }
+  .member-portal .discovery-quiz-actions .btn {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Buttons: full width on small screens (≤375px and up to 480px) */
+@media (max-width: 480px) {
+  .member-portal .member-submit-form .btn-primary,
+  .member-portal .member-submit-form .btn-secondary,
+  .member-portal .btn-primary,
+  .member-portal .btn-large {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Inputs: comfortable on mobile keyboard, 16px prevents iOS zoom */
+.member-portal .input,
+.member-portal textarea.input,
+.member-portal select.input {
+  min-height: 44px;
+  font-size: 16px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.member-portal textarea.input {
+  min-height: 120px;
+  padding: 12px var(--space-sm);
+}
+
+/* Cards and content: no overflow */
+.member-portal .card,
+.member-portal .app-shell,
+.member-portal img,
+.member-portal video {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Tables: scroll inside container, never grow page */
+.member-portal table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.member-portal .app-shell,
+.member-portal .member-portal__main {
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+  width: 100%;
+  min-width: 0;
+}
+
+/* Readable font sizes — minimum 16px body, 14px secondary */
+.member-portal {
+  font-size: 16px;
+  line-height: 1.5;
+}
+.member-portal .form-note,
+.member-portal .ticket-meta,
+.member-portal .section-lead {
+  font-size: 0.875rem;
+}
+.member-portal .page-title {
+  font-size: clamp(1.375rem, 4vw, 1.75rem);
+  line-height: 1.25;
+}
+
+/* Bottom nav: always visible on member portal (mobile-first) */
+.member-portal__bottom-nav a,
+.member-portal__bottom-nav button {
+  min-height: 44px;
+  min-width: 44px;
 }

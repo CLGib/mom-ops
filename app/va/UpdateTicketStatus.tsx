@@ -11,6 +11,8 @@ const STATUSES = [
   "waiting_on_member",
   "completed",
   "closed",
+  "cancelled_by_va",
+  "cancelled_by_admin",
 ] as const;
 
 const FINAL_STATUSES = ["completed", "closed"] as const;

@@ -34,50 +34,45 @@ export default async function MemberTicketPage({
 
   if (!ticket) notFound();
 
-  const { data: pastTickets } = await supabase
+  const { data: pastTicketsWithSubject } = await supabase
     .from("tickets")
-    .select("assigned_va_id")
+    .select("assigned_va_id, subject")
     .eq("member_id", user.id)
     .not("assigned_va_id", "is", null)
-    .in("status", ["completed", "closed"]);
-  const pastVaIds = [...new Set((pastTickets ?? []).map((t) => t.assigned_va_id!).filter(Boolean))];
-  let pastVas: { id: string; label: string; imageUrl?: string | null }[] = [];
-  if (pastVaIds.length > 0) {
-    const { data: vaPublicProfiles } = await supabase
-      .from("va_profiles")
-      .select("user_id, display_name, profile_image_url")
-      .in("user_id", pastVaIds);
-    const byId = new Map(vaPublicProfiles?.map((v) => [v.user_id, v]) ?? []);
-    pastVas = pastVaIds.map((id) => {
-      const v = byId.get(id);
-      return {
-        id,
-        label: v?.display_name ?? "Previous specialist",
-        imageUrl: v?.profile_image_url ?? null,
-      };
-    });
+    .in("status", ["completed", "closed"])
+    .order("completed_at", { ascending: false });
+  const pastVaIds = [...new Set((pastTicketsWithSubject ?? []).map((t) => t.assigned_va_id!).filter(Boolean))];
+  const subjectByVaId = new Map<string, string>();
+  for (const t of pastTicketsWithSubject ?? []) {
+    if (t.assigned_va_id && !subjectByVaId.has(t.assigned_va_id)) {
+      subjectByVaId.set(t.assigned_va_id, (t.subject && String(t.subject).trim()) || "previous task");
+    }
   }
+  const pastVas: { id: string; label: string; imageUrl?: string | null }[] = pastVaIds.map((vaId) => ({
+    id: vaId,
+    label: `Same specialist as "${subjectByVaId.get(vaId) ?? "previous task"}"`,
+    imageUrl: null,
+  }));
 
   const showRequestVa = pastVas.length > 0 && ticket.assigned_va_id == null;
 
   let vaProfile: { display_name: string; profile_image_url: string | null; bio: string | null } | null = null;
-  if (ticket.assigned_va_id) {
-    const { data: vp } = await supabase
-      .from("va_profiles")
-      .select("display_name, profile_image_url, bio")
-      .eq("user_id", ticket.assigned_va_id)
-      .single();
-    if (vp) vaProfile = vp;
-  }
-
   let requestedVaName: string | null = null;
-  if (ticket.requested_va_id) {
-    const { data: rvp } = await supabase
+  const vaIdsToFetch = [ticket.assigned_va_id, ticket.requested_va_id].filter(Boolean) as string[];
+  if (vaIdsToFetch.length > 0) {
+    const { data: vaProfiles } = await supabase
       .from("va_profiles")
-      .select("display_name")
-      .eq("user_id", ticket.requested_va_id)
-      .single();
-    requestedVaName = rvp?.display_name ?? "Requested specialist";
+      .select("user_id, display_name, profile_image_url, bio")
+      .in("user_id", vaIdsToFetch);
+    const byId = new Map((vaProfiles ?? []).map((v) => [v.user_id, v]));
+    if (ticket.assigned_va_id) {
+      const vp = byId.get(ticket.assigned_va_id);
+      if (vp) vaProfile = { display_name: vp.display_name ?? "", profile_image_url: vp.profile_image_url ?? null, bio: vp.bio ?? null };
+    }
+    if (ticket.requested_va_id) {
+      const rvp = byId.get(ticket.requested_va_id);
+      requestedVaName = rvp?.display_name?.trim() ?? null;
+    }
   }
 
   const { data: messages } = await supabase
@@ -113,15 +108,15 @@ export default async function MemberTicketPage({
         Status: {ticket.status} -  Created{" "}
         {formatInCentral(ticket.created_at)}
       </p>
-      {ticket.requested_va_id && requestedVaName && (
+      {ticket.requested_va_id && (
         <p className="form-note" style={{ marginBottom: "var(--space-sm)" }}>
-          Requested: {requestedVaName} (we&apos;ll do our best to match you)
+          Requested: {requestedVaName ?? "specialist"} (we&apos;ll do our best to match you)
         </p>
       )}
       {ticket.assigned_va_id && (
-        <section style={{ marginBottom: "var(--space-md)" }} aria-label="Assigned VA">
+        <section style={{ marginBottom: "var(--space-md)" }} aria-label="Assigned specialist">
           <VAProfileCard
-            displayName={vaProfile?.display_name ?? "Your VA"}
+            displayName={vaProfile?.display_name?.trim() ?? "Your specialist"}
             bio={vaProfile?.bio ?? null}
             profileImageUrl={vaProfile?.profile_image_url ?? null}
           />
@@ -234,7 +229,7 @@ export default async function MemberTicketPage({
         <ul className="thread-list">
           {(messages ?? []).map((m) => {
             const msgAttachments = (attachments ?? []).filter((a) => a.message_id === m.id);
-            const senderName = m.sender_role === "va" ? (vaProfile?.display_name ?? "Your specialist") : m.sender_role === "member" ? "You" : (m.sender_role ?? "—");
+            const senderName = m.sender_role === "va" ? (vaProfile?.display_name?.trim() ?? "Your specialist") : m.sender_role === "member" ? "You" : (m.sender_role ?? "-");
             return (
               <li key={m.id} className="thread-message">
                 <p className="thread-message-meta">

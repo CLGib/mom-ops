@@ -33,6 +33,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "vaId and display_name are required" }, { status: 400 });
   }
 
+  const { data: vaRoleRow } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", vaId)
+    .maybeSingle();
+  if (vaRoleRow?.role !== "va") {
+    return NextResponse.json({ error: "vaId must be a user with VA role" }, { status: 400 });
+  }
+
   const display_name = displayName.trim();
   const bio = sanitizeBio(bioRaw);
 

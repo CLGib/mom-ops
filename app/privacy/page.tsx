@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - Mom Ops",
-  description: "Mom Ops privacy policy. How we collect, use, and protect your information.",
+  title: "Privacy Policy - Mom Ops, LLC",
+  description: "Mom Ops, LLC privacy policy. How we collect, use, and protect your information.",
 };
 
 export default function Privacy() {
@@ -11,7 +11,7 @@ export default function Privacy() {
       <h1 className="text-3xl font-semibold mb-6">Privacy Policy</h1>
 
       <p className="mb-4">
-        Mom Ops respects your privacy. We collect only the information necessary to provide our virtual assistant services, including account information, submitted task details, and payment information processed securely through Stripe.
+        Mom Ops, LLC respects your privacy. We collect only the information necessary to provide our virtual assistant services, including account information, submitted task details, and payment information processed securely through Stripe.
       </p>
 
       <p className="mb-4">

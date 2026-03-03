@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import posthog from "posthog-js";
 
 const MIN_DOLLARS = 1;
 const MAX_DOLLARS = 25;
@@ -33,6 +34,12 @@ export default function TipCard({ taskId }: { taskId: string }) {
     }
     setError(null);
     setLoading(true);
+    posthog.capture("tip_checkout_initiated", {
+      task_id: taskId,
+      amount_cents: cents,
+      amount_dollars: cents / 100,
+      preset: selected === "custom" ? "custom" : `$${selected}`,
+    });
     try {
       const res = await fetch("/api/stripe/checkout/tip", {
         method: "POST",
@@ -114,7 +121,7 @@ export default function TipCard({ taskId }: { taskId: string }) {
               min={MIN_DOLLARS}
               max={MAX_DOLLARS}
               step="0.01"
-              placeholder="1.00 – 25.00"
+              placeholder="1.00 to 25.00"
               value={customValue}
               onChange={(e) => setCustomValue(e.target.value)}
               className="form-input"

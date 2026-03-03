@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -35,6 +36,15 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const limitResult = await checkRateLimit(`stripe-tip:${user.id}`, RATE_LIMITS.stripeCheckout);
+    if (!limitResult.success) {
+      const retryAfter = Math.max(1, limitResult.reset - Math.floor(Date.now() / 1000));
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(retryAfter) } }
+      );
     }
 
     const { data: ticket } = await supabase
@@ -77,7 +87,7 @@ export async function POST(request: NextRequest) {
             unit_amount: cents,
             product_data: {
               name: "Tip for your specialist",
-              description: "Buy your VA a coffee — 100% goes to your Mom Ops Specialist.",
+              description: "Buy your VA a coffee. 100% goes to your Mom Ops Specialist.",
               images: [],
             },
           },

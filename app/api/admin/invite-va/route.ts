@@ -11,12 +11,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
+  const { data: roleRow } = await supabase
+    .from("user_roles")
     .select("role")
-    .eq("id", user.id)
-    .single();
-  if (profile?.role !== "admin") {
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const role = roleRow?.role ?? null;
+  const isAdmin = role === "admin";
+  const isDirector = role === "director";
+  if (!isAdmin && !isDirector) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -59,6 +62,12 @@ export async function POST(request: NextRequest) {
       .from("profiles")
       .update({ role: "va" })
       .eq("id", invitedUserId);
+    if (isDirector) {
+      await serviceSupabase.from("va_invites").upsert(
+        { invited_by: user.id, va_id: invitedUserId },
+        { onConflict: "va_id" }
+      );
+    }
   }
 
   return NextResponse.json({

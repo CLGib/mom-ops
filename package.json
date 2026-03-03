@@ -10,9 +10,15 @@
     "stripe:listen": "./bin/stripe listen --forward-to localhost:3000/api/webhooks/stripe"
   },
   "dependencies": {
+    "@airbrake/browser": "^2.1.9",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.97.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.36.3",
+    "@anthropic-ai/sdk": "^0.32.1",
     "next": "16.1.6",
+    "posthog-js": "^1.356.1",
+    "posthog-node": "^5.26.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "resend": "^6.9.2",

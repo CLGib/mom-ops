@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import CheckoutRedirect from "../(marketing)/components/CheckoutRedirect";
 import Header from "../(marketing)/components/Header";
+import { FoundersCountProvider } from "../(marketing)/components/FoundersCountContext";
 import FoundersHero from "../(marketing)/components/FoundersHero";
 import FoundersCTA from "../(marketing)/components/FoundersCTA";
+import FoundersLiveCount from "../(marketing)/components/FoundersLiveCount";
 import Problem from "../(marketing)/components/Problem";
 import Solution from "../(marketing)/components/Solution";
 import HowItWorks from "../(marketing)/components/HowItWorks";
@@ -22,15 +24,23 @@ export const metadata: Metadata = {
     "Join as a Founding Member: same membership at $15.95/month, locked in for life. First 50 only. Early access, input on development, opportunities to earn extra credits.",
 };
 
-function getClaimed(): number {
-  const raw = process.env.FOUNDERS_CLAIMED ?? "0";
-  const n = parseInt(raw, 10);
-  if (Number.isNaN(n) || n < 0) return 0;
-  return Math.min(50, n);
-}
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-export default function FoundersPage() {
-  const claimed = getClaimed();
+const emptyTasks: { id: string; category: string; task: string; credits: number; template: string; rank: number }[] = [];
+const emptyCategories: string[] = [];
+
+export default async function FoundersPage() {
+  // Load task library from static-only module (no Supabase). If it fails (e.g. JSON missing in serverless), page still renders with empty list.
+  let staticTasks = emptyTasks;
+  let staticCategories = emptyCategories;
+  try {
+    const mod = await import("@/lib/task-library-static");
+    staticTasks = mod.getTaskLibrarySync();
+    staticCategories = mod.getCategoriesSync();
+  } catch (e) {
+    console.error("[founders] task-library-static load failed:", e);
+  }
 
   return (
     <>
@@ -39,17 +49,20 @@ export default function FoundersPage() {
       </Suspense>
       <Header />
       <main>
-        <FoundersHero claimed={claimed} />
-        <Problem />
-        <Solution />
-        <HowItWorks />
-        <Credits />
-        <Affordable />
-        <Specialist />
-        <Coffee />
-        <WhoItsFor />
-        <Efficiency />
-        <FoundersCTA claimed={claimed} />
+        <FoundersCountProvider initialClaimed={0}>
+          <FoundersLiveCount />
+          <FoundersHero />
+          <Problem />
+          <Solution />
+          <HowItWorks />
+          <Credits tasks={staticTasks} categories={staticCategories} />
+          <Affordable />
+          <Specialist />
+          <Coffee />
+          <WhoItsFor />
+          <Efficiency />
+          <FoundersCTA />
+        </FoundersCountProvider>
         <FAQ />
       </main>
       <Footer />

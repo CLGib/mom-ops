@@ -66,11 +66,11 @@ export default async function AdminReviewsPage() {
                 </td>
                 <td style={{ padding: "var(--space-sm)" }}>{memberEmails[t.member_id] ?? t.member_id.slice(0, 8)}</td>
                 <td style={{ padding: "var(--space-sm)" }}>
-                  {t.assigned_va_id ? (vaDisplayNames[t.assigned_va_id] ?? vaEmails[t.assigned_va_id] ?? t.assigned_va_id.slice(0, 8)) : "—"}
+                  {t.assigned_va_id ? (vaDisplayNames[t.assigned_va_id] ?? vaEmails[t.assigned_va_id] ?? t.assigned_va_id.slice(0, 8)) : "-"}
                 </td>
                 <td style={{ padding: "var(--space-sm)" }}>{t.rating} of 5</td>
-                <td style={{ padding: "var(--space-sm)", maxWidth: 240 }}>{t.feedback ?? "—"}</td>
-                <td style={{ padding: "var(--space-sm)" }}>{t.completed_at ? formatInCentral(t.completed_at) : "—"}</td>
+                <td style={{ padding: "var(--space-sm)", maxWidth: 240 }}>{t.feedback ?? "-"}</td>
+                <td style={{ padding: "var(--space-sm)" }}>{t.completed_at ? formatInCentral(t.completed_at) : "-"}</td>
               </tr>
             ))}
           </tbody>

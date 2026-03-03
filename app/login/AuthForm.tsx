@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import posthog from "posthog-js";
 
 type Mode = "login" | "magiclink" | "forgot";
 
@@ -69,8 +71,16 @@ export default function AuthForm() {
     const supabase = createClient();
 
     if (mode === "forgot") {
-      const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      // Use implicit flow so Supabase sends tokens in the URL hash; works when the link is opened
+      // in a different browser/device (PKCE would require the same browser for code_verifier).
+      const origin = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      const implicitClient = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { auth: { flowType: "implicit" } }
+      );
+      const { error: err } = await implicitClient.auth.resetPasswordForEmail(email, {
+        redirectTo: `${origin}/reset-password`,
       });
       setLoading(false);
       if (err) {
@@ -98,6 +108,7 @@ export default function AuthForm() {
         if (/rate limit|too many/i.test(err.message)) setEmailCooldown(120);
         return;
       }
+      posthog.capture("magic_link_requested", { email });
       setMagicLinkSent(true);
       setEmailCooldown(60);
       return;
@@ -113,6 +124,8 @@ export default function AuthForm() {
       setError(formatAuthError(err.message));
       return;
     }
+    posthog.identify(email, { email });
+    posthog.capture("user_signed_in", { method: "password", email });
     redirect();
   }
 

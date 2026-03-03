@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { getReferralCode } from "@/lib/referral-cookie";
+import posthog from "posthog-js";
 
 type Props = {
   children: React.ReactNode;
@@ -15,17 +17,25 @@ export default function CheckoutButton({ children, className, priceType = "defau
 
   async function handleClick() {
     setLoading(true);
+    posthog.capture("checkout_initiated", {
+      price_type: priceType,
+      has_referral: !!getReferralCode(),
+    });
     try {
+      const referralCode = getReferralCode();
+      const body = referralCode ? { referral_code: referralCode } : {};
       const res = await fetch(endpoint, {
         method: "POST",
         credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: Object.keys(body).length ? JSON.stringify(body) : undefined,
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         console.error("Checkout error", data);
         const msg =
           (data && typeof data.error === "string" && data.error) ||
-          "Checkout failed. Check the console and server env (STRIPE_PRICE_ID, etc.).";
+          `Checkout failed. Check the console and server env (${isFounders ? "STRIPE_FOUNDERS_PRICE_ID" : "STRIPE_PRICE_ID"}, etc.).`;
         alert(msg);
         return;
       }

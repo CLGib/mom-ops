@@ -5,6 +5,7 @@ import { formatInCentral } from "@/lib/format-date";
 import AdminClaimTicketButton from "../AdminClaimTicketButton";
 import AssignRequestedVaButton from "../AssignRequestedVaButton";
 import UpdateTicketStatus from "../../va/UpdateTicketStatus";
+import CancelTaskButton from "../../va/CancelTaskButton";
 import SetTicketCost from "../../va/SetTicketCost";
 import TicketThread from "../../member/TicketThread";
 import MessageBody from "../../components/MessageBody";
@@ -20,6 +21,15 @@ export default async function AdminTicketPage({
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=" + encodeURIComponent("/admin"));
+
+  const { data: roleRow } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (roleRow?.role !== "admin") {
+    redirect("/no-access?reason=admin_required");
+  }
 
   const { data: ticket } = await supabase
     .from("tickets")
@@ -82,7 +92,7 @@ export default async function AdminTicketPage({
   return (
     <main className="app-shell">
       <Link href="/admin" className="back-link">
-        ← Back to admin
+        ← Back to CEO
       </Link>
       <h1 className="page-title">{ticket.subject}</h1>
       {canClaim && (
@@ -100,10 +110,11 @@ export default async function AdminTicketPage({
       )}
       <p className="ticket-meta" style={{ marginBottom: "var(--space-xs)" }}>
         Member: {ticket.member_id?.slice(0, 8)}… · Assigned:{" "}
-        {ticket.assigned_va_id ? (isAssignedToMe ? "You (admin)" : ticket.assigned_va_id.slice(0, 8) + "…") : "—"}
+        {ticket.assigned_va_id ? (isAssignedToMe ? "You (CEO)" : ticket.assigned_va_id.slice(0, 8) + "…") : "-"}
       </p>
-      <p style={{ marginBottom: "var(--space-md)" }}>
-        Status: <UpdateTicketStatus ticketId={id} currentStatus={ticket.status} />
+      <p style={{ marginBottom: "var(--space-md)", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "var(--space-sm)" }}>
+        <span>Status: <UpdateTicketStatus ticketId={id} currentStatus={ticket.status} /></span>
+        <CancelTaskButton ticketId={id} currentStatus={ticket.status} />
       </p>
       <p className="ticket-meta" style={{ marginBottom: "var(--space-md)" }}>
         Created {formatInCentral(ticket.created_at)}
@@ -120,16 +131,16 @@ export default async function AdminTicketPage({
           <h2 className="section-heading">Member context</h2>
           <div className="card" style={{ padding: "var(--space-md)" }}>
             <dl style={{ margin: 0, display: "grid", gap: "var(--space-xs)", fontSize: "0.9rem" }}>
-              <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Name</dt><dd>{(memberContext as { preferred_name?: string | null; full_name?: string | null }).preferred_name || (memberContext as { full_name?: string | null }).full_name || "—"}</dd></div>
+              <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Name</dt><dd>{(memberContext as { preferred_name?: string | null; full_name?: string | null }).preferred_name || (memberContext as { full_name?: string | null }).full_name || "-"}</dd></div>
               {(memberContext as { timezone?: string | null }).timezone && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Timezone</dt><dd>{(memberContext as { timezone: string }).timezone}</dd></div>}
-              {((memberContext as { city?: string | null }).city || (memberContext as { state?: string | null }).state) && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Location</dt><dd>{[(memberContext as { city?: string | null }).city, (memberContext as { state?: string | null }).state].filter(Boolean).join(", ") || "—"}</dd></div>}
+              {((memberContext as { city?: string | null }).city || (memberContext as { state?: string | null }).state) && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Location</dt><dd>{[(memberContext as { city?: string | null }).city, (memberContext as { state?: string | null }).state].filter(Boolean).join(", ") || "-"}</dd></div>}
               {(((memberContext as { kids_count?: number | null }).kids_count != null) || (Array.isArray((memberContext as { kids_ages?: unknown }).kids_ages) && (memberContext as { kids_ages: unknown[] }).kids_ages.length > 0)) && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Kids</dt><dd>{String((memberContext as { kids_count?: number | null }).kids_count != null ? `Count: ${(memberContext as { kids_count: number }).kids_count}` : "")}{String(Array.isArray((memberContext as { kids_ages?: unknown }).kids_ages) ? ` · Ages: ${(memberContext as { kids_ages: unknown[] }).kids_ages.join(", ")}` : "")}</dd></div>}
-              {Array.isArray((memberContext as { schools?: unknown }).schools) && (memberContext as { schools: { name?: string }[] }).schools.length > 0 && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Schools</dt><dd>{String((memberContext as { schools: { name?: string }[] }).schools.map((s) => s.name || "—").join("; "))}</dd></div>}
-              {Array.isArray((memberContext as { activities?: unknown }).activities) && (memberContext as { activities: { name?: string }[] }).activities.length > 0 && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Activities</dt><dd>{String((memberContext as { activities: { name?: string }[] }).activities.map((a) => a.name || "—").join("; "))}</dd></div>}
+              {Array.isArray((memberContext as { schools?: unknown }).schools) && (memberContext as { schools: { name?: string }[] }).schools.length > 0 && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Schools</dt><dd>{String((memberContext as { schools: { name?: string }[] }).schools.map((s) => s.name || "-").join("; "))}</dd></div>}
+              {Array.isArray((memberContext as { activities?: unknown }).activities) && (memberContext as { activities: { name?: string }[] }).activities.length > 0 && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Activities</dt><dd>{String((memberContext as { activities: { name?: string }[] }).activities.map((a) => a.name || "-").join("; "))}</dd></div>}
               {(memberContext as { constraints?: string | null }).constraints && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Constraints</dt><dd>{(memberContext as { constraints: string }).constraints}</dd></div>}
               {(memberContext as { communication_tone?: string | null }).communication_tone && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Tone</dt><dd style={{ textTransform: "capitalize" }}>{(memberContext as { communication_tone: string }).communication_tone}</dd></div>}
-              {Array.isArray((memberContext as { important_dates?: unknown }).important_dates) && (memberContext as { important_dates: { label?: string; date?: string }[] }).important_dates.length > 0 && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Important dates</dt><dd>{String((memberContext as { important_dates: { label?: string; date?: string }[] }).important_dates.map((d) => `${d.label || "—"}: ${d.date || ""}`).join("; "))}</dd></div>}
-              {((memberContext as { task_submission_preference?: string | null }).task_submission_preference || (memberContext as { typical_turnaround?: string | null }).typical_turnaround) && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Preferences</dt><dd>{`Task submission: ${(memberContext as { task_submission_preference?: string | null }).task_submission_preference || "—"} · Turnaround: ${(memberContext as { typical_turnaround?: string | null }).typical_turnaround || "—"}`}</dd></div>}
+              {Array.isArray((memberContext as { important_dates?: unknown }).important_dates) && (memberContext as { important_dates: { label?: string; date?: string }[] }).important_dates.length > 0 && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Important dates</dt><dd>{String((memberContext as { important_dates: { label?: string; date?: string }[] }).important_dates.map((d) => `${d.label || "-"}: ${d.date || ""}`).join("; "))}</dd></div>}
+              {((memberContext as { task_submission_preference?: string | null }).task_submission_preference || (memberContext as { typical_turnaround?: string | null }).typical_turnaround) && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Preferences</dt><dd>{`Task submission: ${(memberContext as { task_submission_preference?: string | null }).task_submission_preference || "-"} · Turnaround: ${(memberContext as { typical_turnaround?: string | null }).typical_turnaround || "-"}`}</dd></div>}
             </dl>
           </div>
         </section>
@@ -195,7 +206,7 @@ export default async function AdminTicketPage({
         <ul className="thread-list">
           {(messages ?? []).map((m) => {
             const msgAttachments = (attachments ?? []).filter((a) => a.message_id === m.id);
-            const senderName = m.sender_role === "va" ? vaDisplayName : m.sender_role === "member" ? memberDisplayName : (m.sender_role ?? "—");
+            const senderName = m.sender_role === "va" ? vaDisplayName : m.sender_role === "member" ? memberDisplayName : (m.sender_role ?? "-");
             return (
               <li key={m.id} className="thread-message">
                 <p className="thread-message-meta">

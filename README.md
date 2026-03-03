@@ -47,9 +47,41 @@ Members can create a task by sending or forwarding an email to a dedicated addre
 
 4. Tell members the inbound address; they can email or forward messages there to create tasks.
 
+## Rate limiting
+
+API routes and the login page are rate limited to prevent abuse. When `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are set, limits use [Upstash Redis](https://upstash.com) (serverless-friendly). When unset (e.g. local dev), an in-memory fallback applies per instance.
+
+**Limits:**
+- Login page: 30 requests/min per IP
+- `/api/tasks/expand` (AI): 10/min per user
+- `/api/feedback`: 10/min per user
+- `/api/nps`: 5/min per user
+- `/api/tickets` (create): 20/min per user
+- `/api/stripe/checkout/tip`, `/api/stripe/checkout/credits`: 10/min per user
+
+To enable production rate limiting, create a Redis database at [Upstash](https://console.upstash.com) and add the REST URL and token to your env.
+
+## Error monitoring (Airbrake)
+
+Client-side errors are reported to [Airbrake](https://airbrake.io) when configured. In `.env.local` (or your host) set:
+
+- `NEXT_PUBLIC_AIRBRAKE_PROJECT_ID` – project ID from Airbrake
+- `NEXT_PUBLIC_AIRBRAKE_PROJECT_KEY` – project key (write key) from Airbrake
+
+If these are unset, the notifier is not initialized (e.g. local dev). To report errors manually: `import { getAirbrake } from '@/lib/airbrake'` then `getAirbrake()?.notify(error)`.
+
+## Analytics dashboard (PostHog)
+
+CEO, CFO, and CXO can view a funnel and site-traffic dashboard at **Analytics** in their sidebar (`/admin/analytics`, `/director/analytics`, `/cfo/analytics`). To show the embedded PostHog dashboard:
+
+- In PostHog: open your dashboard (e.g. “Analytics basics”), click **Share** → enable “Share publicly” → copy the **embed** iframe `src` URL.
+- In `.env.local`: set `NEXT_PUBLIC_POSTHOG_FUNNEL_DASHBOARD_EMBED_URL` to that URL (e.g. `https://us.posthog.com/embedded/...`).
+
+If unset, the Analytics page shows instructions to configure the variable.
+
 ## Forgot password
 
-The login page has a "Forgot password?" link. Users enter their email and receive a reset link. Add your reset-password URL to **Supabase Auth → URL Configuration → Redirect URLs** (e.g. `https://themomops.com/reset-password` and `http://localhost:3000/reset-password` for local dev).
+The login page has a "Forgot password?" link. Users enter their email and receive a reset link that opens at `/reset-password` with tokens in the URL hash (implicit flow so it works from any device). Add **Supabase Auth → URL Configuration → Redirect URLs**: `https://themomops.com/reset-password` and `http://localhost:3000/reset-password` for local dev.
 
 ## Deploy on Vercel
 

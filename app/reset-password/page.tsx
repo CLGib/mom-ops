@@ -19,6 +19,31 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     const supabase = createClient();
     let cancelled = false;
+
+    // Recovery link (implicit flow) sends tokens in the URL hash; set session from hash first.
+    const hash = typeof window !== "undefined" ? window.location.hash.slice(1) : "";
+    if (hash) {
+      const params = new URLSearchParams(hash);
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
+      if (accessToken && refreshToken) {
+        supabase.auth
+          .setSession({ access_token: accessToken, refresh_token: refreshToken })
+          .then(() => {
+            if (!cancelled) {
+              window.history.replaceState(null, "", window.location.pathname);
+              setReady(true);
+            }
+          })
+          .catch(() => {
+            if (!cancelled) setInvalidLink(true);
+          });
+        return () => {
+          cancelled = true;
+        };
+      }
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       if (session && !cancelled) setReady(true);
     });

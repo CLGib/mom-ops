@@ -20,7 +20,20 @@ const TASK_TEMPLATES = [
 ] as const;
 
 type VaOption = { id: string; label: string; imageUrl?: string | null };
-type Props = { memberId: string; aiEnabled?: boolean; pastVas?: VaOption[] };
+type Props = {
+  memberId: string;
+  aiEnabled?: boolean;
+  pastVas?: VaOption[];
+  initialSubject?: string;
+  initialDescription?: string;
+  initialCreditCost?: number;
+  initialRequestedVaId?: string;
+  initialCategory?: string;
+  fromReviewId?: string;
+  fromReviewVaName?: string | null;
+  fromSpecialistProfile?: boolean;
+  requestedVaUnavailable?: boolean;
+};
 
 function getMediaType(file: File): "image" | "video" | "audio" {
   if (file.type.startsWith("image/")) return "image";
@@ -33,14 +46,27 @@ function isAudioFile(file: File): boolean {
   return file.type.startsWith("audio/") || getMediaType(file) === "audio";
 }
 
-export default function CreateTicketForm({ memberId, aiEnabled = false, pastVas = [] }: Props) {
+export default function CreateTicketForm({
+  memberId,
+  aiEnabled = false,
+  pastVas = [],
+  initialSubject,
+  initialDescription,
+  initialRequestedVaId,
+  initialCategory,
+  fromReviewId,
+  fromReviewVaName,
+  fromSpecialistProfile,
+  requestedVaUnavailable,
+}: Props) {
   const router = useRouter();
-  const [templateId, setTemplateId] = useState<string>("other");
-  const [subject, setSubject] = useState("");
-  const [description, setDescription] = useState("");
-  const [requestedVaId, setRequestedVaId] = useState("");
+  const [templateId, setTemplateId] = useState<string>(initialCategory ?? "other");
+  const [subject, setSubject] = useState(initialSubject ?? "");
+  const [description, setDescription] = useState(initialDescription ?? "");
+  const [requestedVaId, setRequestedVaId] = useState(initialRequestedVaId ?? "");
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [expanding, setExpanding] = useState(false);
   const [recording, setRecording] = useState(false);
@@ -49,6 +75,21 @@ export default function CreateTicketForm({ memberId, aiEnabled = false, pastVas 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+
+  useEffect(() => {
+    if (initialSubject != null) setSubject(initialSubject);
+    if (initialDescription != null) setDescription(initialDescription);
+    if (initialRequestedVaId != null) setRequestedVaId(initialRequestedVaId);
+    if (initialCategory != null) setTemplateId(initialCategory);
+  }, [initialSubject, initialDescription, initialRequestedVaId, initialCategory]);
+
+  const needSynthOption =
+    (fromReviewId || fromSpecialistProfile) &&
+    initialRequestedVaId &&
+    !pastVas.some((p) => p.id === initialRequestedVaId);
+  const effectivePastVas: VaOption[] = needSynthOption
+    ? [...pastVas, { id: initialRequestedVaId, label: fromReviewId ? "Same specialist as this review" : "Requested specialist", imageUrl: null }]
+    : pastVas;
 
   const [objectUrls, setObjectUrls] = useState<string[]>([]);
   useEffect(() => {
@@ -149,6 +190,7 @@ export default function CreateTicketForm({ memberId, aiEnabled = false, pastVas 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    setSuccess(false);
     setSubmitting(true);
 
     if (!sessionLoaded) {
@@ -178,7 +220,10 @@ export default function CreateTicketForm({ memberId, aiEnabled = false, pastVas 
           subject,
           description || null,
           accessToken,
-          requestedVaId.trim() || null
+          requestedVaId.trim() || null,
+          fromReviewId?.trim() || null,
+          templateId || null,
+          fromSpecialistProfile
         );
       } catch (actionErr) {
         setError("Something went wrong. Please try again.");
@@ -235,6 +280,7 @@ export default function CreateTicketForm({ memberId, aiEnabled = false, pastVas 
       setFiles([]);
       setTemplateId("other");
       if (fileInputRef.current) fileInputRef.current.value = "";
+      setSuccess(true);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -270,6 +316,29 @@ export default function CreateTicketForm({ memberId, aiEnabled = false, pastVas 
 
   return (
     <form onSubmit={handleSubmit} className="member-submit-form">
+      {(fromReviewId || fromSpecialistProfile) && (fromReviewVaName || requestedVaId) && (
+        <>
+          <p
+            className="form-note"
+            style={{
+              marginBottom: requestedVaUnavailable ? "var(--space-xs)" : "var(--space-md)",
+              padding: "var(--space-sm) var(--space-md)",
+              background: "var(--accent-soft-bg, #f8f5ed)",
+              borderRadius: 6,
+              borderLeft: "3px solid var(--accent, #b8860b)",
+            }}
+            role="status"
+          >
+            You are requesting <strong>{fromReviewVaName || "this specialist"}</strong>
+            {fromReviewId ? " based on a past review." : "."}
+          </p>
+          {requestedVaUnavailable && (
+            <p className="form-note" style={{ marginBottom: "var(--space-md)", color: "var(--text-muted, #5c5955)" }}>
+              This specialist may be unavailable (onboarding in progress). You can still submit; we&apos;ll assign another specialist if needed. Or clear the preferred specialist below.
+            </p>
+          )}
+        </>
+      )}
       <div className="form-group">
         <label htmlFor="task-template">Quick pick</label>
         <select
@@ -318,7 +387,7 @@ export default function CreateTicketForm({ memberId, aiEnabled = false, pastVas 
           </button>
         )}
       </div>
-      {pastVas.length > 0 && (
+      {(effectivePastVas.length > 0 || (fromReviewId && initialRequestedVaId) || (fromSpecialistProfile && initialRequestedVaId)) && (
         <div className="form-group">
           <label htmlFor="request-va">Request a specialist (optional)</label>
           <p id="request-va-hint" className="form-note" style={{ marginBottom: "var(--space-xs)" }}>
@@ -326,7 +395,7 @@ export default function CreateTicketForm({ memberId, aiEnabled = false, pastVas 
           </p>
           <SpecialistRequestSelect
             id="request-va"
-            options={pastVas}
+            options={effectivePastVas}
             value={requestedVaId}
             onChange={setRequestedVaId}
             ariaDescribedBy="request-va-hint"
@@ -421,6 +490,11 @@ export default function CreateTicketForm({ memberId, aiEnabled = false, pastVas 
           )}
         </div>
       </div>
+      {success && (
+        <p role="status" className="form-note" style={{ color: "var(--color-success, #15803d)", marginBottom: "var(--space-sm)" }}>
+          Task submitted! We&apos;ll get right on it.
+        </p>
+      )}
       {error && (
         <p role="alert" className="form-note" style={{ color: "var(--color-error, #c00)", marginBottom: "var(--space-sm)" }}>
           {error}

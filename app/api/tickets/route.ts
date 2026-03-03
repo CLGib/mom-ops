@@ -3,6 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 
 import { createClient as createServerClientFromCookies } from "@/lib/supabase/server";
+import { getPostHogClient } from "@/lib/posthog-server";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -28,25 +30,18 @@ export async function POST(request: NextRequest) {
     }
 
     if (!user) {
-      const cookieCount = request.cookies.getAll().length;
-      const hasAuthCookie = request.cookies
-        .getAll()
-        .some((c) => c.name.includes("supabase") || c.name.includes("sb-"));
       return NextResponse.json(
-        {
-          error: "Not logged in.",
-          debug: {
-            cookieCount,
-            hasAuthCookie,
-            hint:
-              cookieCount === 0
-                ? "No cookies sent with request — check credentials: 'include' and same origin."
-                : !hasAuthCookie
-                  ? "Cookies sent but no Supabase auth cookie. Log in again; if it persists, check Supabase Auth URL config uses themomops.com."
-                  : "Auth cookie sent but getUser() returned null — session may be expired or invalid.",
-          },
-        },
+        { error: "Not logged in." },
         { status: 401 }
+      );
+    }
+
+    const limitResult = await checkRateLimit(`tickets:${user.id}`, RATE_LIMITS.tickets);
+    if (!limitResult.success) {
+      const retryAfter = Math.max(1, limitResult.reset - Math.floor(Date.now() / 1000));
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(retryAfter) } }
       );
     }
 
@@ -88,6 +83,22 @@ export async function POST(request: NextRequest) {
         { error: "Failed to create task." },
         { status: 500 }
       );
+    }
+    try {
+      // Use only server-side identity; do not trust client-supplied X-POSTHOG-DISTINCT-ID (spoofable)
+      const posthog = getPostHogClient();
+      posthog.capture({
+        distinctId: user.id,
+        event: "ticket_created",
+        properties: {
+          ticket_id: id,
+          member_id: user.id,
+          has_description: !!description,
+        },
+      });
+      await posthog.shutdown();
+    } catch (e) {
+      console.warn("[tickets] PostHog ticket_created capture failed", e);
     }
     return NextResponse.json({ ticketId: id });
   } catch (err) {

@@ -25,7 +25,7 @@ export default function Affordable() {
           No bloated overhead. No wasted time.
         </p>
         <p className="section-body">
-          That efficiency is what makes Mom Ops accessible — without cutting
+          That efficiency is what makes Mom Ops accessible, without cutting
           corners on quality.
         </p>
         <p className="section-body">

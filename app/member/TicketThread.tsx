@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import posthog from "posthog-js";
 
 const BUCKET = "task-attachments";
 const MAX_FILE_SIZE_MB = 25;
@@ -30,6 +31,7 @@ export default function TicketThread({
   const editorRef = useRef<HTMLDivElement>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function execCmd(cmd: string, value?: string) {
@@ -81,10 +83,20 @@ export default function TicketThread({
       });
     }
 
+    posthog.capture("ticket_message_sent", {
+      ticket_id: ticketId,
+      sender_role: senderRole,
+      has_attachments: files.length > 0,
+      attachment_count: files.length,
+    });
     if (editorRef.current) editorRef.current.innerHTML = "";
     setFiles([]);
     setSubmitting(false);
-    router.refresh();
+    setSuccess(true);
+    setTimeout(() => {
+      setSuccess(false);
+      router.refresh();
+    }, 1500);
   }
 
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -100,6 +112,11 @@ export default function TicketThread({
 
   return (
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-sm)" }}>
+      {success && (
+        <p role="status" className="form-note" style={{ color: "var(--color-success, #15803d)" }}>
+          Message sent.
+        </p>
+      )}
       {error && <p className="form-note" style={{ color: "var(--color-error, #b91c1c)" }} role="alert">{error}</p>}
       {/* Rich text toolbar */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-xs)", marginBottom: "var(--space-2xs)" }}>

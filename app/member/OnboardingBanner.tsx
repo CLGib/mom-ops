@@ -19,7 +19,8 @@ function setSkipCookie() {
   const expires = new Date();
   expires.setDate(expires.getDate() + COOKIE_DAYS);
   const expiryMs = expires.getTime();
-  document.cookie = `${COOKIE_NAME}=${expiryMs}; path=/; expires=${expires.toUTCString()}; SameSite=Lax`;
+  const secure = typeof window !== "undefined" && window.location?.protocol === "https:";
+  document.cookie = `${COOKIE_NAME}=${expiryMs}; path=/; expires=${expires.toUTCString()}; SameSite=Lax${secure ? "; Secure" : ""}`;
 }
 
 export default function OnboardingBanner() {
@@ -33,7 +34,7 @@ export default function OnboardingBanner() {
 
   const skipUntil = mounted ? getSkipUntil() : null;
   const now = mounted ? Date.now() : 0;
-  const skipActive = skipUntil != null && now < skipUntil; // cookie stores expiry timestamp
+  const skipActive = skipUntil !== null ? now < skipUntil : false; // cookie stores expiry timestamp
   const show = mounted && !dismissed && !skipActive;
 
   function handleSkip() {

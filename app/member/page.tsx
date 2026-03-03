@@ -1,19 +1,22 @@
+import { Suspense } from "react";
 import { unstable_noStore } from "next/cache";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { formatInCentral } from "@/lib/format-date";
+import { getTaskByFromTaskParam, getTaskLibrary, getCategories } from "@/lib/task-library";
+import { fillTaskTemplate } from "@/lib/fill-task-template";
 import CreateTicketForm from "./CreateTicketForm";
 import ReactivateButton from "./ReactivateButton";
 import OnboardingBanner from "./OnboardingBanner";
-import MemberTaskList from "./MemberTaskList";
+import ExploreTasksLibrary from "../components/ExploreTasksLibrary";
+import ReferralSection from "./ReferralSection";
+import ClearReferralCookieOnSuccess from "./ClearReferralCookieOnSuccess";
 
 export const dynamic = "force-dynamic";
 
 export default async function MemberPage({
   searchParams,
 }: {
-  searchParams: Promise<{ checkout?: string }>;
+  searchParams: Promise<{ checkout?: string; subject?: string; requested_va_id?: string; from_review_id?: string; category?: string; from_specialist?: string; from_task?: string }>;
 }) {
   unstable_noStore();
   const supabase = await createClient();
@@ -22,59 +25,70 @@ export default async function MemberPage({
   } = await supabase.auth.getUser();
   const params = await searchParams;
   const checkoutSuccess = params.checkout === "success";
+  const creditsSuccess = params.checkout === "credits_success";
+  const fromReviewSubject = params.subject ?? undefined;
+  const fromReviewVaId = params.requested_va_id ?? undefined;
+  const fromReviewId = params.from_review_id ?? undefined;
+  const fromReviewCategory = params.category ?? undefined;
+  const fromSpecialistProfile = params.from_specialist === "1";
+  const fromTask = params.from_task != null ? await getTaskByFromTaskParam(params.from_task) : null;
 
   if (!user) redirect("/login?next=" + encodeURIComponent("/member"));
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("subscription_status, onboarding_completed_at")
+    .select("subscription_status, onboarding_completed_at, preferred_name, full_name, city, state, timezone, partner_name, kids_count, kids_ages, household_members, diet_notes")
     .eq("id", user.id)
     .single();
+
+  const initialDescription =
+    fromTask?.template && profile
+      ? fillTaskTemplate(fromTask.template, profile)
+      : fromTask?.template;
 
   const { data: balance } = await supabase.rpc("get_member_balance", {
     p_member_id: user.id,
   });
 
-  const { data: tickets } = await supabase
+  const { data: pastTicketsWithSubject } = await supabase
     .from("tickets")
-    .select("id, subject, description, status, created_at, completed_at, updated_at")
-    .eq("member_id", user.id)
-    .order("created_at", { ascending: false });
-
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const recentlyClosed =
-    (tickets ?? []).filter((t) => {
-      if (t.status !== "completed" && t.status !== "closed") return false;
-      const closedAt = t.completed_at ?? t.updated_at ?? t.created_at;
-      return closedAt >= sevenDaysAgo;
-    });
-
-  const { data: pastTickets } = await supabase
-    .from("tickets")
-    .select("assigned_va_id, completed_at")
+    .select("assigned_va_id, subject, completed_at")
     .eq("member_id", user.id)
     .not("assigned_va_id", "is", null)
     .in("status", ["completed", "closed"])
     .order("completed_at", { ascending: false });
-  const pastVaIdsOrdered = (pastTickets ?? [])
+  const pastVaIdsOrdered = (pastTicketsWithSubject ?? [])
     .map((t) => t.assigned_va_id!)
     .filter(Boolean);
   const pastVaIds = [...new Set(pastVaIdsOrdered)];
-  let pastVas: { id: string; label: string; imageUrl?: string | null }[] = [];
-  if (pastVaIds.length > 0) {
-    const { data: vaPublicProfiles } = await supabase
+  const subjectByVaId = new Map<string, string>();
+  for (const t of pastTicketsWithSubject ?? []) {
+    if (t.assigned_va_id && !subjectByVaId.has(t.assigned_va_id)) {
+      subjectByVaId.set(t.assigned_va_id, (t.subject && String(t.subject).trim()) || "previous task");
+    }
+  }
+  const pastVas: { id: string; label: string; imageUrl?: string | null }[] = pastVaIds.map((vaId) => ({
+    id: vaId,
+    label: `Same specialist as "${subjectByVaId.get(vaId) ?? "previous task"}"`,
+    imageUrl: null,
+  }));
+
+  let fromReviewVaName: string | null = null;
+  let requestedVaUnavailable = false;
+  if (fromReviewVaId?.trim()) {
+    const { data: vaProfile } = await supabase
       .from("va_profiles")
-      .select("user_id, display_name, profile_image_url")
-      .in("user_id", pastVaIds);
-    const vaProfileByUserId = new Map(vaPublicProfiles?.map((v) => [v.user_id, v]) ?? []);
-    pastVas = pastVaIds.map((id) => {
-      const vp = vaProfileByUserId.get(id);
-      return {
-        id,
-        label: vp?.display_name ?? "Previous specialist",
-        imageUrl: vp?.profile_image_url ?? null,
-      };
-    });
+      .select("display_name, onboarding_complete")
+      .eq("user_id", fromReviewVaId.trim())
+      .single();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("preferred_name, full_name")
+      .eq("id", fromReviewVaId.trim())
+      .single();
+    fromReviewVaName =
+      (vaProfile?.display_name ?? profile?.preferred_name ?? profile?.full_name)?.trim() ?? null;
+    requestedVaUnavailable = vaProfile?.onboarding_complete === false;
   }
 
   const isActive =
@@ -84,13 +98,22 @@ export default async function MemberPage({
 
   return (
     <main className="app-shell">
-      <h1 className="page-title">Member Dashboard</h1>
+      <Suspense fallback={null}>
+        <ClearReferralCookieOnSuccess />
+      </Suspense>
+      <h1 className="page-title">My Ops Hub</h1>
 
       {showOnboardingBanner && <OnboardingBanner />}
 
       {checkoutSuccess && isActive && (
         <p className="auth-success-message" role="status" style={{ marginBottom: "var(--space-md)" }}>
-          Thanks for subscribing. You have 45 Task Credits for this month.
+          Thanks for subscribing. You have 35 Task Credits for this month.
+        </p>
+      )}
+
+      {creditsSuccess && (
+        <p className="auth-success-message" role="status" style={{ marginBottom: "var(--space-md)" }}>
+          Your credits have been added to your balance.
         </p>
       )}
 
@@ -109,34 +132,45 @@ export default async function MemberPage({
         </div>
       )}
 
-      <p className="member-credits-line" title={isActive ? `Credit Balance: ${balance ?? 0} · Purchase more credits (coming soon)` : undefined}>
+      <p className="member-credits-line" title={isActive ? `Credit Balance: ${balance ?? 0} · Purchase more credits` : undefined}>
         Credit Balance: <strong>{balance ?? 0}</strong>
         {isActive && (
           <>
             {" · "}
-            <a href="#" className="link">Purchase more credits</a>
-            <span> (coming soon)</span>
+            <a href="/member/credits" className="link">Purchase more credits</a>
           </>
         )}
       </p>
 
-      <section style={{ marginBottom: "var(--space-2xl)" }}>
+      <section id="submit" style={{ marginBottom: "var(--space-2xl)" }}>
         <h2 className="section-heading" style={{ marginBottom: "var(--space-sm)" }}>Submit a task</h2>
         <div className="card member-submit-card">
           {isActive ? (
             <>
-              <CreateTicketForm memberId={user.id} aiEnabled={!!process.env.ANTHROPIC_API_KEY} pastVas={pastVas} />
-              {process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL && (
+              <CreateTicketForm
+                memberId={user.id}
+                aiEnabled={!!process.env.ANTHROPIC_API_KEY}
+                pastVas={pastVas}
+                initialSubject={fromTask?.task ?? fromReviewSubject}
+                initialDescription={initialDescription}
+                initialRequestedVaId={fromReviewVaId}
+                initialCategory={fromReviewCategory}
+                fromReviewId={fromReviewId}
+                fromReviewVaName={fromReviewVaName}
+                fromSpecialistProfile={fromSpecialistProfile}
+                requestedVaUnavailable={requestedVaUnavailable}
+              />
+              {(process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL || true) && (
                 <p className="form-note" style={{ marginTop: "var(--space-md)" }}>
                   You can also email your task to{" "}
                   <a
-                    href={`mailto:${process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL}`}
+                    href={`mailto:${process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL || "task@in.themomops.com"}`}
                     className="link"
                     style={{ fontWeight: 500 }}
                   >
-                    {process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL}
+                    {process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL || "task@in.themomops.com"}
                   </a>{" "}
-                  (or forward an email to that address).
+                  (or forward an email to that address). Maybe add this email to your contacts too.
                 </p>
               )}
             </>
@@ -148,26 +182,18 @@ export default async function MemberPage({
         </div>
       </section>
 
-      {recentlyClosed.length > 0 && (
-        <section style={{ marginBottom: "var(--space-2xl)" }}>
-          <h2 className="section-heading">Recently closed (last 7 days)</h2>
-          <ul className="ticket-list">
-            {recentlyClosed.map((t) => (
-              <li key={t.id} className="ticket-item">
-                <Link href={`/member/${t.id}`}>{t.subject}</Link>
-                <span className="ticket-meta" style={{ marginLeft: "var(--space-sm)" }}>
-                  {formatInCentral(t.completed_at ?? t.updated_at ?? t.created_at)}
-                </span>
-              </li>
-            ))}
-          </ul>
+      {isActive && (
+        <section id="explore-tasks" style={{ marginBottom: "var(--space-2xl)" }}>
+          <h2 className="section-heading" style={{ marginBottom: "var(--space-sm)" }}>Explore tasks</h2>
+          <ExploreTasksLibrary tasks={await getTaskLibrary()} categories={await getCategories()} mode="member" />
         </section>
       )}
 
-      <section style={{ marginBottom: "var(--space-2xl)" }}>
-        <h2 className="section-heading">Your tasks</h2>
-        <MemberTaskList tickets={tickets ?? []} />
-      </section>
+      {isActive && (
+        <ReferralSection
+          referralLink={`${process.env.NEXT_PUBLIC_SITE_URL || "https://themomops.com"}/?ref=${user.id}`}
+        />
+      )}
 
       <section>
         <p className="form-note">
@@ -179,7 +205,7 @@ export default async function MemberPage({
           >
             Cancel subscription
           </a>
-          {" — we’ll process your request by email."}
+          {" . We’ll process your request by email."}
         </p>
       </section>
     </main>

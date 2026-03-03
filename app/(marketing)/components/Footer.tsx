@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="footer-inner">
           <div className="footer-brand">
             <a href="#" className="logo">
-              Mom Ops
+              Mom Ops, LLC
             </a>
             <p className="footer-product">
               Structured virtual assistant support by moms.
@@ -31,7 +31,7 @@ export default function Footer() {
             support@themomops.com
           </a>
         </p>
-        <p className="footer-copy">&copy; Mom Ops. All rights reserved.</p>
+        <p className="footer-copy">&copy; Mom Ops, LLC. All rights reserved.</p>
       </div>
     </footer>
   );

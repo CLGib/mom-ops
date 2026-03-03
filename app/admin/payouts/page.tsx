@@ -5,6 +5,8 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { formatInCentral } from "@/lib/format-date";
 import AdjustVAPayoutForm from "../AdjustVAPayoutForm";
 import RecordVAPaymentForm from "../RecordVAPaymentForm";
+import AddDirectorAdjustmentForm from "../AddDirectorAdjustmentForm";
+import RecordCXOPaymentForm from "../RecordCXOPaymentForm";
 
 const VA_PAYOUT_RATE = 0.2;
 function getYtdStart(): string {
@@ -52,11 +54,14 @@ export default async function AdminPayoutsPage() {
 
   const { data: vaProfileRows } = await supabase
     .from("va_profiles")
-    .select("user_id, display_name")
+    .select("user_id, display_name, payment_method, payment_account")
     .in("user_id", vaProfiles.map((p) => p.id));
   const vaDisplayNames: Record<string, string> = {};
+  const vaPaymentTo: Record<string, string> = {};
   (vaProfileRows ?? []).forEach((r) => {
     vaDisplayNames[r.user_id] = r.display_name ?? r.user_id.slice(0, 8);
+    const method = r.payment_method === "paypal" ? "PayPal" : r.payment_method === "wise" ? "Wise" : null;
+    vaPaymentTo[r.user_id] = method && r.payment_account ? `${method}: ${r.payment_account}` : (method ? `${method} (no account set)` : "-");
   });
 
   let vaEmails: Record<string, string> = {};
@@ -127,7 +132,71 @@ export default async function AdminPayoutsPage() {
     r.currentBalance = lifetimeNet + lifetimeBonuses - lifetimeDebits - totalPaid;
   });
 
-  const vasForForm = vaProfiles.map((p) => ({ id: p.id, email: vaEmails[p.id] ?? p.id.slice(0, 8) }));
+  const vasForForm = vaProfiles.map((p) => ({
+    id: p.id,
+    email: vaEmails[p.id] ?? p.id.slice(0, 8),
+    payTo: vaPaymentTo[p.id] ?? "-",
+  }));
+
+  // CXO (Director) payouts with buckets
+  const { data: directorRows } = await supabase.from("directors").select("user_id");
+  const directorIds = (directorRows ?? []).map((r) => r.user_id);
+  const { data: directorAdjustments } = await supabase
+    .from("director_adjustments")
+    .select("director_id, bucket, amount_cents")
+    .in("director_id", directorIds);
+  const { data: directorPayments } = await supabase
+    .from("director_payments")
+    .select("director_id, bucket, amount_cents")
+    .in("director_id", directorIds);
+
+  const BUCKETS = ["five_star", "nps_bonus", "ceo_bonus", "va_onboarded", "ticket_pay", "tips"] as const;
+  const BUCKET_LABELS: Record<string, string> = {
+    five_star: "5 Star",
+    nps_bonus: "NPS",
+    ceo_bonus: "CEO bonus",
+    va_onboarded: "VA onboarded",
+    ticket_pay: "Ticket pay",
+    tips: "Tips",
+  };
+  type CxoBalance = { earned: number; paid: number; balance: number };
+  const cxoBalances: Record<string, Record<string, CxoBalance>> = {};
+  directorIds.forEach((id) => {
+    cxoBalances[id] = {};
+    BUCKETS.forEach((b) => {
+      cxoBalances[id][b] = { earned: 0, paid: 0, balance: 0 };
+    });
+  });
+  (directorAdjustments ?? []).forEach((a) => {
+    if (cxoBalances[a.director_id]?.[a.bucket]) {
+      cxoBalances[a.director_id][a.bucket].earned += a.amount_cents / 100;
+    }
+  });
+  (directorPayments ?? []).forEach((p) => {
+    if (cxoBalances[p.director_id]?.[p.bucket]) {
+      cxoBalances[p.director_id][p.bucket].paid += p.amount_cents / 100;
+    }
+  });
+  directorIds.forEach((id) => {
+    BUCKETS.forEach((b) => {
+      const row = cxoBalances[id][b];
+      row.balance = row.earned - row.paid;
+    });
+  });
+
+  let cxoEmails: Record<string, string> = {};
+  try {
+    const service = createServiceClient();
+    const { data: { users: authUsers } } = await service.auth.admin.listUsers({ perPage: 1000 });
+    directorIds.forEach((id) => {
+      const u = authUsers?.find((x) => x.id === id);
+      cxoEmails[id] = u?.email ?? id.slice(0, 8);
+    });
+  } catch {
+    // ignore
+  }
+
+  const cxosForForm = directorIds.map((id) => ({ id, email: cxoEmails[id] ?? id.slice(0, 8) }));
 
   return (
     <>
@@ -175,7 +244,7 @@ export default async function AdminPayoutsPage() {
                   <td style={{ padding: "var(--space-sm)" }}><Link href={`/admin/${r.task_id}`}>{ticketSubjectById[r.task_id] ?? r.task_id.slice(0, 8)}</Link></td>
                   <td style={{ padding: "var(--space-sm)" }}>{vaDisplayNames[r.va_id] ?? vaEmails[r.va_id] ?? r.va_id.slice(0, 8)}</td>
                   <td style={{ padding: "var(--space-sm)", textAlign: "right" }}>${Number(r.amount).toFixed(2)}</td>
-                  <td style={{ padding: "var(--space-sm)" }}>{r.created_at ? formatInCentral(r.created_at) : "—"}</td>
+                  <td style={{ padding: "var(--space-sm)" }}>{r.created_at ? formatInCentral(r.created_at) : "-"}</td>
                 </tr>
               ))}
             </tbody>
@@ -197,6 +266,7 @@ export default async function AdminPayoutsPage() {
             <thead>
               <tr style={{ borderBottom: "1px solid var(--color-border, #e5e5e5)" }}>
                 <th style={{ textAlign: "left", padding: "var(--space-sm)" }}>VA</th>
+                <th style={{ textAlign: "left", padding: "var(--space-sm)" }}>Pay to (PayPal / Wise)</th>
                 <th style={{ textAlign: "right", padding: "var(--space-sm)" }}>From tasks (YTD)</th>
                 <th style={{ textAlign: "right", padding: "var(--space-sm)" }}>Tips (YTD)</th>
                 <th style={{ textAlign: "right", padding: "var(--space-sm)" }}>Bonuses (YTD)</th>
@@ -213,6 +283,7 @@ export default async function AdminPayoutsPage() {
                 return (
                   <tr key={p.id} style={{ borderBottom: "1px solid var(--color-border, #e5e5e5)" }}>
                     <td style={{ padding: "var(--space-sm)" }}>{vaEmails[p.id] || p.id.slice(0, 8)}</td>
+                    <td style={{ padding: "var(--space-sm)", fontSize: "0.85rem" }} title={vaPaymentTo[p.id]}>{vaPaymentTo[p.id]}</td>
                     <td style={{ padding: "var(--space-sm)", textAlign: "right" }}>${row.taskEarningsYtd.toFixed(2)}</td>
                     <td style={{ padding: "var(--space-sm)", textAlign: "right" }}>${row.tipsYtd.toFixed(2)}</td>
                     <td style={{ padding: "var(--space-sm)", textAlign: "right" }}>${row.bonusesYtd.toFixed(2)}</td>
@@ -235,6 +306,61 @@ export default async function AdminPayoutsPage() {
           <p className="form-note" style={{ marginBottom: "var(--space-sm)" }}>When you pay a VA, record it here.</p>
           <RecordVAPaymentForm vas={vasForForm} />
         </div>
+      </section>
+
+      <section style={{ marginBottom: "var(--space-2xl)" }}>
+        <h2 className="section-heading">CXO payouts</h2>
+        <p className="form-note" style={{ marginBottom: "var(--space-sm)" }}>
+          Track pay by bucket (5 Star, NPS, CEO bonus, VA onboarded, ticket pay, tips). Add credits to buckets, then record payments to debit.
+        </p>
+        {directorIds.length > 0 && (
+          <>
+            <div className="card" style={{ marginBottom: "var(--space-md)", overflowX: "auto" }}>
+              <h3 className="section-heading" style={{ fontSize: "1rem", marginBottom: "var(--space-sm)" }}>CXO balances by bucket</h3>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem", minWidth: 600 }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid var(--color-border, #e5e5e5)" }}>
+                    <th style={{ textAlign: "left", padding: "var(--space-sm)" }}>CXO</th>
+                    {BUCKETS.map((b) => (
+                      <th key={b} style={{ textAlign: "right", padding: "var(--space-sm)", fontSize: "0.8rem" }}>{BUCKET_LABELS[b]}</th>
+                    ))}
+                    <th style={{ textAlign: "right", padding: "var(--space-sm)", fontWeight: 600 }}>Total owed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {directorIds.map((id) => {
+                    const row = cxoBalances[id];
+                    const totalOwed = BUCKETS.reduce((s, b) => s + (row[b]?.balance ?? 0), 0);
+                    return (
+                      <tr key={id} style={{ borderBottom: "1px solid var(--color-border, #e5e5e5)" }}>
+                        <td style={{ padding: "var(--space-sm)" }}>{cxoEmails[id]}</td>
+                        {BUCKETS.map((b) => (
+                          <td key={b} style={{ padding: "var(--space-sm)", textAlign: "right", fontSize: "0.85rem" }}>
+                            ${(row[b]?.balance ?? 0).toFixed(2)}
+                          </td>
+                        ))}
+                        <td style={{ padding: "var(--space-sm)", textAlign: "right", fontWeight: 600 }}>${totalOwed.toFixed(2)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className="card" style={{ marginBottom: "var(--space-md)" }}>
+              <h3 className="section-heading" style={{ fontSize: "1rem", marginBottom: "var(--space-xs)" }}>Add credit to bucket</h3>
+              <p className="form-note" style={{ marginBottom: "var(--space-sm)" }}>When a CXO earns (e.g. 5-star reviews, NPS bonus, CEO bonus), add it here.</p>
+              <AddDirectorAdjustmentForm cxos={cxosForForm} />
+            </div>
+            <div className="card">
+              <h3 className="section-heading" style={{ fontSize: "1rem", marginBottom: "var(--space-xs)" }}>Record payment (paid) to CXO</h3>
+              <p className="form-note" style={{ marginBottom: "var(--space-sm)" }}>When you pay a CXO, record it here and select which bucket to debit from.</p>
+              <RecordCXOPaymentForm cxos={cxosForForm} />
+            </div>
+          </>
+        )}
+        {directorIds.length === 0 && (
+          <p className="form-note">No CXOs in the system yet.</p>
+        )}
       </section>
     </>
   );

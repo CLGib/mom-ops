@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { formatInCentral, formatRelative } from "@/lib/format-date";
 import UpdateTicketStatus from "./UpdateTicketStatus";
+import CancelTaskModal from "./CancelTaskModal";
 
 type Ticket = {
   id: string;
@@ -23,9 +25,13 @@ type Props = {
   showClosedOnly?: boolean;
 };
 
+const CANCELLABLE_STATUSES = ["assigned", "in_progress"];
+
 export default function VAAssignedTaskList({ tickets, inboxMode, showClosedOnly }: Props) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [includeClosed, setIncludeClosed] = useState(false);
+  const [cancelModalTicketId, setCancelModalTicketId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -39,11 +45,17 @@ export default function VAAssignedTaskList({ tickets, inboxMode, showClosedOnly 
     if (showClosedOnly) return tickets;
     if (inboxMode) return tickets;
     if (includeClosed) return tickets;
-    return tickets.filter((t) => t.status !== "closed");
+    return tickets.filter(
+      (t) =>
+        t.status !== "closed" &&
+        t.status !== "cancelled_by_va" &&
+        t.status !== "cancelled_by_admin"
+    );
   }, [tickets, search, includeClosed, inboxMode, showClosedOnly]);
 
-  const openCount = tickets.filter((t) => t.status !== "closed").length;
-  const closedCount = tickets.filter((t) => t.status === "closed").length;
+  const terminalStatuses = ["closed", "cancelled_by_va", "cancelled_by_admin"];
+  const openCount = tickets.filter((t) => !terminalStatuses.includes(t.status)).length;
+  const closedCount = tickets.filter((t) => terminalStatuses.includes(t.status)).length;
   const showIncludeClosed = !inboxMode && !showClosedOnly;
 
   if (tickets.length === 0) {
@@ -83,7 +95,7 @@ export default function VAAssignedTaskList({ tickets, inboxMode, showClosedOnly 
               ? `Showing ${filtered.length} matching task${filtered.length !== 1 ? "s" : ""}`
               : includeClosed
                 ? `Showing all ${tickets.length} tasks.`
-                : `Showing ${openCount} open task${openCount !== 1 ? "s" : ""}. ${closedCount > 0 ? `${closedCount} closed — search or enable "Include closed" to see them.` : ""}`}
+                : `Showing ${openCount} open task${openCount !== 1 ? "s" : ""}. ${closedCount > 0 ? `${closedCount} closed. Search or enable "Include closed" to see them.` : ""}`}
           </p>
         </div>
       )}
@@ -109,11 +121,28 @@ export default function VAAssignedTaskList({ tickets, inboxMode, showClosedOnly 
                 <Link href={`/va/${t.id}`} className="btn btn-secondary" style={{ padding: "var(--space-2xs) var(--space-sm)", fontSize: "0.875rem" }}>
                   {showClosedOnly ? "View thread" : "Reply"}
                 </Link>
+                {!showClosedOnly && CANCELLABLE_STATUSES.includes(t.status) && (
+                  <button
+                    type="button"
+                    className="btn"
+                    style={{ padding: "var(--space-2xs) var(--space-sm)", fontSize: "0.875rem", color: "var(--color-error, #b91c1c)" }}
+                    onClick={() => setCancelModalTicketId(t.id)}
+                  >
+                    Cancel Task
+                  </button>
+                )}
               </div>
               {!showClosedOnly && <UpdateTicketStatus ticketId={t.id} currentStatus={t.status} />}
             </li>
           ))}
         </ul>
+      )}
+      {cancelModalTicketId && (
+        <CancelTaskModal
+          ticketId={cancelModalTicketId}
+          onSuccess={() => router.refresh()}
+          onClose={() => setCancelModalTicketId(null)}
+        />
       )}
     </>
   );
