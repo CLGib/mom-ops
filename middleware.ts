@@ -64,7 +64,10 @@ export async function middleware(req: NextRequest) {
 
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      if (!supabaseUrl || !supabaseAnonKey) return NextResponse.next();
+      if (!supabaseUrl || !supabaseAnonKey) {
+        console.error("[middleware] Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+        return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+      }
 
       const apiSupabase = createServerClient(supabaseUrl, supabaseAnonKey, {
         cookies: {
@@ -92,7 +95,13 @@ export async function middleware(req: NextRequest) {
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseAnonKey) return NextResponse.next();
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error("[middleware] Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+      const loginUrl = req.nextUrl.clone();
+      loginUrl.pathname = "/login";
+      loginUrl.searchParams.set("error", "service_unavailable");
+      return NextResponse.redirect(loginUrl);
+    }
 
     const res = NextResponse.next({ request: req });
     const pathWithQuery = req.nextUrl.pathname + req.nextUrl.search;
@@ -181,7 +190,16 @@ export async function middleware(req: NextRequest) {
     return res;
   } catch (err) {
     console.error("middleware error:", err);
-    return NextResponse.next();
+    const path = req.nextUrl.pathname;
+    // API routes: fail closed with 503
+    if (path.startsWith("/api/") || path === "/api") {
+      return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+    }
+    // Page routes: redirect to login (safe default)
+    const loginUrl = req.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.searchParams.set("error", "service_unavailable");
+    return NextResponse.redirect(loginUrl);
   }
 }
 
