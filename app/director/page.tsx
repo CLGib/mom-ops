@@ -12,6 +12,9 @@ export default async function DirectorDashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=" + encodeURIComponent("/director"));
 
+  const { data: roleRow } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
+  if (roleRow?.role !== "director" && roleRow?.role !== "admin") redirect("/no-access?reason=role_required");
+
   const now = new Date();
   const weekStart = new Date(now);
   weekStart.setDate(now.getDate() - now.getDay());

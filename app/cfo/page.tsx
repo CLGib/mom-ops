@@ -11,6 +11,9 @@ export default async function CfoDashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=" + encodeURIComponent("/cfo"));
 
+  const { data: roleRow } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
+  if (roleRow?.role !== "cfo" && roleRow?.role !== "admin") redirect("/no-access?reason=role_required");
+
   const { data: npsRows } = await supabase
     .from("nps_responses")
     .select("score, dismissed")

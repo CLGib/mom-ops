@@ -13,6 +13,9 @@ export default async function AdminPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=" + encodeURIComponent("/admin"));
 
+  const { data: roleRow } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
+  if (roleRow?.role !== "admin") redirect("/no-access?reason=admin_required");
+
   const { data: tickets } = await supabase
     .from("tickets")
     .select("id, subject, description, status, member_id, assigned_va_id, created_at, rating, feedback, completed_at")
