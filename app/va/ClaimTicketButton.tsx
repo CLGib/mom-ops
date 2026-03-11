@@ -37,7 +37,7 @@ export default function ClaimTicketButton({ ticketId, subject = "", onboardingCo
     } catch {
       // best-effort; email will be missed but claim succeeded
     }
-    router.refresh();
+    router.push(`/va/${ticketId}`);
   }
 
   return (

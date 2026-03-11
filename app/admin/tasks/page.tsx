@@ -10,8 +10,21 @@ export default async function AdminTasksPage() {
 
   const { data: tickets } = await supabase
     .from("tickets")
-    .select("id, subject, description, status, member_id, assigned_va_id, created_at, rating, feedback, completed_at")
+    .select("id, ticket_number, subject, description, status, member_id, assigned_va_id, created_at, rating, feedback, completed_at")
     .order("created_at", { ascending: false });
+
+  const ticketList = tickets ?? [];
+  const assignedVaIds = [...new Set(ticketList.map((t) => t.assigned_va_id).filter(Boolean))] as string[];
+  let vaDisplayNames: Record<string, string> = {};
+  if (assignedVaIds.length > 0) {
+    const { data: vaProfiles } = await supabase
+      .from("va_profiles")
+      .select("user_id, display_name")
+      .in("user_id", assignedVaIds);
+    (vaProfiles ?? []).forEach((p) => {
+      vaDisplayNames[p.user_id] = p.display_name?.trim() || p.user_id.slice(0, 8) + "…";
+    });
+  }
 
   const { data: memberProfiles } = await supabase
     .from("profiles")
@@ -50,7 +63,7 @@ export default async function AdminTasksPage() {
       </section>
       <section>
         <h2 className="section-heading">All tickets</h2>
-        <AdminTicketList tickets={tickets ?? []} />
+        <AdminTicketList tickets={ticketList} vaDisplayNames={vaDisplayNames} />
       </section>
     </>
   );

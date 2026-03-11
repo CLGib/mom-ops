@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getReferralCode } from "@/lib/referral-cookie";
 import posthog from "posthog-js";
+import { trackMetaPixelEvent } from "@/lib/meta-pixel";
 
 type Props = {
   children: React.ReactNode;
@@ -21,6 +22,10 @@ export default function CheckoutButton({ children, className, priceType = "defau
       price_type: priceType,
       has_referral: !!getReferralCode(),
     });
+      trackMetaPixelEvent("InitiateCheckout", {
+        content_name: isFounders ? "founders" : "default",
+        currency: "USD",
+      });
     try {
       const referralCode = getReferralCode();
       const body = referralCode ? { referral_code: referralCode } : {};

@@ -38,7 +38,7 @@ export default async function VAOnboardingPage() {
         </p>
       ) : (
         <p className="form-note" style={{ marginBottom: "var(--space-lg)" }}>
-          Read the full Mom Ops VA guide below. When you&apos;re done, confirm and mark as read so you can start claiming tasks.
+          Read the full Mom Ops VA guide below. When you&apos;re done, confirm and mark as read. <strong>After this, complete Training.</strong> Once you finish training, you can begin opening and claiming tickets.
         </p>
       )}
       <div style={{ overflowY: "auto", maxHeight: "none" }}>

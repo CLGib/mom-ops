@@ -24,11 +24,16 @@ export default function AuthForm() {
   const next = searchParams.get("next") ?? "/";
   const isCheckoutIntent = next.includes("checkout=1");
   const roleNotSet = searchParams.get("error") === "role_not_set";
+  const otpExpired = searchParams.get("error") === "otp_expired";
 
   const [mode, setMode] = useState<Mode>(isCheckoutIntent ? "magiclink" : "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    otpExpired
+      ? "This email change link has expired or was already used. Sign in and try changing your email again from account settings."
+      : null
+  );
   const [loading, setLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [resetLinkSent, setResetLinkSent] = useState(false);

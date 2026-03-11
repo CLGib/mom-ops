@@ -268,7 +268,7 @@ export default function RevenueDashboard() {
                     {transactions.map((t) => (
                       <tr key={t.id}>
                         <td style={{ padding: "var(--space-xs)" }}>{t.date}</td>
-                        <td style={{ padding: "var(--space-xs)" }}>{t.customer_email ?? "—"}</td>
+                        <td style={{ padding: "var(--space-xs)" }}>{t.customer_email ?? "-"}</td>
                         <td style={{ padding: "var(--space-xs)" }}>{REVENUE_CATEGORY_LABELS[t.category] ?? t.category}{t.refunded ? " (refund)" : ""}</td>
                         <td style={{ textAlign: "right", padding: "var(--space-xs)" }}>{formatMoney(t.amount_dollars)}</td>
                       </tr>
@@ -287,7 +287,7 @@ export default function RevenueDashboard() {
 
       {tab === "Payment Status" && summary && (
         <section className="card">
-          <h2 className="section-heading">Payment status — {month}</h2>
+          <h2 className="section-heading">Payment status - {month}</h2>
           {summary.costsList.length === 0 ? (
             <p className="form-note">No cost entries.</p>
           ) : (

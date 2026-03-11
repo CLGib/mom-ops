@@ -3,6 +3,8 @@
  * Template lines are like "Child's name: \n" or "Location: " — we append known values after the colon.
  */
 
+import { getAgeFromBirthday } from "./age-from-birthday";
+
 export type ProfileForTemplate = {
   preferred_name?: string | null;
   full_name?: string | null;
@@ -19,6 +21,7 @@ export type ProfileForTemplate = {
     relation?: string;
   }> | null;
   diet_notes?: string | null;
+  custom_field_values?: Record<string, string | number | null> | null;
 };
 
 /** Normalize a label for matching (lowercase, collapse spaces, remove punctuation) */
@@ -61,18 +64,10 @@ function buildValueMap(profile: ProfileForTemplate): Map<string, string> {
     m.set("spouse", profile.partner_name.trim());
   }
 
-  if (profile.kids_count != null && profile.kids_count > 0) {
-    const count = String(profile.kids_count);
-    m.set("number of guests", count);
-    m.set("number of children", count);
-    m.set("kids count", count);
-    m.set("child's age", count); // weak
-    m.set("ages of children", count);
-  }
-
   const household = profile.household_members;
   if (Array.isArray(household) && household.length > 0) {
-    const firstKid = household.find((h) => h?.type === "kid" || h?.relation === "child");
+    const kids = household.filter((h) => h?.type === "kid" || h?.relation === "child");
+    const firstKid = kids[0] ?? household.find((h) => h?.type === "kid" || h?.relation === "child");
     const kidName = firstKid?.name?.trim();
     if (kidName) {
       m.set("child's name", kidName);
@@ -84,6 +79,33 @@ function buildValueMap(profile: ProfileForTemplate): Map<string, string> {
       m.set("list names", kidNames.join(", "));
       m.set("names and ages", kidNames.join(", "));
     }
+    if (kids.length > 0) {
+      const count = String(kids.length);
+      m.set("number of guests", count);
+      m.set("number of children", count);
+      m.set("kids count", count);
+      const ages = kids.map((k) => (k.birthday ? getAgeFromBirthday(k.birthday) : null)).filter((a): a is number => a != null);
+      if (ages.length > 0) {
+        const agesStr = ages.join(", ");
+        m.set("ages of children", agesStr);
+        m.set("child's age", String(ages[0]));
+      }
+    }
+  }
+
+  if (profile.kids_count != null && profile.kids_count > 0 && !m.has("kids count")) {
+    const count = String(profile.kids_count);
+    m.set("number of guests", count);
+    m.set("number of children", count);
+    m.set("kids count", count);
+    if (Array.isArray(profile.kids_ages) && profile.kids_ages.length > 0) {
+      const agesStr = (profile.kids_ages as number[]).join(", ");
+      m.set("ages of children", agesStr);
+      m.set("child's age", String((profile.kids_ages as number[])[0]));
+    } else {
+      m.set("child's age", count);
+      m.set("ages of children", count);
+    }
   }
 
   if (profile.timezone?.trim()) {
@@ -94,6 +116,17 @@ function buildValueMap(profile: ProfileForTemplate): Map<string, string> {
     m.set("dietary restrictions", profile.diet_notes.trim());
     m.set("dietary restrictions or allergies", profile.diet_notes.trim());
     m.set("dietary needs", profile.diet_notes.trim());
+  }
+
+  const custom = profile.custom_field_values;
+  if (custom && typeof custom === "object") {
+    for (const [k, v] of Object.entries(custom)) {
+      if (v != null && v !== "") {
+        const str = String(v);
+        m.set(k, str);
+        m.set(k.replace(/_/g, " "), str);
+      }
+    }
   }
 
   return m;
@@ -139,4 +172,29 @@ export function fillTaskTemplate(
   }
 
   return out.join("\n");
+}
+
+/**
+ * Count how many "Label: " lines in the template have a matching value in the profile.
+ * Used for scoring task suggestions by profile/template fit.
+ */
+export function countFillableTemplateLines(
+  template: string,
+  profile: ProfileForTemplate | null
+): number {
+  if (!template?.trim() || !profile) return 0;
+  const valueMap = buildValueMap(profile);
+  if (valueMap.size === 0) return 0;
+  let count = 0;
+  const lines = template.split("\n");
+  for (const line of lines) {
+    const match = line.match(/^(.+?):\s*$/);
+    if (match) {
+      const label = match[1].trim();
+      const normLabel = norm(label);
+      const value = findValue(normLabel, valueMap);
+      if (value) count++;
+    }
+  }
+  return count;
 }

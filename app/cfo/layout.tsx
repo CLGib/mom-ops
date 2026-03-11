@@ -38,18 +38,21 @@ export default async function CfoLayout({ children }: { children: React.ReactNod
     .single();
   const displayName = profile?.preferred_name?.trim() || profile?.full_name?.trim() || user.email || "Account";
 
+  const drawerFooter = (
+    <HeaderUser
+      displayName={displayName}
+      avatarUrl={profile?.avatar_url}
+      title={user.email ?? undefined}
+    />
+  );
+
   return (
     <SidebarLayout
       brandLabel="CFO"
       brandHref="/cfo"
       navLinks={CFO_NAV_LINKS.map((l) => ({ href: l.href, label: l.label }))}
-      headerRight={
-        <HeaderUser
-          displayName={displayName}
-          avatarUrl={profile?.avatar_url}
-          title={user.email ?? undefined}
-        />
-      }
+      headerRight={<></>}
+      drawerFooter={drawerFooter}
     >
       {children}
     </SidebarLayout>

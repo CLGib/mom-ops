@@ -153,7 +153,7 @@ export default function FeatureBugBoard({ initialCards, ownerOptions, statuses }
                 </div>
                 <p style={{ fontWeight: 600, margin: "var(--space-2xs) 0", fontSize: "0.9rem" }}>{card.title}</p>
                 <p className="ticket-meta" style={{ fontSize: "0.75rem", marginBottom: "var(--space-xs)" }}>
-                  {card.requestor_email ?? card.requestor_role ?? "—"} · {formatInCentral(card.created_at)}
+                  {card.requestor_email ?? card.requestor_role ?? "-"} · {formatInCentral(card.created_at)}
                 </p>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label style={{ fontSize: "0.7rem" }}>Status</label>
@@ -178,7 +178,7 @@ export default function FeatureBugBoard({ initialCards, ownerOptions, statuses }
                     onChange={(e) => updateCard(card.id, { owner_id: e.target.value || null })}
                     disabled={updating === card.id}
                   >
-                    <option value="">—</option>
+                    <option value="">-</option>
                     {ownerOptions.map((o) => (
                       <option key={o.id} value={o.id}>{o.label}</option>
                     ))}
@@ -216,7 +216,7 @@ export default function FeatureBugBoard({ initialCards, ownerOptions, statuses }
               <button type="button" className="btn" onClick={() => setSelectedId(null)}>Close</button>
             </div>
             <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "var(--space-sm)" }}>
-              {selectedCard.type === "bug" ? "Bug" : "Feature"} · {selectedCard.requestor_email ?? selectedCard.requestor_role ?? "—"} · {formatInCentral(selectedCard.created_at)}
+              {selectedCard.type === "bug" ? "Bug" : "Feature"} · {selectedCard.requestor_email ?? selectedCard.requestor_role ?? "-"} · {formatInCentral(selectedCard.created_at)}
             </p>
             {selectedCard.description && (
               <div style={{ marginBottom: "var(--space-md)", whiteSpace: "pre-wrap", fontSize: "0.9rem" }}>{selectedCard.description}</div>

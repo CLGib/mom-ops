@@ -6,6 +6,15 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const next = requestUrl.searchParams.get("next") ?? "/";
+  const errorCode = requestUrl.searchParams.get("error_code");
+  const error = requestUrl.searchParams.get("error");
+
+  // Supabase redirects here with error params when e.g. email change link expired or invalid
+  if (error || errorCode) {
+    const otpExpired = errorCode === "otp_expired" || /expired|invalid/i.test(error ?? "");
+    const loginError = otpExpired ? "otp_expired" : "auth_failed";
+    return NextResponse.redirect(new URL(`/login?error=${loginError}`, requestUrl.origin));
+  }
 
   // No code: Supabase may have sent tokens in the URL hash (e.g. recovery links). Hash is only
   // visible client-side, so send a page that preserves the hash and lets the client handle it.
@@ -43,9 +52,9 @@ export async function GET(request: Request) {
     }
   );
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
-  if (error) {
-    console.warn("[auth/callback] exchangeCodeForSession:", error.message);
+  const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+  if (exchangeError) {
+    console.warn("[auth/callback] exchangeCodeForSession:", exchangeError.message);
     // Recovery flow: code exchange often fails when the link is opened in a different browser (no
     // code_verifier). Supabase may still have sent tokens in the URL hash; serve a page that lets
     // the client use the hash.
@@ -62,7 +71,8 @@ export async function GET(request: Request) {
   }
 
   // Redirect to next only if it's a safe path: no protocol-relative (//), no backslash, no scheme (e.g. javascript:)
-  const rawPath = next.startsWith("/") ? next : `/${next}`;
+  let rawPath = next.startsWith("/") ? next : `/${next}`;
+  if (rawPath === "/admin" || rawPath === "/admin/") rawPath = "/admin/tasks";
   const isHome = rawPath === "/" || rawPath === "";
   const hasUnsafe = /\/\/|\\\\|^\s*[a-z][a-z0-9+.-]*:/i.test(rawPath);
   const targetPath = isHome || hasUnsafe ? "/login" : rawPath;

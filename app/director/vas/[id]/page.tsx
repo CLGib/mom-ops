@@ -58,7 +58,7 @@ export default async function DirectorVADetailPage({
         <h2 className="section-heading">Metrics</h2>
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
           <li>Tasks completed: <strong>{completed.length}</strong></li>
-          <li>Current average rating: <strong>{avgRating ?? "—"}</strong> {avgRating != null ? "/ 5" : ""}</li>
+          <li>Current average rating: <strong>{avgRating ?? "-"}</strong> {avgRating != null ? "/ 5" : ""}</li>
           <li>Onboarding: <strong>{vaProfile?.onboarding_complete ? "Complete" : "Pending"}</strong></li>
         </ul>
       </section>
@@ -68,7 +68,7 @@ export default async function DirectorVADetailPage({
           {(tasks ?? []).slice(0, 20).map((t) => (
             <li key={t.id} className="ticket-item">
               <Link href={`/admin/${t.id}`}>{t.subject}</Link>
-              <span className="ticket-meta">{t.status} · {t.rating != null ? `${t.rating}/5` : "—"}</span>
+              <span className="ticket-meta">{t.status} · {t.rating != null ? `${t.rating}/5` : "-"}</span>
             </li>
           ))}
         </ul>

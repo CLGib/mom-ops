@@ -3,28 +3,26 @@
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
+import confetti from "canvas-confetti";
+import {
+  getStatusLabel,
+  FINAL_STATUSES,
+  STATUS_GROUP_ACTIVE,
+  STATUS_GROUP_DONE,
+  STATUS_GROUP_CANCELLED,
+} from "@/lib/ticket-status";
 
-const STATUSES = [
-  "assigned",
-  "awaiting_member_approval",
-  "in_progress",
-  "waiting_on_member",
-  "completed",
-  "closed",
-  "cancelled_by_va",
-  "cancelled_by_admin",
-] as const;
+type Props = { ticketId: string; currentStatus: string; vaOnly?: boolean; creditCost?: number | null };
 
-const FINAL_STATUSES = ["completed", "closed"] as const;
-
-type Props = { ticketId: string; currentStatus: string };
-
-export default function UpdateTicketStatus({ ticketId, currentStatus }: Props) {
+export default function UpdateTicketStatus({ ticketId, currentStatus, vaOnly = false, creditCost }: Props) {
+  const vaCannotClose = vaOnly && (creditCost == null || creditCost === undefined);
   const router = useRouter();
   const [status, setStatus] = useState(currentStatus);
   const [saving, setSaving] = useState(false);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+
+  const cancelledSlugs = vaOnly ? (["cancelled_by_va"] as const) : ([...STATUS_GROUP_CANCELLED] as const);
 
   async function applyStatus(newStatus: string) {
     setSaving(true);
@@ -41,6 +39,27 @@ export default function UpdateTicketStatus({ ticketId, currentStatus }: Props) {
     router.refresh();
     if (FINAL_STATUSES.includes(newStatus as (typeof FINAL_STATUSES)[number])) {
       setSavedMessage("Saved. Member has been charged.");
+      // Celebrate when VA closes/completes a ticket
+      const duration = 2_000;
+      const end = Date.now() + duration;
+      const frame = () => {
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: ["#22c55e", "#3b82f6", "#f59e0b", "#ec4899"],
+        });
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: ["#22c55e", "#3b82f6", "#f59e0b", "#ec4899"],
+        });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      };
+      frame();
     } else {
       setSavedMessage("Saved.");
     }
@@ -51,6 +70,10 @@ export default function UpdateTicketStatus({ ticketId, currentStatus }: Props) {
     const newStatus = e.target.value;
     const isFinal = FINAL_STATUSES.includes(newStatus as (typeof FINAL_STATUSES)[number]);
     const wasOpen = status !== "completed" && status !== "closed";
+    if (vaCannotClose && isFinal) {
+      // Don't allow selecting completed/closed when cost not set; keep current selection
+      return;
+    }
     if (isFinal && wasOpen) {
       setPendingStatus(newStatus);
       return;
@@ -77,11 +100,27 @@ export default function UpdateTicketStatus({ ticketId, currentStatus }: Props) {
         style={{ width: "auto", minWidth: "11rem" }}
         disabled={saving}
       >
-        {STATUSES.map((s) => (
-          <option key={s} value={s}>
-            {s}
-          </option>
-        ))}
+        <optgroup label="Active">
+          {STATUS_GROUP_ACTIVE.map((s) => (
+            <option key={s} value={s}>
+              {getStatusLabel(s)}
+            </option>
+          ))}
+        </optgroup>
+        <optgroup label="Done">
+          {STATUS_GROUP_DONE.map((s) => (
+            <option key={s} value={s} disabled={vaCannotClose}>
+              {getStatusLabel(s)}
+            </option>
+          ))}
+        </optgroup>
+        <optgroup label="Cancelled">
+          {cancelledSlugs.map((s) => (
+            <option key={s} value={s}>
+              {getStatusLabel(s)}
+            </option>
+          ))}
+        </optgroup>
       </select>
       {saving && <span className="form-note" style={{ margin: 0 }}>Saving…</span>}
       {savedMessage && !saving && (
@@ -89,10 +128,15 @@ export default function UpdateTicketStatus({ ticketId, currentStatus }: Props) {
           {savedMessage}
         </span>
       )}
+      {vaCannotClose && (
+        <span className="form-note" style={{ margin: 0, color: "var(--color-warning, #b45309)" }}>
+          Set credit cost above before closing or completing this task.
+        </span>
+      )}
       {pendingStatus && (
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-xs)", flexWrap: "wrap" }}>
           <span className="form-note" style={{ margin: 0 }}>
-            Mark as {pendingStatus}? This will finalize the task and charge the member&apos;s credits.
+            Mark as {getStatusLabel(pendingStatus)}? This will finalize the task and charge the member&apos;s credits.
           </span>
           <button type="button" className="btn btn-primary" onClick={confirmClose} disabled={saving}>
             Save

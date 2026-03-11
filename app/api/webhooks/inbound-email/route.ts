@@ -25,6 +25,31 @@ function parseSenderEmail(from: string): string | null {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lower) ? lower : null;
 }
 
+const REPLY_TO_TICKET_PREFIX = "reply+";
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** If the address is reply+<ticket_id>@..., return the ticket id (uuid); else null. */
+function parseReplyToTicketAddress(addr: string): string | null {
+  if (!addr || typeof addr !== "string") return null;
+  const trimmed = addr.trim().toLowerCase();
+  if (!trimmed.startsWith(REPLY_TO_TICKET_PREFIX)) return null;
+  const after = trimmed.slice(REPLY_TO_TICKET_PREFIX.length);
+  const at = after.indexOf("@");
+  if (at === -1) return null;
+  const local = after.slice(0, at);
+  return UUID_REGEX.test(local) ? local : null;
+}
+
+/** From Resend received email "to" (array of strings), return first reply+<ticket_id>@... ticket id if any. */
+function getReplyToTicketId(toAddresses: string[] | undefined): string | null {
+  if (!Array.isArray(toAddresses)) return null;
+  for (const addr of toAddresses) {
+    const id = parseReplyToTicketAddress(typeof addr === "string" ? addr : String(addr));
+    if (id) return id;
+  }
+  return null;
+}
+
 function isImageOrVideo(contentType: string): boolean {
   return (
     contentType.startsWith("image/") || contentType.startsWith("video/")
@@ -113,6 +138,79 @@ export async function POST(request: NextRequest) {
   }
 
   const description = emailData.text ?? emailData.html ?? null;
+  const toAddresses = emailData.to as string[] | undefined;
+  const replyToTicketId = getReplyToTicketId(toAddresses);
+
+  if (replyToTicketId) {
+    const { data: existingTicket, error: ticketFetchErr } = await supabase
+      .from("tickets")
+      .select("id, member_id, status")
+      .eq("id", replyToTicketId)
+      .single();
+
+    if (!ticketFetchErr && existingTicket && existingTicket.member_id === member.id) {
+      const messageBody = (description ?? "").trim() || "(no content)";
+      const { data: newMessage, error: msgErr } = await supabase
+        .from("ticket_messages")
+        .insert({
+          ticket_id: existingTicket.id,
+          sender_id: member.id,
+          sender_role: "member",
+          message: messageBody,
+        })
+        .select("id")
+        .single();
+
+      if (msgErr || !newMessage?.id) {
+        console.error("[inbound-email] Reply message insert failed:", msgErr);
+        return NextResponse.json({ ok: true, error: "reply_message_insert" });
+      }
+
+      const { data: attachmentsData } = await resend.emails.receiving.attachments.list({
+        emailId: email_id,
+      });
+      const attachments = attachmentsData?.data ?? [];
+      for (const att of attachments) {
+        if (!isImageOrVideo(att.content_type)) continue;
+        if (!att.download_url) continue;
+        try {
+          const res = await fetch(att.download_url);
+          if (!res.ok) continue;
+          const buffer = Buffer.from(await res.arrayBuffer());
+          const ext = att.filename?.split(".").pop() || "bin";
+          const safeName = `${Date.now()}-${att.id.slice(0, 8)}.${ext}`;
+          const path = `${existingTicket.id}/msg_${newMessage.id}_${safeName}`;
+          const { error: uploadError } = await supabase.storage
+            .from(BUCKET)
+            .upload(path, buffer, {
+              contentType: att.content_type,
+              upsert: false,
+            });
+          if (uploadError) continue;
+          const mediaType = att.content_type.startsWith("image/") ? "image" : "video";
+          await supabase.from("ticket_attachments").insert({
+            ticket_id: existingTicket.id,
+            message_id: newMessage.id,
+            file_path: path,
+            file_name: att.filename ?? undefined,
+            media_type: mediaType,
+          });
+        } catch {
+          // best-effort
+        }
+      }
+
+      // Reopen if ticket was closed/completed so it goes back to the same VA's inbox (keep assignment)
+      if (existingTicket.status === "completed" || existingTicket.status === "closed") {
+        await supabase
+          .from("tickets")
+          .update({ status: "reopened" })
+          .eq("id", existingTicket.id);
+      }
+
+      return NextResponse.json({ ok: true, ticket_id: existingTicket.id, reply: true });
+    }
+  }
 
   const { data: ticket, error: ticketError } = await supabase
     .from("tickets")
@@ -122,7 +220,7 @@ export async function POST(request: NextRequest) {
       description,
       status: "new",
     })
-    .select("id")
+    .select("id, ticket_number")
     .single();
 
   if (ticketError || !ticket) {
@@ -131,11 +229,16 @@ export async function POST(request: NextRequest) {
   }
 
   const ticketId = ticket.id;
+  const taskSubject = subject && String(subject).trim() ? subject : "";
   try {
     await queueEmail({
       to_email: senderEmail,
       template: "task_submitted_v1",
-      payload: { ticket_id: ticketId, subject: subject ?? "(No subject)" },
+      payload: {
+        ticket_id: ticketId,
+        subject: taskSubject,
+        ticket_number: ticket.ticket_number ?? null,
+      },
       dedupe_key: `task_submitted:${ticketId}`,
     });
   } catch (e) {

@@ -23,7 +23,8 @@ export async function createTicket(
   fromReviewId?: string | null,
   category?: string | null,
   fromSpecialistProfile?: boolean,
-  creditCost?: number
+  creditCost?: number,
+  noRush?: boolean
 ): Promise<{ ticketId?: string; error?: string }> {
   try {
     let user: { id: string } | null = null;
@@ -124,6 +125,7 @@ export async function createTicket(
       source_review_id?: string | null;
       created_from_review?: boolean;
       credit_cost?: number | null;
+      no_rush?: boolean;
     } = {
       member_id: user.id,
       subject,
@@ -142,6 +144,9 @@ export async function createTicket(
     }
     if (creditCost != null && Number.isInteger(creditCost) && creditCost >= 0) {
       insertPayload.credit_cost = creditCost;
+    }
+    if (noRush === true) {
+      insertPayload.no_rush = true;
     }
     const { data: ticket, error } = await supabase
       .from("tickets")
@@ -215,7 +220,7 @@ export async function submitTicketReview(
   rating: number,
   feedback: string | null,
   visibility: "private" | "public" = "private"
-): Promise<{ error?: string }> {
+): Promise<{ error?: string } | { rating: number; hadWrittenReview: boolean }> {
   try {
     const serverClient = await createServerClient();
     const { data: { user } } = await serverClient.auth.getUser();
@@ -235,7 +240,7 @@ export async function submitTicketReview(
     const supabase = createClient(url, serviceKey);
     const { data: ticket } = await supabase
       .from("tickets")
-      .select("member_id, status, rating, subject, assigned_va_id, category")
+      .select("member_id, status, rating, subject, assigned_va_id, category, ticket_number")
       .eq("id", ticketId)
       .single();
 
@@ -273,6 +278,83 @@ export async function submitTicketReview(
     });
 
     if (reviewError) return { error: reviewError.message };
+
+    const { error: creditError } = await supabase.from("credit_transactions").insert({
+      member_id: user.id,
+      ticket_id: ticketId,
+      amount: 2,
+      type: "survey_reward",
+    });
+    if (creditError) return { error: creditError.message };
+
+    if (rating < 4) {
+      try {
+        const adminAlertEmail = process.env.ADMIN_ALERT_EMAIL;
+        let toEmail: string | null = adminAlertEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminAlertEmail) ? adminAlertEmail : null;
+        if (!toEmail) {
+          const { data: adminRows } = await supabase.from("admins").select("user_id").limit(1);
+          if (adminRows?.[0]?.user_id) {
+            const { data: adminData } = await supabase.auth.admin.getUserById(adminRows[0].user_id);
+            const email = adminData?.user?.email;
+            if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) toEmail = email;
+          }
+        }
+        if (toEmail) {
+          const { queueEmail } = await import("@/lib/email/queue");
+          await queueEmail({
+            to_email: toEmail,
+            template: "low_rating_alert_v1",
+            payload: {
+              ticket_id: ticketId,
+              subject: taskSubject,
+              rating,
+              feedback: feedback?.trim() || null,
+              ticket_number: (ticket as { ticket_number?: number | null }).ticket_number ?? null,
+            },
+            dedupe_key: `low_rating:${ticketId}`,
+          });
+        }
+      } catch (e) {
+        console.warn("[submitTicketReview] low-rating admin email queue failed", e);
+      }
+    }
+
+    return { rating, hadWrittenReview: !!(feedback?.trim()) };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong." };
+  }
+}
+
+export async function approveTask(ticketId: string): Promise<{ error?: string }> {
+  try {
+    const serverClient = await createServerClient();
+    const { data: { user } } = await serverClient.auth.getUser();
+    if (!user) return { error: "Not logged in." };
+
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !serviceKey) return { error: "Server configuration error." };
+
+    const supabase = createClient(url, serviceKey);
+    const { data: ticket } = await supabase
+      .from("tickets")
+      .select("member_id, status")
+      .eq("id", ticketId)
+      .single();
+
+    if (!ticket || ticket.member_id !== user.id) {
+      return { error: "Task not found or you are not the member." };
+    }
+    if (ticket.status !== "awaiting_member_approval") {
+      return { error: "This task is not waiting for your approval." };
+    }
+
+    const { error } = await supabase
+      .from("tickets")
+      .update({ status: "completed" })
+      .eq("id", ticketId);
+
+    if (error) return { error: error.message };
     return {};
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Something went wrong." };
@@ -372,12 +454,22 @@ export async function updateMemberPublicProfile(updates: {
     if (Object.hasOwn(updates, "avatar_url")) payload.avatar_url = updates.avatar_url ?? null;
     if (Object.keys(payload).length === 0) return {};
 
-    const { error } = await serverClient
+    const { data: updated, error } = await serverClient
       .from("profiles")
       .update(payload)
-      .eq("id", user.id);
+      .eq("id", user.id)
+      .select("avatar_url")
+      .single();
 
     if (error) return { error: error.message };
+    // If we tried to set avatar_url but no row was updated (e.g. RLS), surface a clear error
+    if (payload.avatar_url != null && updated?.avatar_url !== payload.avatar_url) {
+      return { error: "Profile update did not save. Please try again." };
+    }
+    // One-time 5-credit bonus for adding profile photo after first task (idempotent)
+    if (Object.hasOwn(payload, "avatar_url") && updated?.avatar_url) {
+      await serverClient.rpc("maybe_grant_profile_photo_bonus", { p_member_id: user.id });
+    }
     return {};
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Something went wrong." };

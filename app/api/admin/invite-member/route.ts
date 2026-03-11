@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { queueEmail } from "@/lib/email/queue";
+import { sendOne } from "@/lib/email/send";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -120,6 +121,31 @@ export async function POST(request: NextRequest) {
     await supabase.from("member_invites").delete().eq("email", email).is("redeemed_at", null);
     const msg = e instanceof Error ? e.message : "Failed to queue invite email";
     return NextResponse.json({ error: msg }, { status: 500 });
+  }
+
+  // Send immediately so the invite doesn't depend on the email cron job
+  const { data: outboxRow } = await serviceSupabase
+    .from("email_outbox")
+    .select("id, to_email, template, payload, status, attempts, last_error")
+    .eq("dedupe_key", `member_invite:${email}`)
+    .eq("status", "queued")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+  if (outboxRow) {
+    const result = await sendOne({
+      id: outboxRow.id,
+      to_email: outboxRow.to_email,
+      template: outboxRow.template,
+      payload: (outboxRow.payload as Record<string, unknown>) ?? {},
+      status: outboxRow.status,
+      attempts: outboxRow.attempts ?? 0,
+      last_error: outboxRow.last_error,
+    });
+    if (!result.ok) {
+      // Email queued but send failed (e.g. RESEND_API_KEY). Don't rollback invite; cron will retry.
+      console.error("[invite-member] Immediate send failed:", result.error);
+    }
   }
 
   return NextResponse.json({

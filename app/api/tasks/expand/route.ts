@@ -1,10 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { checkRateLimit, checkAndIncrementDailyCap, RATE_LIMITS } from "@/lib/rate-limit";
 
-const SYSTEM_PROMPT = `You help turn a member's short or messy task idea into a clear, brief task for a virtual assistant.
-Return ONLY valid JSON with exactly two keys: "subject" (string, short title) and "description" (string, 1-2 sentences).
-No markdown, no code fence, no explanation. Example: {"subject":"Research summer camps","description":"Find 3 summer day camps in the area for ages 6-8, with dates and prices."}`;
+const SYSTEM_PROMPT = `You help turn a member's short or messy task idea into a clear, warm, well-articulated task for a virtual assistant.
+
+Your goals:
+- Make the member feel like they explained themselves perfectly — even if their input was half a sentence.
+- Make the VA genuinely excited to work on this — the description should feel like a real person with a clear vision, not a dry ticket.
+- Infer reasonable details from context. If she says "birthday party for my 5 year old," you can assume kid-friendly, age-appropriate, fun. Don't leave obvious gaps the VA will have to ask about.
+- Keep it brief. 1–3 sentences in the description. Enough to be clear and human, not so much it feels like a brief.
+
+Voice: Warm, clear, organized. The description should read like a thoughtful mom who knows what she wants — even if the original input was "idk birthday stuff help."
+
+Rules:
+- Return ONLY valid JSON with exactly two keys: "subject" (string, short title) and "description" (string, 1–3 sentences).
+- No markdown, no code fence, no explanation.
+- Never invent details that contradict what the member said. If you're filling in a gap, keep it general enough to be easily adjusted.
+
+Examples:
+Input: "need camp stuff for summer"
+Output: {"subject":"Summer camp research","description":"I'd love help finding 3 solid summer day camp options for my kids — looking for something fun and age-appropriate with dates and pricing so I can compare easily."}
+
+Input: "ugh meal planning"
+Output: {"subject":"Weekly meal plan","description":"I need a simple weekly meal plan — easy dinners that don't require a ton of ingredients. Bonus if there's a grocery list I can just grab and go with."}
+
+Input: "party for emma turning 4"
+Output: {"subject":"Emma's 4th birthday party planning","description":"I'm starting to plan Emma's 4th birthday party and could use help pulling it together — theme ideas, a simple timeline for the day, and maybe an invitation I can send out to parents."}`;
 
 export async function POST(request: NextRequest) {
   const key = process.env.ANTHROPIC_API_KEY;
@@ -29,6 +50,14 @@ export async function POST(request: NextRequest) {
         status: 429,
         headers: { "Retry-After": String(retryAfter) },
       }
+    );
+  }
+
+  const dailyCapResult = await checkAndIncrementDailyCap(user.id);
+  if (!dailyCapResult.allowed) {
+    return NextResponse.json(
+      { error: "Daily limit of 20 AI improvements reached. Resets at midnight UTC." },
+      { status: 429 }
     );
   }
 

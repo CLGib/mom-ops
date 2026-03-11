@@ -424,7 +424,7 @@ export default function AdminTaskLibraryManager({ initialTasks }: Props) {
                 </span>
                 <div style={{ fontWeight: 600, marginTop: "var(--space-2xs)" }}>{t.task}</div>
                   <span style={{ fontSize: "0.875rem", color: "var(--accent, #b8860b)", fontWeight: 600, display: "block", marginTop: "var(--space-2xs)" }}>
-                    {t.credits} credit{t.credits !== 1 ? "s" : ""}
+                    ~{t.credits} credit{t.credits !== 1 ? "s" : ""}
                     {typeof t.rank === "number" && (
                       <span style={{ fontSize: "0.75rem", color: "var(--text-muted, #5c5955)", fontWeight: 500, marginLeft: "var(--space-sm)" }}>
                         · rank {t.rank}

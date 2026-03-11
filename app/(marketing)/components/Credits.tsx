@@ -139,7 +139,7 @@ export default async function Credits(props: CreditsProps) {
         </div>
 
         <p className="section-lead" style={{ marginTop: "var(--space-xl)", marginBottom: "var(--space-lg)" }}>
-          Don&apos;t see what you&apos;re looking for? Just ask. Think Moms—we&apos;re sure we can help.
+          Don&apos;t see what you&apos;re looking for? Just ask. Think Moms - we&apos;re sure we can help.
         </p>
 
         <p className="credits-custom-note">

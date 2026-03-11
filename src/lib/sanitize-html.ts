@@ -1,4 +1,6 @@
-const ALLOWED_TAGS = new Set(["p", "br", "strong", "em", "b", "i", "ul", "ol", "li", "a"]);
+const ALLOWED_TAGS = new Set(["p", "br", "strong", "em", "b", "i", "ul", "ol", "li", "a", "span"]);
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function escapeHtml(s: string): string {
   return s
@@ -15,6 +17,14 @@ function safeHref(attrs: string): string {
   return ` href="${escapeHtml(href)}"`;
 }
 
+/** Allow only data-mention-user-id (UUID) and class="mention" for VA @mentions. */
+function safeMentionAttrs(attrs: string): string {
+  const idM = /data-mention-user-id\s*=\s*["']([^"']+)["']/i.exec(attrs);
+  const userId = idM?.[1]?.trim();
+  if (!userId || !UUID_REGEX.test(userId)) return "";
+  return ` class="mention" data-mention-user-id="${escapeHtml(userId)}"`;
+}
+
 /**
  * Sanitize HTML for safe display. Allows only p, br, strong, em, b, i, ul, ol, li, a (with safe href).
  */
@@ -24,8 +34,9 @@ export function sanitizeHtml(html: string): string {
     if (!ALLOWED_TAGS.has(tag)) return "";
     if (close) return `</${tag}>`;
     if (tag === "br") return "<br/>";
-    const a = tag === "a" ? safeHref(attrs) : "";
-    return `<${tag}${a}>`;
+    if (tag === "a") return `<a${safeHref(attrs)}>`;
+    if (tag === "span") return `<span${safeMentionAttrs(attrs)}>`;
+    return `<${tag}>`;
   });
 }
 
@@ -47,8 +58,9 @@ function linkifyUrls(text: string): string {
 }
 
 /** Sanitize message for display: if it contains tags, sanitize HTML; else escape, linkify URLs, and turn newlines into <br/>. */
-export function sanitizeMessageBody(message: string): string {
-  if (!message.trim()) return "";
-  if (!/<[a-zA-Z]/.test(message)) return linkifyUrls(message).replace(/\n/g, "<br/>");
-  return sanitizeHtml(message);
+export function sanitizeMessageBody(message: string | null | undefined): string {
+  const s = message == null ? "" : String(message);
+  if (!s.trim()) return "";
+  if (!/<[a-zA-Z]/.test(s)) return linkifyUrls(s).replace(/\n/g, "<br/>");
+  return sanitizeHtml(s);
 }

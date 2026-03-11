@@ -127,7 +127,7 @@ export default function ExploreTasksLibrary({ tasks, categories, mode, showOnlyW
                       fontWeight: 600,
                     }}
                   >
-                    {t.credits} credit{t.credits !== 1 ? "s" : ""}
+                    ~{t.credits} credit{t.credits !== 1 ? "s" : ""}
                   </span>
                 </div>
                 {mode === "member" && (

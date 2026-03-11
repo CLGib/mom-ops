@@ -2,11 +2,14 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatInCentral } from "@/lib/format-date";
+import { getStatusLabel } from "@/lib/ticket-status";
+import { getAgeFromBirthday, deriveKidsDisplay } from "@/lib/age-from-birthday";
 import VAProfileEditForm from "./VAProfileEditForm";
 import VANotesSection from "./VANotesSection";
 
+type HouseholdMember = { type?: string; name?: string; birthday?: string; likes?: string; dislikes?: string; clothing_size?: string; relation?: string };
+
 type QuizResultRow = { quiz_title?: string; outcome_title?: string; outcome_description?: string; completed_at?: string };
-type QuizResponseRow = { quiz_title?: string; quiz_slug?: string; status?: string; answers?: Record<string, unknown> };
 type OnboardingRow = { answers?: Record<string, unknown>; created_at?: string };
 
 const ONBOARDING_KEY_LABELS: Record<string, string> = {
@@ -48,20 +51,42 @@ export default async function VAMemberContextPage({
 
   if (!ticket || ticket.assigned_va_id !== user.id) notFound();
 
-  const { data: memberContextRows } = await supabase.rpc("get_va_member_context", {
-    p_ticket_id: id,
-  });
+  const [{ data: memberContextRows }, { data: customFieldDefs }] = await Promise.all([
+    supabase.rpc("get_va_member_context", { p_ticket_id: id }),
+    supabase
+      .from("member_profile_custom_field_definitions")
+      .select("id, key, label, field_type, sort_order")
+      .eq("active", true)
+      .order("sort_order", { ascending: true })
+      .order("key", { ascending: true }),
+  ]);
   const memberContext = Array.isArray(memberContextRows) && memberContextRows.length > 0 ? memberContextRows[0] : null;
+  const customFieldDefinitions = (customFieldDefs ?? []).map((d) => ({
+    id: d.id,
+    key: d.key ?? "",
+    label: d.label ?? "",
+    field_type: (d.field_type as "text" | "number" | "date" | "multiline") ?? "text",
+    sort_order: typeof d.sort_order === "number" ? d.sort_order : 0,
+  }));
+
+  const { data: otherMemberTickets } =
+    ticket.member_id != null
+      ? await supabase
+          .from("tickets")
+          .select("id, subject, status, updated_at")
+          .eq("member_id", ticket.member_id)
+          .neq("id", id)
+          .order("updated_at", { ascending: false })
+      : { data: null };
 
   const { data: quizzesAndSurveys } = await supabase.rpc("get_va_member_quizzes_and_surveys", {
     p_ticket_id: id,
   });
-  const raw = quizzesAndSurveys as { quiz_results?: QuizResultRow[]; quiz_responses?: QuizResponseRow[]; onboarding?: OnboardingRow[] } | null;
+  const raw = quizzesAndSurveys as { quiz_results?: QuizResultRow[]; onboarding?: OnboardingRow[] } | null;
   const quizResults: QuizResultRow[] = raw?.quiz_results ?? [];
-  const quizResponses: QuizResponseRow[] = raw?.quiz_responses ?? [];
   const onboardingList: OnboardingRow[] = raw?.onboarding ?? [];
 
-  const hasAny = memberContext || quizResults.length > 0 || quizResponses.length > 0 || onboardingList.length > 0;
+  const hasAny = memberContext || quizResults.length > 0 || onboardingList.length > 0;
 
   return (
     <main className="app-shell">
@@ -73,7 +98,7 @@ export default async function VAMemberContextPage({
         Task: {ticket.subject}
       </p>
       <p className="form-note" style={{ marginBottom: "var(--space-md)" }}>
-        Profile, quiz answers, and survey responses (email not shown).
+        Profile, quiz results, and survey responses (email not shown).
       </p>
 
       {!hasAny && (
@@ -94,28 +119,41 @@ export default async function VAMemberContextPage({
               kids_count: (memberContext as { kids_count?: number | null }).kids_count,
               kids_ages: (memberContext as { kids_ages?: number[] | null }).kids_ages,
               partner_name: (memberContext as { partner_name?: string | null }).partner_name,
+              household_members: Array.isArray((memberContext as { household_members?: unknown }).household_members)
+                ? (memberContext as { household_members: HouseholdMember[] }).household_members.map((m) => ({ type: m.type ?? "other", name: m.name, likes: m.likes, dislikes: m.dislikes, birthday: m.birthday, clothing_size: m.clothing_size, relation: m.relation }))
+                : null,
+              important_dates: (memberContext as { important_dates?: { label: string; date: string; recurrence?: string }[] | null }).important_dates ?? null,
+              custom_field_values: (memberContext as { custom_field_values?: Record<string, string | number | null> | null }).custom_field_values ?? null,
             }}
+            customFieldDefinitions={customFieldDefinitions}
           />
           <div className="card" style={{ padding: "var(--space-md)" }}>
             <dl style={{ margin: 0, display: "grid", gap: "var(--space-xs)", fontSize: "0.9rem" }}>
               <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Name</dt><dd>{(memberContext as { preferred_name?: string | null; full_name?: string | null }).preferred_name || (memberContext as { full_name?: string | null }).full_name || "-"}</dd></div>
               {(memberContext as { timezone?: string | null }).timezone && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Timezone</dt><dd>{(memberContext as { timezone: string }).timezone}</dd></div>}
               {((memberContext as { city?: string | null }).city || (memberContext as { state?: string | null }).state) && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Location</dt><dd>{[(memberContext as { city?: string | null }).city, (memberContext as { state?: string | null }).state].filter(Boolean).join(", ") || "-"}</dd></div>}
-              {(((memberContext as { kids_count?: number | null }).kids_count != null) || (Array.isArray((memberContext as { kids_ages?: unknown }).kids_ages) && (memberContext as { kids_ages: unknown[] }).kids_ages.length > 0)) && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Kids</dt><dd>{String((memberContext as { kids_count?: number | null }).kids_count != null ? `Count: ${(memberContext as { kids_count: number }).kids_count}` : "")}{String(Array.isArray((memberContext as { kids_ages?: unknown }).kids_ages) ? ` · Ages: ${(memberContext as { kids_ages: unknown[] }).kids_ages.join(", ")}` : "")}</dd></div>}
-              {Array.isArray((memberContext as { household_members?: unknown }).household_members) && (memberContext as { household_members: { type?: string; name?: string; likes?: string; dislikes?: string; birthday?: string; clothing_size?: string; relation?: string }[] }).household_members.length > 0 && (
+              {(() => {
+                const kidsDisplay = deriveKidsDisplay(memberContext);
+                return kidsDisplay ? <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Kids</dt><dd>{kidsDisplay}</dd></div> : null;
+              })()}
+              {Array.isArray((memberContext as { household_members?: unknown }).household_members) && (memberContext as { household_members: HouseholdMember[] }).household_members.length > 0 && (
                 <div>
-                  <dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Household (kids, spouse, other)</dt>
+                  <dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Important people</dt>
                   <dd>
-                    {(memberContext as { household_members: { type?: string; name?: string; likes?: string; dislikes?: string; birthday?: string; clothing_size?: string; relation?: string }[] }).household_members.map((m, i) => (
-                      <div key={i} style={{ marginBottom: "var(--space-xs)" }}>
-                        <strong style={{ textTransform: "capitalize" }}>{m.type}</strong>: {m.name || "-"}
-                        {m.birthday && ` · Birthday: ${m.birthday}`}
-                        {m.clothing_size && ` · Size: ${m.clothing_size}`}
-                        {m.relation && ` · ${m.relation}`}
-                        {m.likes && ` · Likes: ${m.likes}`}
-                        {m.dislikes && ` · Dislikes: ${m.dislikes}`}
-                      </div>
-                    ))}
+                    {(memberContext as { household_members: HouseholdMember[] }).household_members.map((m, i) => {
+                      const age = m.type === "kid" && m.birthday ? getAgeFromBirthday(m.birthday) : null;
+                      return (
+                        <div key={i} style={{ marginBottom: "var(--space-xs)" }}>
+                          <strong style={{ textTransform: "capitalize" }}>{m.type}</strong>: {m.name || "-"}
+                          {m.birthday && ` · Birthday: ${m.birthday}`}
+                          {age != null && ` · Age: ${age}`}
+                          {m.clothing_size && ` · Size: ${m.clothing_size}`}
+                          {m.relation && ` · ${m.relation}`}
+                          {m.likes && ` · Likes: ${m.likes}`}
+                          {m.dislikes && ` · Dislikes: ${m.dislikes}`}
+                        </div>
+                      );
+                    })}
                   </dd>
                 </div>
               )}
@@ -126,6 +164,23 @@ export default async function VAMemberContextPage({
               {Array.isArray((memberContext as { important_dates?: unknown }).important_dates) && (memberContext as { important_dates: { label?: string; date?: string }[] }).important_dates.length > 0 && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Important dates</dt><dd>{String((memberContext as { important_dates: { label?: string; date?: string }[] }).important_dates.map((d) => `${d.label || "-"}: ${d.date || ""}`).join("; "))}</dd></div>}
               {Array.isArray((memberContext as { preferred_brands?: unknown }).preferred_brands) && (memberContext as { preferred_brands: string[] }).preferred_brands.length > 0 && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Preferred brands</dt><dd>{(memberContext as { preferred_brands: string[] }).preferred_brands.join(", ")}</dd></div>}
               {((memberContext as { task_submission_preference?: string | null }).task_submission_preference || (memberContext as { typical_turnaround?: string | null }).typical_turnaround) && <div><dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Preferences</dt><dd>{`Task submission: ${(memberContext as { task_submission_preference?: string | null }).task_submission_preference || "-"} · Turnaround: ${(memberContext as { typical_turnaround?: string | null }).typical_turnaround || "-"}`}</dd></div>}
+              {(() => {
+                const cv = (memberContext as { custom_field_values?: Record<string, unknown> | null }).custom_field_values;
+                if (!cv || typeof cv !== "object" || Object.keys(cv).length === 0) return null;
+                const labelsByKey = Object.fromEntries(customFieldDefinitions.map((d) => [d.key, d.label]));
+                return (
+                  <div>
+                    <dt style={{ fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Additional details</dt>
+                    <dd>
+                      {Object.entries(cv).map(([k, v]) => (
+                        <div key={k} style={{ marginBottom: "var(--space-2xs)" }}>
+                          <strong>{labelsByKey[k] ?? k}</strong>: {v != null ? String(v) : "-"}
+                        </div>
+                      ))}
+                    </dd>
+                  </div>
+                );
+              })()}
             </dl>
           </div>
         </section>
@@ -148,32 +203,6 @@ export default async function VAMemberContextPage({
                 </li>
               ))}
             </ul>
-          </div>
-        </section>
-      )}
-
-      {quizResponses.length > 0 && (
-        <section style={{ marginBottom: "var(--space-lg)" }}>
-          <h2 className="section-heading">Quiz answers</h2>
-          <div className="card" style={{ padding: "var(--space-md)" }}>
-            {quizResponses.map((r, i) => (
-              <div key={i} style={{ marginBottom: "var(--space-md)" }}>
-                <p style={{ fontWeight: 600, marginBottom: "var(--space-2xs)", fontSize: "0.9rem" }}>{r.quiz_title ?? r.quiz_slug ?? "Quiz"}</p>
-                <p className="ticket-meta" style={{ marginBottom: "var(--space-xs)", fontSize: "0.8rem" }}>Status: {r.status ?? "-"}</p>
-                {r.answers && typeof r.answers === "object" && Object.keys(r.answers).length > 0 && (
-                  <dl style={{ margin: 0, fontSize: "0.85rem", display: "grid", gap: "var(--space-2xs)" }}>
-                    {Object.entries(r.answers).map(([key, val]) => (
-                      <div key={key}>
-                        <dt style={{ fontWeight: 500, display: "inline" }}>{key}: </dt>
-                        <dd style={{ display: "inline", margin: 0 }}>
-                          {Array.isArray(val) ? val.join(", ") : typeof val === "object" && val !== null ? JSON.stringify(val) : String(val ?? "-")}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                )}
-              </div>
-            ))}
           </div>
         </section>
       )}
@@ -223,6 +252,24 @@ export default async function VAMemberContextPage({
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {(otherMemberTickets?.length ?? 0) > 0 && (
+        <section style={{ marginTop: "var(--space-xl)", marginBottom: "var(--space-lg)" }}>
+          <h2 className="section-heading">Other tasks from this member</h2>
+          <ul className="ticket-list" style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {otherMemberTickets!.map((t) => (
+              <li key={t.id} style={{ marginBottom: "var(--space-xs)" }}>
+                <Link href={`/va/${t.id}`} className="link">
+                  {t.subject}
+                </Link>
+                <span className="ticket-meta" style={{ marginLeft: "var(--space-sm)" }}>
+                  {getStatusLabel(t.status)} · {formatInCentral(t.updated_at)}
+                </span>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

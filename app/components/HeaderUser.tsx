@@ -10,9 +10,10 @@ type Props = {
 };
 
 function Avatar({ displayName, avatarUrl }: { displayName: string; avatarUrl: string | null }) {
-  const initials = displayName
-    .trim()
+  const name = (displayName ?? "").trim();
+  const initials = name
     .split(/\s+/)
+    .filter(Boolean)
     .map((w) => w[0])
     .slice(0, 2)
     .join("")
@@ -66,7 +67,7 @@ export default function HeaderUser({ displayName, avatarUrl, title, children, na
           style={{ fontSize: "0.875rem", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
           title={title}
         >
-          {displayName}
+          {displayName ?? "Member"}
         </span>
         {children}
       </span>

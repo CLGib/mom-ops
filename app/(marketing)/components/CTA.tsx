@@ -10,7 +10,7 @@ export default function CTA() {
           more credits anytime. No long-term commitment.
         </p>
         <CheckoutButton className="btn btn-primary btn-large">
-          Get started — $29.95/month
+          Get started - $29.95/month
         </CheckoutButton>
         <p className="cta-guarantee">
           <a href="/terms#money-back-guarantee">

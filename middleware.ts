@@ -178,6 +178,13 @@ export async function middleware(req: NextRequest) {
       return res;
     }
 
+    if (path.startsWith("/toolbox")) {
+      if (role !== "va" && role !== "admin" && role !== "director") {
+        return NextResponse.redirect(new URL(dashboardForRole(role), req.url));
+      }
+      return res;
+    }
+
     return res;
   } catch (err) {
     console.error("middleware error:", err);
@@ -186,7 +193,7 @@ export async function middleware(req: NextRequest) {
 }
 
 /** API paths that do not require authentication (webhooks, public read-only, guest checkout, cron jobs, etc.) */
-const PUBLIC_API_PREFIXES = ["/api/webhooks/", "/api/founders/count", "/api/stripe/checkout", "/api/jobs/"];
+const PUBLIC_API_PREFIXES = ["/api/webhooks/", "/api/founders/count", "/api/stripe/checkout", "/api/jobs/", "/api/va-apply"];
 
 function isPublicApiPath(path: string): boolean {
   if (!path.startsWith("/api")) return false;
@@ -201,6 +208,7 @@ export const config = {
     "/admin/:path*",
     "/director/:path*",
     "/cfo/:path*",
+    "/toolbox/:path*",
     "/api/:path*",
   ],
 };

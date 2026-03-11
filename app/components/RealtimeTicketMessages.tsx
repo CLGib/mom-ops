@@ -8,7 +8,8 @@ type Props = { ticketId: string };
 
 /**
  * Subscribes to new messages on this ticket. When a message is inserted (e.g. by the member),
- * refreshes the page so the VA sees it without manual refresh.
+ * refreshes the page so the VA sees it without manual refresh. Also used on member view so
+ * new specialist replies appear without manual refresh.
  */
 export default function RealtimeTicketMessages({ ticketId }: Props) {
   const router = useRouter();

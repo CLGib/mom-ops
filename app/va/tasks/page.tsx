@@ -2,10 +2,13 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatInCentral } from "@/lib/format-date";
-import ClaimTicketButton from "../ClaimTicketButton";
+import { getTaskLibrary } from "@/lib/task-library";
 import VAAssignedTaskList from "../VAAssignedTaskList";
 import RealtimeAssignedTasks from "../RealtimeAssignedTasks";
-import VACreateTicketForm from "../VACreateTicketForm";
+import RealtimeUnassignedTickets from "../RealtimeUnassignedTickets";
+import CreateTaskCollapsible from "../CreateTaskCollapsible";
+import UnassignedTaskList from "../UnassignedTaskList";
+import VATasksPageSearch from "../VATasksPageSearch";
 
 export const dynamic = "force-dynamic";
 
@@ -18,49 +21,51 @@ export default async function VATasksPage() {
 
   const { data: vaProfile } = await supabase
     .from("va_profiles")
-    .select("onboarding_complete")
+    .select("onboarding_complete, training_complete")
     .eq("user_id", user.id)
-    .single();
-  const onboardingComplete = vaProfile?.onboarding_complete === true;
+    .maybeSingle();
+  if (!vaProfile) redirect("/va/onboarding");
+  const onboardingComplete = vaProfile.onboarding_complete === true;
+  const trainingComplete = vaProfile.training_complete === true;
+  if (!trainingComplete) redirect("/va/training");
+  const canClaimTasks = onboardingComplete && trainingComplete;
 
   const { data: memberProfiles } = await supabase
     .from("profiles")
-    .select("id, full_name, preferred_name")
+    .select("id, full_name, preferred_name, avatar_url")
     .eq("role", "member")
     .order("id");
 
-  let memberEmails: Record<string, string> = {};
-  try {
-    const { createServiceClient } = await import("@/lib/supabase/service");
-    const service = createServiceClient();
-    const { data: { users: authUsers } } = await service.auth.admin.listUsers({ perPage: 1000 });
-    const memberIds = new Set((memberProfiles ?? []).map((p) => p.id));
-    authUsers?.forEach((u) => {
-      if (memberIds.has(u.id)) memberEmails[u.id] = u.email ?? "";
-    });
-  } catch {
-    // service key not available
-  }
-
+  // VA sees only name and avatar for member search — never email
   const members = (memberProfiles ?? [])
     .map((p) => ({
       id: p.id,
-      label: memberEmails[p.id] || p.preferred_name || p.full_name || p.id.slice(0, 8),
+      label: p.preferred_name || p.full_name || p.id.slice(0, 8),
+      avatarUrl: p.avatar_url ?? null,
     }))
     .sort((a, b) => a.label.localeCompare(b.label, "en", { sensitivity: "base" }));
 
+  const taskLibrary = await getTaskLibrary();
+
   const { data: unassigned } = await supabase
     .from("tickets")
-    .select("id, subject, member_id, created_at, requested_va_id")
-    .eq("status", "new")
+    .select("id, ticket_number, subject, member_id, status, created_at, requested_va_id, no_rush")
+    .in("status", ["new", "reopened"])
     .is("assigned_va_id", null)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: true });
 
   const { data: assigned } = await supabase
     .from("tickets")
-    .select("id, subject, status, credit_cost, tip_amount, created_at, updated_at")
+    .select("id, ticket_number, subject, status, credit_cost, tip_amount, created_at, updated_at")
     .eq("assigned_va_id", user.id)
     .order("updated_at", { ascending: false });
+
+  // All tickets for search (VAs can read any ticket; unassigned = read-only when viewing)
+  const { data: allTicketsForSearch } = await supabase
+    .from("tickets")
+    .select("id, ticket_number, subject, status, credit_cost, tip_amount, created_at, updated_at, assigned_va_id")
+    .order("updated_at", { ascending: false })
+    .limit(1000);
 
   const inProgressTasks = (assigned ?? []).filter(
     (t) =>
@@ -70,11 +75,42 @@ export default async function VATasksPage() {
       t.status !== "cancelled_by_admin"
   );
   const assignedTicketIds = (assigned ?? []).map((t) => t.id);
+  const assignedIdSet = new Set(assignedTicketIds);
+
+  // Tickets where VA was @mentioned in an internal note — show in inbox until closed
+  const { data: mentionRows } = await supabase
+    .from("ticket_mentions")
+    .select("ticket_id")
+    .eq("mentioned_user_id", user.id);
+  const mentionedTicketIds = [...new Set((mentionRows ?? []).map((r) => r.ticket_id))];
+  const openMentionedIds = mentionedTicketIds.filter((id) => !assignedIdSet.has(id));
+  let mentionedTickets: typeof inProgressTasks = [];
+  if (openMentionedIds.length > 0) {
+    const { data: mentioned } = await supabase
+      .from("tickets")
+      .select("id, ticket_number, subject, status, credit_cost, tip_amount, created_at, updated_at")
+      .in("id", openMentionedIds);
+    mentionedTickets = (mentioned ?? []).filter(
+      (t) =>
+        t.status !== "completed" &&
+        t.status !== "closed" &&
+        t.status !== "cancelled_by_va" &&
+        t.status !== "cancelled_by_admin"
+    );
+  }
+
+  const inboxTickets = [
+    ...inProgressTasks.map((t) => ({ ...t, mentionedOnly: false as const })),
+    ...mentionedTickets.map((t) => ({ ...t, mentionedOnly: true as const })),
+  ].sort((a, b) => new Date(b.updated_at ?? b.created_at).getTime() - new Date(a.updated_at ?? a.created_at).getTime());
 
   return (
     <main className="app-shell">
       {assignedTicketIds.length > 0 && <RealtimeAssignedTasks assignedTicketIds={assignedTicketIds} />}
+      <RealtimeUnassignedTickets />
       <h1 className="page-title">Tasks</h1>
+
+      <VATasksPageSearch allTickets={allTicketsForSearch ?? []} currentUserId={user.id} />
 
       {!onboardingComplete && (
         <div className="card" style={{ marginBottom: "var(--space-lg)", borderColor: "var(--accent)" }}>
@@ -87,16 +123,11 @@ export default async function VATasksPage() {
         </div>
       )}
 
-      {onboardingComplete && (
-        <section style={{ marginBottom: "var(--space-2xl)" }}>
-          <h2 className="section-heading">Create task</h2>
-          <p className="form-note" style={{ marginTop: "var(--space-2xs)", marginBottom: "var(--space-sm)" }}>
-            Create a task for a member. It will be assigned to you.
-          </p>
-          <div className="card">
-            <VACreateTicketForm members={members} />
-          </div>
-        </section>
+      {canClaimTasks && (
+        <CreateTaskCollapsible
+          members={members}
+          taskLibrary={taskLibrary.map((t) => ({ task: t.task, credits: t.credits }))}
+        />
       )}
 
       <section style={{ marginBottom: "var(--space-2xl)" }}>
@@ -104,40 +135,24 @@ export default async function VATasksPage() {
         <p className="form-note" style={{ marginTop: "var(--space-2xs)", marginBottom: "var(--space-sm)" }}>
           Reply to these, then claim more below.
         </p>
-        {inProgressTasks.length === 0 ? (
+        {inboxTickets.length === 0 ? (
           <p className="form-note">Inbox clear. Claim more tasks below when you&apos;re ready.</p>
         ) : (
-          <VAAssignedTaskList tickets={inProgressTasks} inboxMode />
+          <VAAssignedTaskList tickets={inboxTickets} inboxMode />
         )}
       </section>
 
       <section style={{ marginBottom: "var(--space-2xl)" }}>
         <h2 className="section-heading">Claim more tasks</h2>
-        <ul className="ticket-list">
-          {(unassigned ?? []).map((t) => (
-            <li key={t.id} className="ticket-item">
-              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "var(--space-xs)" }}>
-                <Link href={onboardingComplete ? `/va/${t.id}` : "/va/onboarding"}>{t.subject}</Link>
-                {t.requested_va_id === user.id && (
-                  <span
-                    style={{
-                      fontSize: "0.75rem",
-                      fontWeight: 600,
-                      padding: "0.125rem 0.5rem",
-                      borderRadius: 4,
-                      backgroundColor: "var(--accent-soft-bg, #f8f5ed)",
-                      color: "var(--accent, #b8860b)",
-                    }}
-                  >
-                    Requested you
-                  </span>
-                )}
-                <span className="ticket-meta">{formatInCentral(t.created_at)}</span>
-              </div>
-              <ClaimTicketButton ticketId={t.id} subject={t.subject} onboardingComplete={onboardingComplete} />
-            </li>
-          ))}
-        </ul>
+        {(unassigned ?? []).length === 0 ? (
+          <p className="form-note">No unassigned tasks right now.</p>
+        ) : (
+          <UnassignedTaskList
+            tickets={unassigned ?? []}
+            currentUserId={user.id}
+            onboardingComplete={canClaimTasks}
+          />
+        )}
       </section>
     </main>
   );

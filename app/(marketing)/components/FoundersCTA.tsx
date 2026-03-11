@@ -47,7 +47,7 @@ export default function FoundersCTA() {
                 className="btn btn-primary btn-large founders-cta-btn"
                 priceType="founders"
               >
-                Join Founding Members — $15.95/month
+                Join Founding Members - $15.95/month
               </CheckoutButton>
             )}
           </div>

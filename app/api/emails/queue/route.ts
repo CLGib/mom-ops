@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     }
     const { data: ticket } = await service
       .from("tickets")
-      .select("member_id")
+      .select("member_id, subject, ticket_number")
       .eq("id", ticketId)
       .single();
     if (!ticket || ticket.member_id !== user.id) {
@@ -84,7 +84,11 @@ export async function POST(request: NextRequest) {
     await queueEmail({
       to_email: user.email,
       template: "task_submitted_v1",
-      payload: { ticket_id: ticketId, subject: payload.subject ?? "" },
+      payload: {
+        ticket_id: ticketId,
+        subject: (ticket.subject && String(ticket.subject).trim()) || "",
+        ticket_number: ticket.ticket_number ?? null,
+      },
       dedupe_key: `task_submitted:${ticketId}`,
       send_after: send_after ? new Date(send_after) : undefined,
     });
@@ -108,7 +112,7 @@ export async function POST(request: NextRequest) {
     if (!ticket) return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     const { data: profile } = await service
       .from("profiles")
-      .select("id")
+      .select("id, role")
       .eq("id", user.id)
       .single();
     const role = (profile as { role?: string } | null)?.role;
@@ -150,7 +154,7 @@ export async function POST(request: NextRequest) {
     }
     const { data: ticket } = await service
       .from("tickets")
-      .select("member_id, assigned_va_id")
+      .select("member_id, assigned_va_id, subject, ticket_number")
       .eq("id", ticketId)
       .single();
     if (!ticket) return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
@@ -168,7 +172,8 @@ export async function POST(request: NextRequest) {
       template: "va_claimed_v1",
       payload: {
         ticket_id: ticketId,
-        subject: payload.subject ?? "",
+        subject: (ticket.subject && String(ticket.subject).trim()) || "",
+        ticket_number: ticket.ticket_number ?? null,
         member_id: ticket.member_id,
         va_display_name: vaDisplayName,
       },

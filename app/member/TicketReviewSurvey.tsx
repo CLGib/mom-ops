@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import confetti from "canvas-confetti";
 import { submitTicketReview } from "./actions";
 
 type Props = { ticketId: string };
@@ -15,6 +16,7 @@ export default function TicketReviewSurvey({ ticketId }: Props) {
   const [visibility, setVisibility] = useState<Visibility>("public");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [successPayload, setSuccessPayload] = useState<{ rating: number; hadWrittenReview: boolean } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -27,11 +29,25 @@ export default function TicketReviewSurvey({ ticketId }: Props) {
     setSubmitting(true);
     const result = await submitTicketReview(ticketId, rating, feedback.trim() || null, visibility);
     setSubmitting(false);
-    if (result.error) {
+    if ("error" in result && result.error) {
       setError(result.error);
       return;
     }
+    const payload = "rating" in result ? result : null;
+    setSuccessPayload(payload);
     setSuccess(true);
+    if (payload && payload.rating >= 4 && payload.hadWrittenReview) {
+      const count = 200;
+      const defaults = { origin: { y: 0.7 }, zIndex: 9999 };
+      function fire(particleRatio: number, opts: confetti.Options) {
+        confetti({ ...defaults, ...opts, particleCount: Math.floor(count * particleRatio) });
+      }
+      fire(0.25, { spread: 26, startVelocity: 55 });
+      fire(0.2, { spread: 60 });
+      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+      fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+      fire(0.1, { spread: 120, startVelocity: 45 });
+    }
     setTimeout(() => {
       router.refresh();
     }, 1500);
@@ -115,9 +131,13 @@ export default function TicketReviewSurvey({ ticketId }: Props) {
             Public reviews inspire other members to try similar tasks and help the community. Your name, photo, task title, and rating will be shown. Don&apos;t include personal details like addresses, phone numbers, or private info.
           </p>
         </fieldset>
-        {success && (
+        {success && successPayload && (
           <p role="status" className="form-note" style={{ color: "var(--color-success, #15803d)" }}>
-            Review saved. Thanks for your feedback!
+            {successPayload.rating >= 4 && successPayload.hadWrittenReview
+              ? "Thanks! You've earned 2 credits."
+              : successPayload.rating >= 4
+                ? "Review saved. You've earned 2 credits. Thanks!"
+                : "Thanks for rating. We've credited your account 2 credits for completing the survey. We'll be reaching out to remedy the issue."}
           </p>
         )}
         {error && (

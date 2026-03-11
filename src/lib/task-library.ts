@@ -102,6 +102,20 @@ export async function getCategories(): Promise<string[]> {
   return Array.from(set).sort();
 }
 
+/**
+ * Find credits for a task by matching subject to library task name.
+ * Tries exact match first, then case-insensitive.
+ */
+export function findCreditsBySubject(tasks: TaskLibraryItem[], subject: string): number | null {
+  if (!subject?.trim()) return null;
+  const s = subject.trim();
+  const exact = tasks.find((t) => t.task.trim() === s);
+  if (exact) return exact.credits;
+  const lower = s.toLowerCase();
+  const ci = tasks.find((t) => t.task.trim().toLowerCase() === lower);
+  return ci ? ci.credits : null;
+}
+
 /** Resolve from_task param: UUID or json-N fetches by id; number uses index (legacy). */
 export async function getTaskByFromTaskParam(param: string): Promise<TaskLibraryItem | null> {
   if (!param?.trim()) return null;

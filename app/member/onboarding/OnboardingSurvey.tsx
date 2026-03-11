@@ -173,8 +173,11 @@ export default function OnboardingSurvey({ memberId, helpOptions, goalsOptions =
 
   return (
     <form onSubmit={handleSubmit}>
+      <p className="form-note" style={{ marginBottom: "var(--space-sm)" }}>
+        You can work on this now; no need to stress. We&apos;ll keep updating what we know about you as we work through your tasks, and we aim to reduce mental load by not asking you the same questions multiple times.
+      </p>
       <p className="form-note" style={{ marginBottom: "var(--space-lg)" }}>
-        Your answers help your specialist personalize support and reduce back-and-forth.
+        You can always update anything yourself under your <Link href="/member/profile" className="link">Profile</Link>.
       </p>
 
       <section style={{ marginBottom: "var(--space-xl)" }}>

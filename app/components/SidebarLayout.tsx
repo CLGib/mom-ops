@@ -4,16 +4,31 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export type NavLink = { href: string; label: string };
+export type NavLink = { group?: string; href: string; label: string; badge?: number; comingSoon?: boolean };
 
 type Props = {
   brandLabel: string;
   brandHref: string;
   navLinks: NavLink[];
   headerRight: React.ReactNode;
+  /** Optional content above drawer footer (e.g. VA payout summary). */
   sidebarExtra?: React.ReactNode;
+  /** Optional footer at bottom of drawer (e.g. profile, logout). */
+  drawerFooter?: React.ReactNode;
+  /** Optional class for the main content area (e.g. full-width on task view). */
+  contentClassName?: string;
   children: React.ReactNode;
 };
+
+function groupLinks(links: NavLink[]): Map<string | null, NavLink[]> {
+  const map = new Map<string | null, NavLink[]>();
+  for (const link of links) {
+    const key = link.group ?? null;
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(link);
+  }
+  return map;
+}
 
 export default function SidebarLayout({
   brandLabel,
@@ -21,6 +36,8 @@ export default function SidebarLayout({
   navLinks,
   headerRight,
   sidebarExtra,
+  drawerFooter,
+  contentClassName,
   children,
 }: Props) {
   const pathname = usePathname();
@@ -30,21 +47,13 @@ export default function SidebarLayout({
     setMenuOpen(false);
   }, [pathname]);
 
+  const groups = groupLinks(navLinks);
+  const groupOrder = Array.from(groups.keys());
+
   return (
     <div className="app-shell sidebar-layout" style={{ width: "100%", minHeight: "100vh" }}>
-      <header
-        className="sidebar-layout__header"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "var(--space-md)",
-          padding: "var(--space-sm) var(--space-md)",
-          marginBottom: "var(--space-md)",
-          borderBottom: "1px solid var(--color-border, #e5e5e5)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", minWidth: 0, flexShrink: 0 }}>
+      <header className="sidebar-layout__header">
+        <div className="sidebar-layout__header-left">
           <button
             type="button"
             className="sidebar-layout__hamburger"
@@ -56,7 +65,7 @@ export default function SidebarLayout({
             <span />
             <span />
           </button>
-          <Link href={brandHref} className="link sidebar-layout__brand" style={{ fontSize: "0.9rem", fontWeight: 500, whiteSpace: "nowrap" }}>
+          <Link href={brandHref} className="link sidebar-layout__brand">
             {brandLabel}
           </Link>
         </div>
@@ -71,67 +80,87 @@ export default function SidebarLayout({
         onClick={() => setMenuOpen(false)}
       />
 
-      <div className="sidebar-layout__body" style={{ display: "flex", gap: "var(--space-lg)", alignItems: "flex-start", flex: 1 }}>
-        <nav
-          className={`sidebar-layout__drawer admin-sidebar ${menuOpen ? "sidebar-layout__drawer--open" : ""}`}
-          aria-label="Navigation"
-          style={{
-            width: "220px",
-            flexShrink: 0,
-            padding: "var(--space-md) 0",
-            borderRight: "1px solid var(--color-border, #e5e5e5)",
-          }}
-        >
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-            {navLinks.map(({ href, label }) => {
-              const isActive =
-                href === brandHref
-                  ? pathname === brandHref
-                  : pathname.startsWith(href);
+      <aside
+        className={`sidebar-layout__drawer ${menuOpen ? "sidebar-layout__drawer--open" : ""}`}
+        aria-label="Navigation"
+      >
+        <div className="sidebar-layout__drawer-inner">
+          <div className="sidebar-layout__drawer-header">
+            <span className="sidebar-layout__drawer-title">{brandLabel}</span>
+            <button
+              type="button"
+              className="sidebar-layout__drawer-close"
+              onClick={() => setMenuOpen(false)}
+              aria-label="Close menu"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <nav className="sidebar-layout__drawer-nav">
+            {groupOrder.map((groupKey) => {
+              const items = groups.get(groupKey)!;
               return (
-                <li key={href} style={{ marginBottom: "var(--space-xs)" }}>
-                  <Link
-                    href={href}
-                    onClick={() => setMenuOpen(false)}
-                    style={{
-                      display: "block",
-                      padding: "var(--space-sm) var(--space-md)",
-                      borderRadius: "var(--radius, 6px)",
-                      color: isActive ? "var(--accent)" : "var(--text-muted, #666)",
-                      fontWeight: isActive ? 600 : 400,
-                      textDecoration: "none",
-                      backgroundColor: isActive
-                        ? "var(--accent-soft-bg, #f8f5ed)"
-                        : "transparent",
-                      border: "1px solid rgba(184, 134, 11, 0.35)",
-                      borderLeft: isActive
-                        ? "3px solid var(--accent)"
-                        : "1px solid rgba(184, 134, 11, 0.35)",
-                    }}
-                  >
-                    {label}
-                  </Link>
-                </li>
+                <div key={groupKey ?? "default"} className="sidebar-layout__drawer-group">
+                  {groupKey && (
+                    <div className="sidebar-layout__drawer-group-label">{groupKey}</div>
+                  )}
+                  <ul className="sidebar-layout__drawer-list">
+                    {items.map(({ href, label, badge, comingSoon }) => {
+                      if (comingSoon) {
+                        return (
+                          <li key={`coming-soon-${label}`}>
+                            <span
+                              className="sidebar-layout__drawer-link sidebar-layout__drawer-link--coming-soon"
+                              style={{ cursor: "default", opacity: 0.7 }}
+                            >
+                              <span className="sidebar-layout__drawer-link-text">{label}</span>
+                            </span>
+                          </li>
+                        );
+                      }
+                      const isActive =
+                        href === brandHref
+                          ? pathname === brandHref
+                          : pathname.startsWith(href);
+                      return (
+                        <li key={href}>
+                          <Link
+                            href={href}
+                            onClick={() => setMenuOpen(false)}
+                            className={`sidebar-layout__drawer-link ${isActive ? "sidebar-layout__drawer-link--active" : ""}`}
+                          >
+                            <span className="sidebar-layout__drawer-link-text">{label}</span>
+                            {badge != null && badge > 0 && (
+                              <span className="sidebar-layout__drawer-badge" aria-label={`${badge} items`}>
+                                {badge}
+                              </span>
+                            )}
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               );
             })}
-          </ul>
+          </nav>
           {sidebarExtra && (
-            <div
-              style={{
-                marginTop: "var(--space-lg)",
-                paddingTop: "var(--space-md)",
-                borderTop: "1px solid var(--color-border, #e5e5e5)",
-                display: "flex",
-                flexDirection: "column",
-                gap: "var(--space-sm)",
-              }}
-            >
+            <div className="sidebar-layout__drawer-extra">
               {sidebarExtra}
             </div>
           )}
-        </nav>
+          {drawerFooter && (
+            <div className="sidebar-layout__drawer-footer">
+              {drawerFooter}
+            </div>
+          )}
+        </div>
+      </aside>
 
-        <main style={{ flex: 1, minWidth: 0 }} className="app-shell--wide">
+      <div className="sidebar-layout__body">
+        <main className={["sidebar-layout__main", "app-shell--wide", contentClassName].filter(Boolean).join(" ")}>
           {children}
         </main>
       </div>

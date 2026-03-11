@@ -11,18 +11,25 @@ function getServiceSupabase() {
   return createClient(url, key);
 }
 
-/** Require Authorization: Bearer <CRON_SECRET>. Rejects if CRON_SECRET is not configured. */
+/** In production, CRON_SECRET must be set and request must send Authorization: Bearer <CRON_SECRET>. In development, allow when secret is unset for local/cron compatibility. */
 function isAuthorized(request: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
-  if (!secret) {
-    console.warn("[send-email] CRON_SECRET is not set — rejecting request. Set CRON_SECRET env var to enable the cron job.");
-    return false;
-  }
+  const isProduction = process.env.NODE_ENV === "production";
+  if (isProduction && !secret) return false; // production must have CRON_SECRET configured
+  if (!secret) return true; // development: no secret → allow (e.g. local cron)
   const auth = request.headers.get("authorization");
   return auth === `Bearer ${secret}`;
 }
 
 export async function GET(request: NextRequest) {
+  const secret = process.env.CRON_SECRET;
+  const isProduction = process.env.NODE_ENV === "production";
+  if (isProduction && !secret) {
+    return NextResponse.json(
+      { error: "Cron job not configured: set CRON_SECRET in production." },
+      { status: 503 }
+    );
+  }
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

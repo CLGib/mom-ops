@@ -28,12 +28,29 @@ export async function POST(req: Request) {
   const displayName = formData.get("display_name") as string | null;
   const bioRaw = formData.get("bio") as string | null;
   const avatar = formData.get("avatar") as File | null;
+  const workRequiresReviewRaw = formData.get("work_requires_review") as string | null;
 
-  if (!vaId || !displayName?.trim()) {
-    return NextResponse.json({ error: "vaId and display_name are required" }, { status: 400 });
+  if (!vaId) {
+    return NextResponse.json({ error: "vaId is required" }, { status: 400 });
+  }
+  // Toggle-only: just work_requires_review (no display_name)
+  const workRequiresReview =
+    workRequiresReviewRaw === "true" ? true : workRequiresReviewRaw === "false" ? false : null;
+  if (workRequiresReview !== null && displayName == null && !bioRaw && !avatar) {
+    const { error: updateErr } = await supabase
+      .from("va_profiles")
+      .update({ work_requires_review: workRequiresReview, updated_at: new Date().toISOString() })
+      .eq("user_id", vaId);
+    if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  }
+  if (!displayName?.trim()) {
+    return NextResponse.json({ error: "display_name is required when updating profile" }, { status: 400 });
   }
 
-  const { data: vaRoleRow } = await supabase
+  // Use service to read VA's role so RLS does not 403 (admin check is user_roles; RLS uses admins table)
+  const service = createServiceClient();
+  const { data: vaRoleRow } = await service
     .from("user_roles")
     .select("role")
     .eq("user_id", vaId)
@@ -80,19 +97,76 @@ export async function POST(req: Request) {
     profileImageUrl = existing.profile_image_url;
   }
 
-  const { error: upsertError } = await supabase.from("va_profiles").upsert(
-    {
-      user_id: vaId,
-      display_name,
-      bio,
-      profile_image_url: profileImageUrl,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id" }
-  );
+  const upsertPayload: {
+    user_id: string;
+    display_name: string;
+    bio: string | null;
+    profile_image_url: string | null;
+    updated_at: string;
+    work_requires_review?: boolean;
+  } = {
+    user_id: vaId,
+    display_name,
+    bio,
+    profile_image_url: profileImageUrl,
+    updated_at: new Date().toISOString(),
+  };
+  if (workRequiresReview !== null) upsertPayload.work_requires_review = workRequiresReview;
+  const { error: upsertError } = await supabase.from("va_profiles").upsert(upsertPayload, {
+    onConflict: "user_id",
+  });
 
   if (upsertError) {
     return NextResponse.json({ error: upsertError.message }, { status: 500 });
   }
+  return NextResponse.json({ ok: true });
+}
+
+/** PATCH: update work_requires_review and/or training_complete (admin only). */
+export async function PATCH(req: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const roleRes = await supabase.from("user_roles").select("role").eq("user_id", user.id).single();
+  if (roleRes.data?.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  let body: { vaId?: string; work_requires_review?: boolean; training_complete?: boolean };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+  const { vaId, work_requires_review, training_complete } = body;
+  if (!vaId) {
+    return NextResponse.json({ error: "vaId is required" }, { status: 400 });
+  }
+  if (typeof work_requires_review !== "boolean" && typeof training_complete !== "boolean") {
+    return NextResponse.json(
+      { error: "At least one of work_requires_review (boolean) or training_complete (boolean) is required" },
+      { status: 400 }
+    );
+  }
+
+  const service = createServiceClient();
+  const { data: vaRoleRow } = await service
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", vaId)
+    .maybeSingle();
+  if (vaRoleRow?.role !== "va") {
+    return NextResponse.json({ error: "vaId must be a user with VA role" }, { status: 400 });
+  }
+
+  const updates: { work_requires_review?: boolean; training_complete?: boolean; updated_at: string } = {
+    updated_at: new Date().toISOString(),
+  };
+  if (typeof work_requires_review === "boolean") updates.work_requires_review = work_requires_review;
+  if (typeof training_complete === "boolean") updates.training_complete = training_complete;
+
+  const { error } = await supabase.from("va_profiles").update(updates).eq("user_id", vaId);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

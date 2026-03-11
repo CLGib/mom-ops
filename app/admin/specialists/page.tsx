@@ -3,7 +3,10 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import InviteVAForm from "../InviteVAForm";
+import BackfillVAWelcomeButton from "../BackfillVAWelcomeButton";
 import DeleteVAButton from "../DeleteVAButton";
+import VATrainingModeToggle from "../VATrainingModeToggle";
+import MarkVATrainingCompleteButton from "../MarkVATrainingCompleteButton";
 
 export default async function AdminSpecialistsPage() {
   const supabase = await createClient();
@@ -28,11 +31,15 @@ export default async function AdminSpecialistsPage() {
 
   const { data: vaProfileRows } = await supabase
     .from("va_profiles")
-    .select("user_id, display_name")
+    .select("user_id, display_name, work_requires_review, training_complete")
     .in("user_id", vaProfiles.map((p) => p.id));
   const vaDisplayNames: Record<string, string> = {};
+  const vaWorkRequiresReview: Record<string, boolean> = {};
+  const vaTrainingComplete: Record<string, boolean> = {};
   (vaProfileRows ?? []).forEach((r) => {
     vaDisplayNames[r.user_id] = r.display_name ?? r.user_id.slice(0, 8);
+    vaWorkRequiresReview[r.user_id] = r.work_requires_review === true;
+    vaTrainingComplete[r.user_id] = r.training_complete === true;
   });
 
   let vaEmails: Record<string, string> = {};
@@ -63,6 +70,7 @@ export default async function AdminSpecialistsPage() {
           <h2 className="section-heading" style={{ fontSize: "1rem", marginBottom: "var(--space-sm)" }}>
             Current VAs
           </h2>
+          <BackfillVAWelcomeButton vaCount={vaProfiles.length} />
           <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
             {vaProfiles.map((p) => (
               <li
@@ -84,7 +92,12 @@ export default async function AdminSpecialistsPage() {
                     </span>
                   )}
                 </span>
-                <span style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
+                <span style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", flexWrap: "wrap" }}>
+                  <VATrainingModeToggle vaId={p.id} workRequiresReview={vaWorkRequiresReview[p.id] ?? true} />
+                  <MarkVATrainingCompleteButton
+                    vaId={p.id}
+                    trainingComplete={vaTrainingComplete[p.id] ?? false}
+                  />
                   <Link href={`/admin/va/${p.id}/profile`} className="btn btn-secondary" style={{ fontSize: "0.85rem" }}>
                     Edit profile
                   </Link>

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import posthog from "posthog-js";
+import EmojiPicker from "../components/EmojiPicker";
 
 const BUCKET = "task-attachments";
 const MAX_FILE_SIZE_MB = 25;
@@ -13,19 +14,22 @@ type Props = {
   ticketId: string;
   senderId: string;
   senderRole: string;
+  /** When true, show "Internal note" checkbox (admin only). */
+  canSendInternalNote?: boolean;
 };
 
-function getMediaType(file: File): "image" | "video" | "audio" {
+function getMediaType(file: File): "image" | "video" | "audio" | "document" {
   if (file.type.startsWith("image/")) return "image";
   if (file.type.startsWith("video/")) return "video";
   if (file.type.startsWith("audio/")) return "audio";
-  return "video";
+  return "document";
 }
 
 export default function TicketThread({
   ticketId,
   senderId,
   senderRole,
+  canSendInternalNote = false,
 }: Props) {
   const router = useRouter();
   const editorRef = useRef<HTMLDivElement>(null);
@@ -33,10 +37,16 @@ export default function TicketThread({
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [internalNote, setInternalNote] = useState(false);
 
   function execCmd(cmd: string, value?: string) {
     document.execCommand(cmd, false, value);
     editorRef.current?.focus();
+  }
+
+  function insertEmoji(emoji: string) {
+    editorRef.current?.focus();
+    document.execCommand("insertText", false, emoji);
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -47,14 +57,22 @@ export default function TicketThread({
     if (!text && files.length === 0) return;
     setSubmitting(true);
     const supabase = createClient();
+    const insertPayload: {
+      ticket_id: string;
+      sender_id: string;
+      sender_role: string;
+      message: string;
+      internal?: boolean;
+    } = {
+      ticket_id: ticketId,
+      sender_id: senderId,
+      sender_role: senderRole,
+      message: text ? html : "(attachment)",
+    };
+    if (canSendInternalNote) insertPayload.internal = internalNote;
     const { data: inserted, error: insertErr } = await supabase
       .from("ticket_messages")
-      .insert({
-        ticket_id: ticketId,
-        sender_id: senderId,
-        sender_role: senderRole,
-        message: text ? html : "(attachment)",
-      })
+      .insert(insertPayload)
       .select("id")
       .single();
 
@@ -104,10 +122,14 @@ export default function TicketThread({
     const valid: File[] = [];
     for (const f of chosen) {
       if (f.size > MAX_FILE_SIZE_MB * 1024 * 1024) continue;
-      if (f.type.startsWith("image/") || f.type.startsWith("video/") || f.type.startsWith("audio/")) valid.push(f);
+      valid.push(f);
     }
     setFiles((prev) => (prev.length + valid.length > MAX_FILES ? prev.concat(valid.slice(0, MAX_FILES - prev.length)) : prev.concat(valid)));
     e.target.value = "";
+  }
+
+  function removePendingFile(index: number) {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
   return (
@@ -120,18 +142,19 @@ export default function TicketThread({
       {error && <p className="form-note" style={{ color: "var(--color-error, #b91c1c)" }} role="alert">{error}</p>}
       {/* Rich text toolbar */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-xs)", marginBottom: "var(--space-2xs)" }}>
-        <button type="button" className="btn btn-secondary" style={{ padding: "var(--space-2xs) var(--space-sm)", fontSize: "0.875rem" }} onClick={() => execCmd("bold")} title="Bold">
+        <button type="button" className="btn btn-secondary" style={{ padding: "var(--space-2xs) var(--space-sm)", fontSize: "0.875rem" }} onClick={() => execCmd("bold")} title="Bold" aria-label="Bold">
           <strong>B</strong>
         </button>
-        <button type="button" className="btn btn-secondary" style={{ padding: "var(--space-2xs) var(--space-sm)", fontSize: "0.875rem" }} onClick={() => execCmd("italic")} title="Italic">
+        <button type="button" className="btn btn-secondary" style={{ padding: "var(--space-2xs) var(--space-sm)", fontSize: "0.875rem" }} onClick={() => execCmd("italic")} title="Italic" aria-label="Italic">
           <em>I</em>
         </button>
-        <button type="button" className="btn btn-secondary" style={{ padding: "var(--space-2xs) var(--space-sm)", fontSize: "0.875rem" }} onClick={() => execCmd("insertUnorderedList")} title="Bullet list">
+        <button type="button" className="btn btn-secondary" style={{ padding: "var(--space-2xs) var(--space-sm)", fontSize: "0.875rem" }} onClick={() => execCmd("insertUnorderedList")} title="Bullet list" aria-label="Bullet list">
           • List
         </button>
-        <button type="button" className="btn btn-secondary" style={{ padding: "var(--space-2xs) var(--space-sm)", fontSize: "0.875rem" }} onClick={() => execCmd("insertOrderedList")} title="Numbered list">
+        <button type="button" className="btn btn-secondary" style={{ padding: "var(--space-2xs) var(--space-sm)", fontSize: "0.875rem" }} onClick={() => execCmd("insertOrderedList")} title="Numbered list" aria-label="Numbered list">
           1. List
         </button>
+        <EmojiPicker onInsert={insertEmoji} ariaLabel="Insert emoji" />
       </div>
       <div
         ref={editorRef}
@@ -150,7 +173,7 @@ export default function TicketThread({
           const filesToAdd: File[] = [];
           for (let i = 0; i < items.length; i++) {
             const file = items[i].getAsFile();
-            if (file && (file.type.startsWith("image/") || file.type.startsWith("video/") || file.type.startsWith("audio/"))) filesToAdd.push(file);
+            if (file) filesToAdd.push(file);
           }
           if (filesToAdd.length > 0) {
             e.preventDefault();
@@ -159,20 +182,57 @@ export default function TicketThread({
         }}
       />
       <style dangerouslySetInnerHTML={{ __html: `[data-placeholder]:empty::before { content: attr(data-placeholder); color: var(--text-soft, #8a8681); }` }} />
+      {canSendInternalNote && (
+        <label style={{ display: "flex", alignItems: "center", gap: "var(--space-2xs)", fontSize: "0.875rem", cursor: "pointer" }}>
+          <input
+            type="checkbox"
+            checked={internalNote}
+            onChange={(e) => setInternalNote(e.target.checked)}
+            aria-label="Internal note (only visible to team)"
+          />
+          <span>Internal note (only visible to team)</span>
+        </label>
+      )}
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "var(--space-sm)" }}>
         <input
           type="file"
-          accept="image/*,video/*,audio/*"
+          accept="*"
           multiple
           onChange={onFileChange}
           className="input"
           style={{ width: "auto", maxWidth: "100%" }}
-          aria-label="Attach files (photos, video, voice notes)"
+          aria-label="Attach files (photos, video, PDF, and other files)"
         />
         {files.length > 0 && (
-          <span className="form-note">
-            {files.length} file{files.length !== 1 ? "s" : ""} attached. {files.map((f) => f.name).join(", ")}
-          </span>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexWrap: "wrap", gap: "var(--space-xs)", alignItems: "center" }}>
+            {files.map((f, i) => (
+              <li
+                key={i}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "var(--space-2xs)",
+                  padding: "var(--space-2xs) var(--space-sm)",
+                  background: "var(--color-bg-subtle, #f0f0f0)",
+                  borderRadius: 4,
+                  fontSize: "0.875rem",
+                }}
+              >
+                <span style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={f.name}>
+                  {f.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removePendingFile(i)}
+                  className="btn btn-secondary"
+                  style={{ padding: "2px 6px", minWidth: "auto", fontSize: "0.875rem" }}
+                  aria-label={`Remove ${f.name}`}
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
         )}
         <button type="submit" className="btn btn-primary" disabled={submitting}>
           {submitting ? "Sending…" : "Send"}

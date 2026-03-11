@@ -25,7 +25,7 @@ export default async function MemberDiscoveryPage() {
     <main className="app-shell">
       <h1 className="page-title">Just for Fun</h1>
       <p className="section-lead" style={{ marginBottom: "var(--space-xl)", maxWidth: "36rem" }}>
-        Think of this as your vibe check — the more you share, the better we get at knowing what you need. No wrong answers, promise.
+        Think of this as your vibe check - the more you share, the better we get at knowing what you need. No wrong answers, promise.
       </p>
       {quizzes.length === 0 ? (
         <p className="form-note">No quizzes available yet. Check back soon.</p>

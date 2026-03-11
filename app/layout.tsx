@@ -3,6 +3,7 @@ import "./globals.css";
 import "./landing.css";
 import { AirbrakeProvider } from "./components/AirbrakeProvider";
 import { Hotjar } from "./components/Hotjar";
+import { MetaPixel } from "./components/MetaPixel";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://themomops.com";
 
@@ -36,6 +37,7 @@ export default function RootLayout({
       </head>
       <body>
         {process.env.NODE_ENV === "production" && <Hotjar />}
+        <MetaPixel />
         <AirbrakeProvider>{children}</AirbrakeProvider>
       </body>
     </html>

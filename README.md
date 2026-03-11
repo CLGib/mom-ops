@@ -79,6 +79,13 @@ CEO, CFO, and CXO can view a funnel and site-traffic dashboard at **Analytics** 
 
 If unset, the Analytics page shows instructions to configure the variable.
 
+## Facebook / Meta Ads (Pixel)
+
+The app includes the [Meta Pixel](https://developers.facebook.com/docs/meta-pixel) base code (in the layout header) so Meta can track PageViews and conversion events for ads. The pixel ID **4415077502056050** is used by default.
+
+- To use a different pixel (e.g. for staging), set `NEXT_PUBLIC_META_PIXEL_ID` in `.env.local` or your host.
+- The pixel sends **PageView** on each page and **InitiateCheckout** when users click checkout. Fire more events (**Lead**, **CompleteRegistration**, **Purchase**, etc.) from client code via `trackMetaPixelEvent()` in `@/lib/meta-pixel`.
+
 ## Forgot password
 
 The login page has a "Forgot password?" link. Users enter their email and receive a reset link that opens at `/reset-password` with tokens in the URL hash (implicit flow so it works from any device). Add **Supabase Auth → URL Configuration → Redirect URLs**: `https://themomops.com/reset-password` and `http://localhost:3000/reset-password` for local dev.

@@ -12,6 +12,7 @@ type Props = {
     display_name: string;
     profile_image_url: string | null;
     bio: string;
+    work_requires_review?: boolean;
   };
 };
 
@@ -19,6 +20,7 @@ export default function EditVAProfileForm({ vaId, initial }: Props) {
   const router = useRouter();
   const [displayName, setDisplayName] = useState(initial.display_name);
   const [bio, setBio] = useState(initial.bio);
+  const [workRequiresReview, setWorkRequiresReview] = useState(initial.work_requires_review ?? true);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(initial.profile_image_url);
   const [error, setError] = useState<string | null>(null);
@@ -62,6 +64,7 @@ export default function EditVAProfileForm({ vaId, initial }: Props) {
       formData.set("vaId", vaId);
       formData.set("display_name", trimmedName);
       formData.set("bio", bio.slice(0, MAX_BIO));
+      formData.set("work_requires_review", workRequiresReview ? "true" : "false");
       if (avatarFile) formData.set("avatar", avatarFile);
 
       const res = await fetch("/api/admin/va-profile", {
@@ -127,6 +130,20 @@ export default function EditVAProfileForm({ vaId, initial }: Props) {
         />
         <p className="form-note" style={{ marginTop: "var(--space-2xs)" }}>
           {bio.length}/{MAX_BIO}
+        </p>
+      </div>
+
+      <div style={{ marginBottom: "var(--space-md)" }}>
+        <label style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", cursor: "pointer" }}>
+          <input
+            type="checkbox"
+            checked={workRequiresReview}
+            onChange={(e) => setWorkRequiresReview(e.target.checked)}
+          />
+          <span className="form-label" style={{ marginBottom: 0 }}>Training mode (work requires review before member sees it)</span>
+        </label>
+        <p className="form-note" style={{ marginTop: "var(--space-2xs)" }}>
+          When on, this VA&apos;s messages are hidden from the member until you approve them. Turn off for full-access VAs.
         </p>
       </div>
 

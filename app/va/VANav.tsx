@@ -4,10 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
-  { href: "/va", label: "Dashboard" },
   { href: "/va/tasks", label: "Tasks" },
+  { href: "/va/email-macros", label: "Email Macros" },
   { href: "/va/onboarding", label: "Onboarding" },
-  { href: "/va/assets", label: "Assets" },
   { href: "/va/profile", label: "Profile" },
 ] as const;
 
@@ -28,8 +27,8 @@ export default function VANav() {
       <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
         {NAV_LINKS.map(({ href, label }) => {
           const isActive =
-            href === "/va"
-              ? pathname === "/va"
+            href === "/va/tasks"
+              ? pathname === "/va" || pathname === "/va/tasks"
               : pathname.startsWith(href);
           return (
             <li key={href} style={{ marginBottom: "var(--space-xs)" }}>

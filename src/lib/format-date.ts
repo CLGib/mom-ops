@@ -2,9 +2,13 @@ const US_CENTRAL = "America/Chicago";
 
 /**
  * Format a date for display in US Central time (e.g. task/ticket dates).
+ * Returns "—" for null/undefined or invalid dates so Server Components never throw.
  */
-export function formatInCentral(date: Date | string): string {
-  return new Date(date).toLocaleString("en-US", {
+export function formatInCentral(date: Date | string | null | undefined): string {
+  if (date == null) return "—";
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString("en-US", {
     timeZone: US_CENTRAL,
     dateStyle: "short",
     timeStyle: "short",

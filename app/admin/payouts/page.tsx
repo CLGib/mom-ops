@@ -9,6 +9,7 @@ import AddDirectorAdjustmentForm from "../AddDirectorAdjustmentForm";
 import RecordCXOPaymentForm from "../RecordCXOPaymentForm";
 
 const VA_PAYOUT_RATE = 0.2;
+const HOT_TASK_PAY_MULTIPLIER = 1.1;
 function getYtdStart(): string {
   const year = new Date().getFullYear();
   return new Date(Date.UTC(year, 0, 1)).toISOString();
@@ -24,7 +25,7 @@ export default async function AdminPayoutsPage() {
 
   const { data: completedTickets } = await supabase
     .from("tickets")
-    .select("assigned_va_id, credit_cost, tip_amount, completed_at")
+    .select("assigned_va_id, credit_cost, tip_amount, completed_at, was_hot_when_claimed")
     .eq("status", "completed")
     .not("assigned_va_id", "is", null)
     .not("completed_at", "is", null);
@@ -101,7 +102,8 @@ export default async function AdminPayoutsPage() {
   (completedTickets ?? []).forEach((t) => {
     const vaId = t.assigned_va_id!;
     if (!payoutByVa[vaId]) return;
-    const taskDollars = (t.credit_cost ?? 0) * VA_PAYOUT_RATE;
+    const rate = t.was_hot_when_claimed ? VA_PAYOUT_RATE * HOT_TASK_PAY_MULTIPLIER : VA_PAYOUT_RATE;
+    const taskDollars = (t.credit_cost ?? 0) * rate;
     const tipDollars = (t.tip_amount ?? 0) / 100;
     const isYtd = (t.completed_at ?? "") >= ytdStart;
     payoutByVa[vaId].taskEarningsYtd += isYtd ? taskDollars : 0;
@@ -125,7 +127,10 @@ export default async function AdminPayoutsPage() {
   Object.keys(payoutByVa).forEach((vaId) => {
     const r = payoutByVa[vaId];
     r.netEarnedYtd = r.taskEarningsYtd + r.tipsYtd + r.bonusesYtd;
-    const lifetimeNet = (completedTickets ?? []).filter((t) => t.assigned_va_id === vaId).reduce((s, t) => s + (t.credit_cost ?? 0) * VA_PAYOUT_RATE + (t.tip_amount ?? 0) / 100, 0);
+    const lifetimeNet = (completedTickets ?? []).filter((t) => t.assigned_va_id === vaId).reduce((s, t) => {
+      const rate = t.was_hot_when_claimed ? VA_PAYOUT_RATE * HOT_TASK_PAY_MULTIPLIER : VA_PAYOUT_RATE;
+      return s + (t.credit_cost ?? 0) * rate + (t.tip_amount ?? 0) / 100;
+    }, 0);
     const lifetimeBonuses = (adjustments ?? []).filter((a) => a.va_id === vaId && a.type === "bonus").reduce((s, a) => s + a.amount_cents / 100, 0);
     const lifetimeDebits = (adjustments ?? []).filter((a) => a.va_id === vaId && a.type !== "bonus").reduce((s, a) => s + a.amount_cents / 100, 0);
     const totalPaid = (payments ?? []).filter((p) => p.va_id === vaId).reduce((s, p) => s + p.amount_cents / 100, 0);

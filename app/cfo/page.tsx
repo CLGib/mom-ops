@@ -29,7 +29,7 @@ export default async function CfoDashboardPage() {
     <>
       <h1 className="page-title">CFO Dashboard</h1>
       <p className="form-note" style={{ marginBottom: "var(--space-xl)" }}>
-        Financial overview — revenue, expenses, VA pay, NPS, and exports.
+        Financial overview - revenue, expenses, VA pay, NPS, and exports.
       </p>
 
       <section style={{ marginBottom: "var(--space-2xl)" }}>
@@ -74,7 +74,7 @@ export default async function CfoDashboardPage() {
         <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-lg)", alignItems: "center" }}>
           <div>
             <p className="form-note" style={{ margin: "0 0 var(--space-xs)" }}>NPS score</p>
-            <p style={{ fontSize: "2rem", fontWeight: 600, margin: 0 }}>{npsScore != null ? npsScore : "—"}</p>
+            <p style={{ fontSize: "2rem", fontWeight: 600, margin: 0 }}>{npsScore != null ? npsScore : "-"}</p>
           </div>
           <div>
             <p className="form-note" style={{ margin: "0 0 var(--space-xs)" }}>Responses</p>

@@ -292,6 +292,18 @@ export async function POST(request: NextRequest) {
         } catch (e) {
           console.warn("[webhook] queueEmail welcome_after_signup_v1 failed", e);
         }
+        if (isFoundingFinal) {
+          try {
+            await queueEmail({
+              to_email: null,
+              template: "founding_member_welcome_v1",
+              payload: { member_id: userIdFinal },
+              dedupe_key: `founding_member_welcome:${userIdFinal}`,
+            });
+          } catch (e) {
+            console.warn("[webhook] queueEmail founding_member_welcome_v1 failed", e);
+          }
+        }
         if (createdForGuestFinal && guestEmail) {
           try {
             const { data: linkData } = await db.auth.admin.generateLink({

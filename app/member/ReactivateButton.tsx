@@ -3,19 +3,26 @@
 import { useState } from "react";
 import posthog from "posthog-js";
 
-type Props = { className?: string; children?: React.ReactNode };
+type Props = {
+  className?: string;
+  children?: React.ReactNode;
+  isFoundingMember?: boolean;
+};
 
 export default function ReactivateButton({
   className,
-  children = "Reactivate subscription",
+  children,
+  isFoundingMember = false,
 }: Props) {
   const [loading, setLoading] = useState(false);
+  const label = children ?? (isFoundingMember ? "Reactivate at founder price ($15.95/month)" : "Reactivate subscription");
 
   async function handleClick() {
     setLoading(true);
-    posthog.capture("reactivate_subscription_initiated");
+    posthog.capture("reactivate_subscription_initiated", { is_founding_member: isFoundingMember });
     try {
-      const res = await fetch("/api/stripe/checkout", {
+      const endpoint = isFoundingMember ? "/api/stripe/checkout/founders" : "/api/stripe/checkout";
+      const res = await fetch(endpoint, {
         method: "POST",
         credentials: "include",
       });
@@ -47,7 +54,7 @@ export default function ReactivateButton({
       disabled={loading}
       className={className ?? "btn btn-primary"}
     >
-      {loading ? "Redirecting…" : children}
+      {loading ? "Redirecting…" : label}
     </button>
   );
 }

@@ -97,8 +97,32 @@ export default async function DirectorDashboardPage() {
     <>
       <h1 className="page-title">CXO Dashboard</h1>
       <p className="form-note" style={{ marginBottom: "var(--space-xl)" }}>
-        Experience &amp; Operations — KPIs and pay at a glance.
+        Experience &amp; Operations - KPIs and pay at a glance.
       </p>
+
+      <section style={{ marginBottom: "var(--space-2xl)" }}>
+        <h2 className="section-heading">Quick actions</h2>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+            gap: "var(--space-md)",
+            marginBottom: "var(--space-lg)",
+          }}
+        >
+          <Link
+            href="/director/members#adjust-credits"
+            className="card"
+            style={{ padding: "var(--space-md)", textDecoration: "none", color: "inherit" }}
+          >
+            <p className="form-note" style={{ margin: "0 0 var(--space-xs)", fontSize: "0.85rem" }}>Members</p>
+            <p style={{ fontSize: "1.1rem", fontWeight: 600, margin: 0 }}>Give members extra credits</p>
+            <p className="form-note" style={{ marginTop: "var(--space-xs)", marginBottom: 0, fontSize: "0.8rem" }}>
+              Add or subtract task credits by member email
+            </p>
+          </Link>
+        </div>
+      </section>
 
       <section style={{ marginBottom: "var(--space-2xl)" }}>
         <h2 className="section-heading">KPIs</h2>
@@ -120,7 +144,7 @@ export default async function DirectorDashboardPage() {
           <div className="card" style={{ padding: "var(--space-md)" }}>
             <p className="form-note" style={{ margin: "0 0 var(--space-xs)", fontSize: "0.85rem" }}>Time to claim (avg hrs)</p>
             <p style={{ fontSize: "1.5rem", fontWeight: 600, margin: 0 }}>
-              {timeToClaimHours != null ? timeToClaimHours.toFixed(1) : "—"}
+              {timeToClaimHours != null ? timeToClaimHours.toFixed(1) : "-"}
             </p>
           </div>
           <div className="card" style={{ padding: "var(--space-md)" }}>
@@ -130,13 +154,13 @@ export default async function DirectorDashboardPage() {
           <div className="card" style={{ padding: "var(--space-md)" }}>
             <p className="form-note" style={{ margin: "0 0 var(--space-xs)", fontSize: "0.85rem" }}>Average rating</p>
             <p style={{ fontSize: "1.5rem", fontWeight: 600, margin: 0 }}>
-              {avgRating ?? "—"} {avgRating != null ? "/ 5" : ""}
+              {avgRating ?? "-"} {avgRating != null ? "/ 5" : ""}
             </p>
           </div>
           <div className="card" style={{ padding: "var(--space-md)" }}>
             <p className="form-note" style={{ margin: "0 0 var(--space-xs)", fontSize: "0.85rem" }}>NPS score</p>
             <p style={{ fontSize: "1.5rem", fontWeight: 600, margin: 0 }}>
-              {npsScore != null ? npsScore : "—"}
+              {npsScore != null ? npsScore : "-"}
               {npsResponseCount > 0 && (
                 <span className="form-note" style={{ fontSize: "0.8rem", marginLeft: "var(--space-xs)" }}>
                   ({npsResponseCount} response{npsResponseCount !== 1 ? "s" : ""})
@@ -152,13 +176,13 @@ export default async function DirectorDashboardPage() {
 
       {flaggedRatings.length > 0 && (
         <section style={{ marginBottom: "var(--space-2xl)" }}>
-          <h2 className="section-heading">Flagged ratings (≤ 3 — investigate)</h2>
+          <h2 className="section-heading">Flagged ratings (≤ 3 - investigate)</h2>
           <ul className="ticket-list">
             {flaggedRatings.slice(0, 20).map((t) => (
               <li key={t.id} className="ticket-item">
                 <Link href={`/admin/${t.id}`}>Task · {t.rating} of 5</Link>
                 <span className="ticket-meta">
-                  {t.completed_at ? formatInCentral(t.completed_at) : "—"}
+                  {t.completed_at ? formatInCentral(t.completed_at) : "-"}
                 </span>
                 <Link href={`/admin/${t.id}`} className="btn btn-secondary">View</Link>
               </li>

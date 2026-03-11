@@ -35,7 +35,11 @@ export default function MemberPortalLayout({
   }, [pathname]);
 
   const moreLinks = navLinks.filter(
-    (n) => !BOTTOM_NAV_LINKS.some((b) => b.href === n.href || (b.href === "/member" && n.href === "/member"))
+    (n) =>
+      !BOTTOM_NAV_LINKS.some(
+        (b) =>
+          (b.href === n.href || (b.href === "/member" && n.href === "/member")) && b.label !== "Tasks"
+      )
   );
 
   function isActive(href: string): boolean {

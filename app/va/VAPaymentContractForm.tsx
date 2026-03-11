@@ -70,13 +70,143 @@ export default function VAPaymentContractForm({ vaUserId, initial }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card" style={{ maxWidth: 480 }}>
-      <h2 className="section-heading" style={{ marginTop: 0, marginBottom: "var(--space-md)" }}>
-        Payment & contract
-      </h2>
-      <p className="form-note" style={{ marginBottom: "var(--space-md)" }}>
-        Choose where to get paid and provide your details. Effective Date and Contract Start Date are set when you complete onboarding.
-      </p>
+    <div style={{ maxWidth: 640 }}>
+      <section className="card" style={{ marginBottom: "var(--space-lg)" }}>
+        <h2 className="section-heading" style={{ marginTop: 0, marginBottom: "var(--space-md)" }}>
+          Mom Ops Virtual Assistant Services
+        </h2>
+
+        <section style={{ marginBottom: "var(--space-lg)" }}>
+          <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "var(--space-xs)" }}>1. Overview</h3>
+          <p style={{ marginBottom: "var(--space-sm)", lineHeight: 1.5 }}>
+            Mom Ops engages Contractor to provide remote Virtual Assistant services in support of Mom Ops members. Contractor will execute assigned tasks with care, discretion, and attention to context, in alignment with Mom Ops company values and operating standards.
+          </p>
+          <p style={{ marginBottom: 0, lineHeight: 1.5 }}>
+            Contractor understands that Mom Ops provides human-powered task support. AI tools may be used to improve efficiency, but all deliverables must reflect human review, judgment, and personalization.
+          </p>
+        </section>
+
+        <hr style={{ border: "none", borderTop: "1px solid var(--color-border, #e5e5e5)", margin: "var(--space-md) 0" }} />
+
+        <section style={{ marginBottom: "var(--space-lg)" }}>
+          <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "var(--space-xs)" }}>2. Scope of Services</h3>
+          <p style={{ marginBottom: "var(--space-xs)", lineHeight: 1.5 }}>
+            Contractor may be assigned tasks including, but not limited to:
+          </p>
+          <ul style={{ marginBottom: "var(--space-sm)", paddingLeft: "1.25rem", lineHeight: 1.6 }}>
+            <li>Research and comparison tasks</li>
+            <li>Vendor communication writing</li>
+            <li>Document drafting and formatting</li>
+            <li>Family logistics coordination</li>
+            <li>Follow-ups and task completion tracking</li>
+            <li>Platform-based member communication</li>
+          </ul>
+          <p style={{ marginBottom: "var(--space-xs)", lineHeight: 1.5 }}>
+            All tasks will be assigned through the Mom Ops task management system.
+          </p>
+          <p style={{ marginBottom: "var(--space-xs)", lineHeight: 1.5 }}>
+            Contractor agrees to:
+          </p>
+          <ul style={{ marginBottom: 0, paddingLeft: "1.25rem", lineHeight: 1.6 }}>
+            <li>Review member context before beginning work</li>
+            <li>Avoid asking members for information already provided</li>
+            <li>Remove decisions rather than create more</li>
+            <li>Communicate clearly and professionally</li>
+          </ul>
+        </section>
+
+        <hr style={{ border: "none", borderTop: "1px solid var(--color-border, #e5e5e5)", margin: "var(--space-md) 0" }} />
+
+        <section style={{ marginBottom: "var(--space-lg)" }}>
+          <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "var(--space-xs)" }}>3. Independent Contractor Relationship</h3>
+          <p style={{ marginBottom: "var(--space-xs)", lineHeight: 1.5 }}>
+            Contractor is engaged as an independent contractor and is not an employee of Mom Ops.
+          </p>
+          <p style={{ marginBottom: "var(--space-xs)", lineHeight: 1.5 }}>
+            Contractor:
+          </p>
+          <ul style={{ marginBottom: 0, paddingLeft: "1.25rem", lineHeight: 1.6 }}>
+            <li>Controls their own schedule</li>
+            <li>Supplies their own equipment unless otherwise stated</li>
+            <li>Is responsible for their own taxes and compliance</li>
+            <li>May provide services to other clients</li>
+          </ul>
+        </section>
+
+        <hr style={{ border: "none", borderTop: "1px solid var(--color-border, #e5e5e5)", margin: "var(--space-md) 0" }} />
+
+        <section style={{ marginBottom: "var(--space-lg)" }}>
+          <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "var(--space-xs)" }}>4. Compensation Structure</h3>
+          <p style={{ marginBottom: "var(--space-xs)", lineHeight: 1.5 }}>
+            Compensation will be governed by the active VA compensation model in effect at the time of onboarding.
+          </p>
+          <p style={{ marginBottom: "var(--space-xs)", lineHeight: 1.5 }}>
+            Unless otherwise agreed in writing:
+          </p>
+          <ul style={{ marginBottom: 0, paddingLeft: "1.25rem", lineHeight: 1.6 }}>
+            <li>Payment is issued based on approved task credits</li>
+            <li>Tips are paid at 98% to the Contractor (2% are processor fees)</li>
+            <li>Payments are issued on the designated pay schedule</li>
+          </ul>
+        </section>
+
+        <hr style={{ border: "none", borderTop: "1px solid var(--color-border, #e5e5e5)", margin: "var(--space-md) 0" }} />
+
+        <section style={{ marginBottom: "var(--space-lg)" }}>
+          <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "var(--space-xs)" }}>5. Confidentiality & Data Protection</h3>
+          <p style={{ marginBottom: "var(--space-xs)", lineHeight: 1.5 }}>
+            Contractor agrees to maintain strict confidentiality of:
+          </p>
+          <ul style={{ marginBottom: 0, paddingLeft: "1.25rem", lineHeight: 1.6 }}>
+            <li>Member data</li>
+            <li>Internal processes</li>
+            <li>Business systems</li>
+            <li>Financial information</li>
+            <li>Documents and attachments</li>
+          </ul>
+        </section>
+
+        <hr style={{ border: "none", borderTop: "1px solid var(--color-border, #e5e5e5)", margin: "var(--space-md) 0" }} />
+
+        <section style={{ marginBottom: "var(--space-lg)" }}>
+          <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "var(--space-xs)" }}>6. Tools & Technology</h3>
+          <p style={{ marginBottom: 0, lineHeight: 1.5 }}>
+            Contractor may be provided access to certain tools under the Mom Ops Tech Bonus framework.
+          </p>
+        </section>
+
+        <hr style={{ border: "none", borderTop: "1px solid var(--color-border, #e5e5e5)", margin: "var(--space-md) 0" }} />
+
+        <section style={{ marginBottom: "var(--space-lg)" }}>
+          <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "var(--space-xs)" }}>7. Term & Effective Date</h3>
+          <p style={{ marginBottom: "var(--space-xs)", lineHeight: 1.5 }}>
+            This Agreement becomes effective on the Effective Date listed during onboarding.
+          </p>
+          <p style={{ marginBottom: "var(--space-xs)", lineHeight: 1.5 }}>
+            Services begin upon task assignment following onboarding completion.
+          </p>
+          <p style={{ marginBottom: 0, lineHeight: 1.5 }}>
+            Either party may terminate this Agreement at any time with written notice.
+          </p>
+        </section>
+
+        <hr style={{ border: "none", borderTop: "1px solid var(--color-border, #e5e5e5)", margin: "var(--space-md) 0" }} />
+
+        <section style={{ marginBottom: 0 }}>
+          <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "var(--space-xs)" }}>8. Modifications</h3>
+          <p style={{ marginBottom: 0, lineHeight: 1.5 }}>
+            Mom Ops may update policies, operating procedures, or compensation models as the business evolves. Continued acceptance of tasks constitutes agreement to current policies.
+          </p>
+        </section>
+      </section>
+
+      <form onSubmit={handleSubmit} className="card" style={{ maxWidth: 480 }}>
+        <h2 className="section-heading" style={{ marginTop: 0, marginBottom: "var(--space-md)" }}>
+          Payment & contract
+        </h2>
+        <p className="form-note" style={{ marginBottom: "var(--space-md)" }}>
+          Choose where to get paid and provide your details. Effective Date and Contract Start Date are set when you complete onboarding.
+        </p>
 
       {error && (
         <p className="form-error" style={{ marginBottom: "var(--space-sm)" }} role="alert">
@@ -200,5 +330,6 @@ export default function VAPaymentContractForm({ vaUserId, initial }: Props) {
         {loading ? "Saving…" : "Save payment & contract info"}
       </button>
     </form>
+    </div>
   );
 }

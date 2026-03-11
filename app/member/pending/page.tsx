@@ -1,58 +1,58 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { formatInCentral } from "@/lib/format-date";
+import MemberTaskList from "../MemberTaskList";
 
 export const dynamic = "force-dynamic";
 
-export default async function MemberPendingPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login?next=" + encodeURIComponent("/member"));
-
-  const { data: tickets } = await supabase
-    .from("tickets")
-    .select("id, subject, status, created_at")
-    .eq("member_id", user.id)
-    .in("status", ["new", "assigned", "awaiting_member_approval", "in_progress", "waiting_on_member"])
-    .order("created_at", { ascending: false });
-
+function PendingTasksFallback() {
   return (
     <main className="app-shell">
-      <h1 className="page-title">Pending Tasks</h1>
+      <h1 className="page-title">Tasks</h1>
       <p className="form-note" style={{ marginBottom: "var(--space-lg)" }}>
-        Tasks that are not yet completed or closed.
+        We couldn&apos;t load your tasks. Try again or go back to Home.
       </p>
-      {(tickets ?? []).length === 0 ? (
-        <p className="form-note">No pending tasks. <Link href="/member#submit" className="link">Submit a task</Link> from Home.</p>
-      ) : (
-        <ul className="member-task-cards" style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          {(tickets ?? []).map((t) => (
-            <li
-              key={t.id}
-              className="member-task-card"
-              style={{
-                padding: "var(--space-md)",
-                marginBottom: "var(--space-sm)",
-                border: "1px solid var(--color-border, #e5e5e5)",
-                borderRadius: "var(--radius, 6px)",
-                backgroundColor: "var(--color-bg, #fff)",
-              }}
-            >
-              <div className="member-task-card__content">
-                <span className="member-task-card__status">{t.status}</span>
-                <strong className="member-task-card__subject">{t.subject || "Task"}</strong>
-                <span className="member-task-card__date">{formatInCentral(t.created_at)}</span>
-                <Link href={`/member/${t.id}`} className="btn btn-primary member-task-card__action">
-                  Open
-                </Link>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+      <div style={{ display: "flex", gap: "var(--space-md)", flexWrap: "wrap" }}>
+        <a href="/member/pending" className="btn btn-primary">Try again</a>
+        <Link href="/member" className="btn btn-secondary">Go home</Link>
+      </div>
     </main>
   );
+}
+
+export default async function MemberPendingPage() {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) redirect("/login?next=" + encodeURIComponent("/member/pending"));
+
+    // Fetch all tickets (inbox + closed) so MemberTaskList can show inbox by default and closed/canceled via search
+    const { data: tickets } = await supabase
+      .from("tickets")
+      .select("id, subject, description, status, created_at")
+      .eq("member_id", user.id)
+      .order("created_at", { ascending: false });
+
+    const list = (tickets ?? []).filter((t) => t?.id != null);
+
+    return (
+      <main className="app-shell">
+        <h1 className="page-title">Tasks</h1>
+        <p className="form-note" style={{ marginBottom: "var(--space-lg)" }}>
+          Your inbox and completed tasks. Search to find closed or canceled tasks.
+        </p>
+        {list.length === 0 ? (
+          <p className="form-note">No tasks yet. <Link href="/member#submit" className="link">Submit a task</Link> from Home.</p>
+        ) : (
+          <MemberTaskList tickets={list} />
+        )}
+      </main>
+    );
+  } catch (err) {
+    const e = err as Error & { digest?: string };
+    if (e?.digest?.startsWith?.("NEXT_REDIRECT") || e?.digest?.startsWith?.("NEXT_NOT_FOUND")) throw err;
+    return <PendingTasksFallback />;
+  }
 }

@@ -19,12 +19,13 @@ Use the **apex** domain (themomops.com), not www. The app redirects www → apex
 - The callback route calls `exchangeCodeForSession(code)`, which **sets the `sb-*` cookies** on the current domain.
 - If the redirect URL in Supabase pointed at a different host (e.g. preview URL or www), cookies would be set there and not on themomops.com, so middleware would never see a session.
 
-## Email change not saving
+## Email change not saving / "Link expired"
 
-If a user changes their email and receives the confirmation email but the new email never saves after they click the link:
+If a user changes their email and receives the confirmation email but the new email never saves, or they see **"Email link is invalid or has expired"**:
 
-1. In Supabase Dashboard → **Auth → URL Configuration**, ensure **Redirect URLs** includes `https://themomops.com/auth/callback`.
-2. In **Auth → Email Templates**, check that the "Change Email Address" template uses a redirect to your site; Supabase will append the token/code. The app’s `/auth/callback` route must be the target so `exchangeCodeForSession` runs and the session (and email) is updated.
+1. **Redirect URL:** In Supabase Dashboard → **Auth → URL Configuration**, ensure **Redirect URLs** includes `https://themomops.com/auth/callback`. If the redirect goes to the Site URL (`/`) instead, the callback never runs and the email is not updated.
+2. **Expiry:** Email change links typically expire after **1 hour**. If the user clicks the link later (or in a different browser), they will see an error. The app shows a friendly message and directs them to sign in and try again from account settings.
+3. **One-time use:** Each confirmation link can only be used once. If they already clicked it, they must request a new email change from account settings.
 
 ## Verify
 

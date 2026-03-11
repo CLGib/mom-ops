@@ -3,6 +3,18 @@
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
+import { getAgeFromBirthday } from "@/lib/age-from-birthday";
+import { HOLIDAYS_BY_CATEGORY } from "@/lib/holidays-celebrated";
+
+export type HouseholdMemberForm = {
+  type: "kid" | "spouse" | "other";
+  name?: string;
+  likes?: string;
+  dislikes?: string;
+  birthday?: string;
+  clothing_size?: string;
+  relation?: string;
+};
 
 export type ProfileFormData = {
   full_name: string | null;
@@ -13,6 +25,7 @@ export type ProfileFormData = {
   partner_name: string | null;
   kids_count: number | null;
   kids_ages: number[] | null;
+  household_members: HouseholdMemberForm[] | null;
   schools: { name: string; city?: string; notes?: string }[] | null;
   activities: { name: string; schedule?: string; notes?: string }[] | null;
   preferred_stores: string[] | null;
@@ -22,6 +35,22 @@ export type ProfileFormData = {
   important_dates: { label: string; date: string; recurrence?: string }[] | null;
   task_submission_preference: "email" | "portal" | "either" | null;
   typical_turnaround: "standard" | "rush_when_possible" | null;
+  holidays_celebrated: string[] | null;
+};
+
+export type CustomFieldDefinition = {
+  id: string;
+  key: string;
+  label: string;
+  field_type: "text" | "number" | "date" | "multiline";
+  sort_order: number;
+};
+
+type ProfileFormProps = {
+  memberId: string;
+  initial: ProfileFormData;
+  customFieldDefinitions?: CustomFieldDefinition[];
+  customFieldValues?: Record<string, string | number | null> | null;
 };
 
 const TIMEZONES = [
@@ -37,6 +66,9 @@ const TIMEZONES = [
 
 function computeProfileCompletion(data: ProfileFormData): number {
   let filled = 0;
+  const hasHouseholdOrDates =
+    (data.household_members != null && data.household_members.length > 0) ||
+    (data.important_dates != null && data.important_dates.length > 0);
   const checks = [
     data.full_name?.trim(),
     data.preferred_name?.trim(),
@@ -44,8 +76,7 @@ function computeProfileCompletion(data: ProfileFormData): number {
     data.state?.trim(),
     data.timezone?.trim(),
     data.partner_name?.trim(),
-    data.kids_count != null && data.kids_count >= 0,
-    data.kids_ages != null && data.kids_ages.length > 0,
+    hasHouseholdOrDates,
     data.schools != null && data.schools.length > 0,
     data.activities != null && data.activities.length > 0,
     data.preferred_stores != null && data.preferred_stores.length > 0,
@@ -55,22 +86,21 @@ function computeProfileCompletion(data: ProfileFormData): number {
     data.important_dates != null && data.important_dates.length > 0,
     data.task_submission_preference,
     data.typical_turnaround,
+    data.holidays_celebrated != null && data.holidays_celebrated.length > 0,
   ];
   filled = checks.filter(Boolean).length;
   return Math.min(100, Math.round((filled / checks.length) * 100));
 }
 
-type Props = {
-  memberId: string;
-  initial: ProfileFormData;
-};
-
-export default function ProfileForm({ memberId, initial }: Props) {
+export default function ProfileForm({ memberId, initial, customFieldDefinitions = [], customFieldValues: initialCustomValues = null }: ProfileFormProps) {
   const router = useRouter();
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState<ProfileFormData>(initial);
+  const [customFieldValues, setCustomFieldValues] = useState<Record<string, string | number | null>>(
+    initialCustomValues && typeof initialCustomValues === "object" ? { ...initialCustomValues } : {}
+  );
 
   function update<K extends keyof ProfileFormData>(key: K, value: ProfileFormData[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -149,18 +179,64 @@ export default function ProfileForm({ memberId, initial }: Props) {
     setSaved(false);
   }
 
+  function addHouseholdMember(type: "kid" | "spouse" | "other") {
+    setForm((prev) => ({
+      ...prev,
+      household_members: [...(prev.household_members ?? []), { type, name: "" }],
+    }));
+    setSaved(false);
+  }
+  function removeHouseholdMember(i: number) {
+    setForm((prev) => ({
+      ...prev,
+      household_members: prev.household_members?.filter((_, idx) => idx !== i) ?? [],
+    }));
+    setSaved(false);
+  }
+  function updateHouseholdMember(
+    i: number,
+    field: keyof HouseholdMemberForm,
+    val: string
+  ) {
+    setForm((prev) => {
+      const arr = [...(prev.household_members ?? [])];
+      if (!arr[i]) return prev;
+      arr[i] = { ...arr[i], [field]: val };
+      return { ...prev, household_members: arr };
+    });
+    setSaved(false);
+  }
+
+  function setCustomFieldValue(key: string, value: string | number | null) {
+    setCustomFieldValues((prev) => {
+      const next = { ...prev };
+      if (value === "" || value == null) delete next[key];
+      else next[key] = value;
+      return next;
+    });
+    setSaved(false);
+  }
+
+  function toggleHoliday(id: string) {
+    setForm((prev) => {
+      const current = prev.holidays_celebrated ?? [];
+      const next = current.includes(id) ? current.filter((h) => h !== id) : [...current, id];
+      return { ...prev, holidays_celebrated: next.length > 0 ? next : null };
+    });
+    setSaved(false);
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
-    const kidsCount = form.kids_count;
-    if (kidsCount != null && kidsCount < 0) {
-      setError("Kids count must be 0 or greater.");
-      setSubmitting(false);
-      return;
-    }
     const supabase = createClient();
     const profileCompletion = computeProfileCompletion(form);
+    const household = form.household_members?.filter((m) => m.type) ?? [];
+    const kids = household.filter((m) => m.type === "kid");
+    const kids_ages = kids
+      .map((k) => (k.birthday ? getAgeFromBirthday(k.birthday) : null))
+      .filter((a): a is number => a != null);
     const payload = {
       full_name: form.full_name?.trim() || null,
       preferred_name: form.preferred_name?.trim() || null,
@@ -168,8 +244,9 @@ export default function ProfileForm({ memberId, initial }: Props) {
       state: form.state?.trim() || null,
       timezone: form.timezone?.trim() || null,
       partner_name: form.partner_name?.trim() || null,
-      kids_count: form.kids_count ?? null,
-      kids_ages: form.kids_ages && form.kids_ages.length > 0 ? form.kids_ages : null,
+      kids_count: kids.length > 0 ? kids.length : null,
+      kids_ages: kids_ages.length > 0 ? kids_ages : null,
+      household_members: household.length > 0 ? household : null,
       schools: form.schools && form.schools.length > 0 ? form.schools : null,
       activities: form.activities && form.activities.length > 0 ? form.activities : null,
       preferred_stores: form.preferred_stores && form.preferred_stores.length > 0 ? form.preferred_stores : null,
@@ -179,7 +256,9 @@ export default function ProfileForm({ memberId, initial }: Props) {
       important_dates: form.important_dates && form.important_dates.length > 0 ? form.important_dates : null,
       task_submission_preference: form.task_submission_preference ?? null,
       typical_turnaround: form.typical_turnaround ?? null,
+      holidays_celebrated: form.holidays_celebrated && form.holidays_celebrated.length > 0 ? form.holidays_celebrated : null,
       profile_completion: profileCompletion,
+      custom_field_values: Object.keys(customFieldValues).length > 0 ? customFieldValues : null,
     };
     const { error: updateError } = await supabase
       .from("profiles")
@@ -205,7 +284,7 @@ export default function ProfileForm({ memberId, initial }: Props) {
         </label>
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
           <div style={{ flex: 1, maxWidth: 200, height: 8, background: "var(--color-border, #e5e5e5)", borderRadius: 4, overflow: "hidden" }}>
-            <div style={{ width: `${completion}%`, height: "100%", background: "var(--accent, #b8860b)", transition: "width 0.2s" }} />
+            <div style={{ width: `${completion}%`, height: "100%", background: completion === 100 ? "var(--color-success)" : "var(--accent, #b8860b)", transition: "width 0.2s" }} />
           </div>
           <span style={{ fontSize: "0.875rem", color: "var(--text-muted, #666)" }}>{completion}%</span>
         </div>
@@ -251,18 +330,6 @@ export default function ProfileForm({ memberId, initial }: Props) {
           <input id="partner_name" className="input" value={form.partner_name ?? ""} onChange={(e) => update("partner_name", e.target.value || null)} />
         </div>
         <div className="form-group">
-          <label htmlFor="kids_count">Number of kids</label>
-          <input id="kids_count" type="number" min={0} className="input" value={form.kids_count ?? ""} onChange={(e) => update("kids_count", e.target.value === "" ? null : parseInt(e.target.value, 10))} />
-        </div>
-        <div className="form-group">
-          <label htmlFor="kids_ages">Kids ages (comma-separated, e.g. 5, 8)</label>
-          <input id="kids_ages" className="input" value={form.kids_ages?.join(", ") ?? ""} onChange={(e) => {
-            const val = e.target.value.trim();
-            if (!val) update("kids_ages", null);
-            else update("kids_ages", val.split(",").map((s) => parseInt(s.trim(), 10)).filter((n) => !Number.isNaN(n)));
-          }} />
-        </div>
-        <div className="form-group">
           <label>Schools</label>
           {(form.schools ?? []).map((s, i) => (
             <div key={i} style={{ display: "flex", gap: "var(--space-sm)", marginBottom: "var(--space-xs)", flexWrap: "wrap" }}>
@@ -285,6 +352,87 @@ export default function ProfileForm({ memberId, initial }: Props) {
             </div>
           ))}
           <button type="button" onClick={addActivity} className="btn" style={{ marginTop: "var(--space-xs)" }}>Add activity</button>
+        </div>
+      </section>
+
+      <section style={{ marginBottom: "var(--space-xl)" }}>
+        <h2 className="section-heading" style={{ marginBottom: "var(--space-md)" }}>Important people &amp; dates</h2>
+        <p className="form-note" style={{ marginBottom: "var(--space-sm)", fontSize: "0.85rem" }}>
+          Add people and dates so we can remind you (e.g. birthdays, anniversaries). Kid ages are calculated from birthday.
+        </p>
+        <div className="form-group">
+          <label>Important people (kids, spouse, family, friends)</label>
+          {(form.household_members ?? []).map((m, i) => (
+            <div key={i} className="card" style={{ padding: "var(--space-md)", marginBottom: "var(--space-sm)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-xs)" }}>
+                <span style={{ fontWeight: 600, textTransform: "capitalize" }}>{m.type}</span>
+                <button type="button" onClick={() => removeHouseholdMember(i)} className="btn" style={{ padding: "0.2rem 0.5rem", fontSize: "0.8rem" }}>Remove</button>
+              </div>
+              <div style={{ display: "grid", gap: "var(--space-xs)", gridTemplateColumns: "1fr 1fr" }}>
+                <input className="input" placeholder="Name" value={m.name ?? ""} onChange={(e) => updateHouseholdMember(i, "name", e.target.value)} />
+                {m.type === "kid" && (
+                  <>
+                    <input className="input" type="date" placeholder="Birthday" value={m.birthday ?? ""} onChange={(e) => updateHouseholdMember(i, "birthday", e.target.value)} title="Birthday (age is calculated automatically)" />
+                    {m.birthday && getAgeFromBirthday(m.birthday) != null && (
+                      <span style={{ gridColumn: "1 / -1", fontSize: "0.85rem", color: "var(--text-muted, #666)" }}>Age: {getAgeFromBirthday(m.birthday)}</span>
+                    )}
+                    <input className="input" placeholder="Clothing size" value={m.clothing_size ?? ""} onChange={(e) => updateHouseholdMember(i, "clothing_size", e.target.value)} style={{ gridColumn: "1 / -1" }} />
+                  </>
+                )}
+                {m.type === "other" && (
+                  <input className="input" placeholder="Relation (e.g. grandmother)" value={m.relation ?? ""} onChange={(e) => updateHouseholdMember(i, "relation", e.target.value)} />
+                )}
+                {m.type !== "kid" && (
+                  <input className="input" type="date" placeholder="Birthday" value={m.birthday ?? ""} onChange={(e) => updateHouseholdMember(i, "birthday", e.target.value)} style={{ gridColumn: "1 / -1" }} />
+                )}
+              </div>
+              <input className="input" placeholder="Likes" value={m.likes ?? ""} onChange={(e) => updateHouseholdMember(i, "likes", e.target.value)} style={{ marginTop: "var(--space-xs)", width: "100%" }} />
+              <input className="input" placeholder="Dislikes" value={m.dislikes ?? ""} onChange={(e) => updateHouseholdMember(i, "dislikes", e.target.value)} style={{ marginTop: "var(--space-xs)", width: "100%" }} />
+            </div>
+          ))}
+          <div style={{ display: "flex", gap: "var(--space-sm)", flexWrap: "wrap", marginTop: "var(--space-xs)" }}>
+            <button type="button" onClick={() => addHouseholdMember("kid")} className="btn">Add kid</button>
+            <button type="button" onClick={() => addHouseholdMember("spouse")} className="btn">Add spouse</button>
+            <button type="button" onClick={() => addHouseholdMember("other")} className="btn">Add other (family, friend)</button>
+          </div>
+        </div>
+        <div className="form-group">
+          <label>Other important dates (anniversaries, etc.)</label>
+          {(form.important_dates ?? []).map((d, i) => (
+            <div key={i} style={{ display: "flex", gap: "var(--space-sm)", marginBottom: "var(--space-xs)", flexWrap: "wrap" }}>
+              <input className="input" placeholder="Label (e.g. Anniversary)" value={d.label} onChange={(e) => updateImportantDate(i, "label", e.target.value)} style={{ minWidth: 120 }} />
+              <input className="input" type="date" value={d.date} onChange={(e) => updateImportantDate(i, "date", e.target.value)} style={{ width: 140 }} />
+              <input className="input" placeholder="Recurrence (e.g. yearly)" value={d.recurrence ?? ""} onChange={(e) => updateImportantDate(i, "recurrence", e.target.value)} style={{ minWidth: 100 }} />
+              <button type="button" onClick={() => removeImportantDate(i)} className="btn" style={{ padding: "0.25rem 0.5rem" }}>Remove</button>
+            </div>
+          ))}
+          <button type="button" onClick={addImportantDate} className="btn" style={{ marginTop: "var(--space-xs)" }}>Add date</button>
+        </div>
+      </section>
+
+      <section style={{ marginBottom: "var(--space-xl)" }}>
+        <h2 className="section-heading" style={{ marginBottom: "var(--space-md)" }}>Holidays celebrated</h2>
+        <p className="form-note" style={{ marginBottom: "var(--space-sm)", fontSize: "0.85rem" }}>
+          Check any holidays you celebrate so we can tailor support and avoid scheduling conflicts.
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-md)" }}>
+          {Object.entries(HOLIDAYS_BY_CATEGORY).map(([category, holidays]) => (
+            <div key={category}>
+              <div style={{ fontWeight: 600, marginBottom: "var(--space-xs)", fontSize: "0.9rem" }}>{category}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-sm)" }}>
+                {holidays.map((h) => (
+                  <label key={h.id} style={{ display: "flex", alignItems: "center", gap: "var(--space-xs)", whiteSpace: "nowrap" }}>
+                    <input
+                      type="checkbox"
+                      checked={(form.holidays_celebrated ?? []).includes(h.id)}
+                      onChange={() => toggleHoliday(h.id)}
+                    />
+                    <span>{h.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -330,18 +478,52 @@ export default function ProfileForm({ memberId, initial }: Props) {
         </div>
       </section>
 
-      <section style={{ marginBottom: "var(--space-xl)" }}>
-        <h2 className="section-heading" style={{ marginBottom: "var(--space-md)" }}>Important dates</h2>
-        {(form.important_dates ?? []).map((d, i) => (
-          <div key={i} style={{ display: "flex", gap: "var(--space-sm)", marginBottom: "var(--space-xs)", flexWrap: "wrap" }}>
-            <input className="input" placeholder="Label (e.g. Birthday)" value={d.label} onChange={(e) => updateImportantDate(i, "label", e.target.value)} style={{ minWidth: 120 }} />
-            <input className="input" type="date" value={d.date} onChange={(e) => updateImportantDate(i, "date", e.target.value)} style={{ width: 140 }} />
-            <input className="input" placeholder="Recurrence (e.g. yearly)" value={d.recurrence ?? ""} onChange={(e) => updateImportantDate(i, "recurrence", e.target.value)} style={{ minWidth: 100 }} />
-            <button type="button" onClick={() => removeImportantDate(i)} className="btn" style={{ padding: "0.25rem 0.5rem" }}>Remove</button>
-          </div>
-        ))}
-        <button type="button" onClick={addImportantDate} className="btn" style={{ marginTop: "var(--space-xs)" }}>Add date</button>
-      </section>
+      {customFieldDefinitions.length > 0 && (
+        <section style={{ marginBottom: "var(--space-xl)" }}>
+          <h2 className="section-heading" style={{ marginBottom: "var(--space-md)" }}>Additional details</h2>
+          {customFieldDefinitions.map((def) => (
+            <div key={def.id} className="form-group">
+              <label htmlFor={`custom-${def.key}`}>{def.label}</label>
+              {def.field_type === "multiline" ? (
+                <textarea
+                  id={`custom-${def.key}`}
+                  className="input"
+                  rows={3}
+                  value={customFieldValues[def.key] != null ? String(customFieldValues[def.key]) : ""}
+                  onChange={(e) => setCustomFieldValue(def.key, e.target.value.trim() || null)}
+                />
+              ) : def.field_type === "number" ? (
+                <input
+                  id={`custom-${def.key}`}
+                  type="number"
+                  className="input"
+                  value={customFieldValues[def.key] != null ? Number(customFieldValues[def.key]) : ""}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setCustomFieldValue(def.key, v === "" ? null : (parseFloat(v) ?? null));
+                  }}
+                />
+              ) : def.field_type === "date" ? (
+                <input
+                  id={`custom-${def.key}`}
+                  type="date"
+                  className="input"
+                  value={customFieldValues[def.key] != null ? String(customFieldValues[def.key]) : ""}
+                  onChange={(e) => setCustomFieldValue(def.key, e.target.value || null)}
+                />
+              ) : (
+                <input
+                  id={`custom-${def.key}`}
+                  type="text"
+                  className="input"
+                  value={customFieldValues[def.key] != null ? String(customFieldValues[def.key]) : ""}
+                  onChange={(e) => setCustomFieldValue(def.key, e.target.value.trim() || null)}
+                />
+              )}
+            </div>
+          ))}
+        </section>
+      )}
 
       {error && (
         <p role="alert" className="form-note" style={{ color: "var(--color-error, #c00)", marginBottom: "var(--space-sm)" }}>{error}</p>

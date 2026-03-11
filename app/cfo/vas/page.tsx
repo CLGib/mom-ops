@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
 const VA_PAYOUT_RATE = 0.2;
+const HOT_TASK_PAY_MULTIPLIER = 1.1;
 function getYtdStart(): string {
   return new Date(new Date().getFullYear(), 0, 1).toISOString();
 }
@@ -24,7 +25,7 @@ export default async function CfoVasPage() {
 
   const { data: completedTickets } = await supabase
     .from("tickets")
-    .select("assigned_va_id, credit_cost, tip_amount, completed_at")
+    .select("assigned_va_id, credit_cost, tip_amount, completed_at, was_hot_when_claimed")
     .eq("status", "completed")
     .not("assigned_va_id", "is", null);
   const { data: adjustments } = await supabase.from("va_adjustments").select("va_id, amount_cents, type");
@@ -51,7 +52,8 @@ export default async function CfoVasPage() {
   (completedTickets ?? []).forEach((t) => {
     const vaId = t.assigned_va_id!;
     if (taskEarnings[vaId] === undefined) return;
-    const dollars = (t.credit_cost ?? 0) * VA_PAYOUT_RATE + (t.tip_amount ?? 0) / 100;
+    const rate = t.was_hot_when_claimed ? VA_PAYOUT_RATE * HOT_TASK_PAY_MULTIPLIER : VA_PAYOUT_RATE;
+    const dollars = (t.credit_cost ?? 0) * rate + (t.tip_amount ?? 0) / 100;
     if ((t.completed_at ?? "") >= ytdStart) taskEarnings[vaId] += dollars;
   });
   (taskTipsRows ?? []).forEach((r) => {
@@ -78,7 +80,7 @@ export default async function CfoVasPage() {
 
   return (
     <>
-      <h1 className="page-title">VAs — pay and payout info</h1>
+      <h1 className="page-title">VAs - pay and payout info</h1>
       <p className="form-note" style={{ marginBottom: "var(--space-lg)" }}>
         Payment method (Wise / PayPal), account details, and earnings summary. Read-only.
       </p>

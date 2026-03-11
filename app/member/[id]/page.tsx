@@ -2,13 +2,17 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatInCentral } from "@/lib/format-date";
+import { getStatusLabel } from "@/lib/ticket-status";
 import TicketThread from "../TicketThread";
 import RequestVaDropdown from "../RequestVaDropdown";
 import MessageBody from "../../components/MessageBody";
 import VAProfileCard from "../../components/VAProfileCard";
 import TicketReviewSurvey from "../TicketReviewSurvey";
+import ApproveTaskButton from "../ApproveTaskButton";
 import ScrollToRate from "../ScrollToRate";
 import TipCard from "../TipCard";
+import RealtimeTicketMessages from "../../components/RealtimeTicketMessages";
+import TaskAttachment from "../../components/TaskAttachment";
 
 export default async function MemberTicketPage({
   params,
@@ -17,22 +21,23 @@ export default async function MemberTicketPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ rate?: string; tip?: string }>;
 }) {
-  const { id } = await params;
-  const { rate, tip } = await searchParams;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login?next=" + encodeURIComponent("/member"));
+  try {
+    const { id } = await params;
+    const { rate, tip } = await searchParams;
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) redirect("/login?next=" + encodeURIComponent("/member"));
 
-  const { data: ticket } = await supabase
+    const { data: ticket, error: ticketError } = await supabase
     .from("tickets")
     .select("id, subject, status, description, created_at, requested_va_id, assigned_va_id, rating, feedback")
     .eq("id", id)
     .eq("member_id", user.id)
     .single();
 
-  if (!ticket) notFound();
+  if (ticketError || !ticket) notFound();
 
   const { data: pastTicketsWithSubject } = await supabase
     .from("tickets")
@@ -81,11 +86,16 @@ export default async function MemberTicketPage({
     .eq("ticket_id", id)
     .order("created_at", { ascending: true });
 
-  const { data: attachments } = await supabase
+  const { data: attachmentsRaw } = await supabase
     .from("ticket_attachments")
     .select("id, file_path, file_name, media_type, message_id")
     .eq("ticket_id", id)
     .order("created_at", { ascending: true });
+
+  const visibleMessageIds = new Set((messages ?? []).map((m) => m.id));
+  const attachments = (attachmentsRaw ?? []).filter(
+    (a) => !a.message_id || visibleMessageIds.has(a.message_id)
+  );
 
   const { data: existingTip } = await supabase
     .from("task_tips")
@@ -100,14 +110,20 @@ export default async function MemberTicketPage({
 
   return (
     <main className="app-shell">
+      <RealtimeTicketMessages ticketId={id} />
       <Link href="/member" className="back-link">
         ← Back to tasks
       </Link>
-      <h1 className="page-title">{ticket.subject}</h1>
-      <p className="ticket-meta" style={{ marginBottom: "var(--space-md)" }}>
-        Status: {ticket.status} -  Created{" "}
-        {formatInCentral(ticket.created_at)}
+      <h1 className="page-title">{ticket.subject ?? "Task"}</h1>
+      <p className="ticket-meta" style={{ marginBottom: "var(--space-md)", display: "flex", alignItems: "center", gap: "var(--space-sm)", flexWrap: "wrap" }}>
+        <span className={`ticket-status-badge ticket-status-badge--${ticket.status}`}>
+          {getStatusLabel(ticket.status)}
+        </span>
+        <span>Created {formatInCentral(ticket.created_at)}</span>
       </p>
+      {ticket.status === "awaiting_member_approval" && (
+        <ApproveTaskButton ticketId={id} />
+      )}
       {ticket.requested_va_id && (
         <p className="form-note" style={{ marginBottom: "var(--space-sm)" }}>
           Requested: {requestedVaName ?? "specialist"} (we&apos;ll do our best to match you)
@@ -132,6 +148,18 @@ export default async function MemberTicketPage({
       {ticket.description && (
         <div className="ticket-description">{ticket.description}</div>
       )}
+      <section style={{ marginBottom: "var(--space-lg)" }}>
+        <h2 className="section-heading">Task attachments</h2>
+        {(attachments ?? []).filter((a) => !a.message_id && a.file_path).length > 0 && baseUrl ? (
+          <ul style={{ listStyle: "none", padding: 0, display: "flex", flexWrap: "wrap", gap: "var(--space-md)" }}>
+            {(attachments ?? []).filter((a) => !a.message_id && a.file_path).map((a) => (
+              <TaskAttachment key={a.id} attachment={a} baseUrl={baseUrl} canRemove />
+            ))}
+          </ul>
+        ) : (
+          <p className="form-note" style={{ margin: 0 }}>No files attached to this task.</p>
+        )}
+      </section>
       {(ticket.status === "completed" || ticket.status === "closed") && (
         <>
           {ticket.rating == null ? (
@@ -177,58 +205,16 @@ export default async function MemberTicketPage({
           {rate !== undefined && <ScrollToRate />}
         </>
       )}
-      {(attachments ?? []).filter((a) => !a.message_id).length > 0 && baseUrl && (
-        <section style={{ marginBottom: "var(--space-lg)" }}>
-          <h2 className="section-heading">Task attachments</h2>
-          <ul style={{ listStyle: "none", padding: 0, display: "flex", flexWrap: "wrap", gap: "var(--space-md)" }}>
-            {(attachments ?? []).filter((a) => !a.message_id).map((a) => {
-              const url = `${baseUrl}/${a.file_path}`;
-              return (
-                <li key={a.id}>
-                  {a.media_type === "image" ? (
-                    <a href={url} target="_blank" rel="noopener noreferrer">
-                      <img
-                        src={url}
-                        alt={a.file_name ?? "Attachment"}
-                        style={{ maxWidth: 200, maxHeight: 200, objectFit: "cover", borderRadius: 4 }}
-                      />
-                    </a>
-                  ) : a.media_type === "audio" ? (
-                    <div>
-                      <p className="form-note" style={{ marginBottom: "var(--space-xs)" }}>Voice note</p>
-                      <audio src={url} controls style={{ maxWidth: 320 }} />
-                      {a.file_name && (
-                        <p className="form-note" style={{ marginTop: "var(--space-xs)" }}>
-                          <a href={url} target="_blank" rel="noopener noreferrer">{a.file_name}</a>
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <div>
-                      <video
-                        src={url}
-                        controls
-                        style={{ maxWidth: 320, maxHeight: 240 }}
-                        preload="metadata"
-                      />
-                      {a.file_name && (
-                        <p className="form-note" style={{ marginTop: "var(--space-xs)" }}>
-                          <a href={url} target="_blank" rel="noopener noreferrer">{a.file_name}</a>
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      )}
       <section style={{ marginBottom: "var(--space-lg)" }}>
         <h2 className="section-heading">Thread</h2>
+        {(messages ?? []).length === 0 && (
+          <p className="form-note" style={{ marginBottom: "var(--space-md)" }}>
+            No messages yet. Add a message below to start the conversation.
+          </p>
+        )}
         <ul className="thread-list">
-          {(messages ?? []).map((m) => {
-            const msgAttachments = (attachments ?? []).filter((a) => a.message_id === m.id);
+            {(messages ?? []).map((m) => {
+            const msgAttachments = (attachments ?? []).filter((a) => a.message_id === m.id && a.file_path);
             const senderName = m.sender_role === "va" ? (vaProfile?.display_name?.trim() ?? "Your specialist") : m.sender_role === "member" ? "You" : (m.sender_role ?? "-");
             return (
               <li key={m.id} className="thread-message">
@@ -239,36 +225,41 @@ export default async function MemberTicketPage({
                 <MessageBody message={m.message} />
                 {msgAttachments.length > 0 && baseUrl && (
                   <ul style={{ listStyle: "none", padding: 0, marginTop: "var(--space-sm)", display: "flex", flexWrap: "wrap", gap: "var(--space-sm)" }}>
-                    {msgAttachments.map((a) => {
-                      const url = `${baseUrl}/${a.file_path}`;
-                      return (
-                        <li key={a.id}>
-                          {a.media_type === "image" ? (
-                            <a href={url} target="_blank" rel="noopener noreferrer">
-                              <img src={url} alt={a.file_name ?? "Attachment"} style={{ maxWidth: 160, maxHeight: 160, objectFit: "cover", borderRadius: 4 }} />
-                            </a>
-                          ) : a.media_type === "audio" ? (
-                            <div>
-                              <audio src={url} controls style={{ maxWidth: 280 }} />
-                              {a.file_name && <p className="form-note" style={{ marginTop: "var(--space-2xs)" }}><a href={url} target="_blank" rel="noopener noreferrer">{a.file_name}</a></p>}
-                            </div>
-                          ) : (
-                            <div>
-                              <video src={url} controls style={{ maxWidth: 240, maxHeight: 160 }} preload="metadata" />
-                              {a.file_name && <p className="form-note" style={{ marginTop: "var(--space-2xs)" }}><a href={url} target="_blank" rel="noopener noreferrer">{a.file_name}</a></p>}
-                            </div>
-                          )}
-                        </li>
-                      );
-                    })}
+                    {msgAttachments.map((a) => (
+                      <TaskAttachment key={a.id} attachment={a} baseUrl={baseUrl} canRemove={m.sender_role === "member"} compact />
+                    ))}
                   </ul>
                 )}
               </li>
             );
           })}
         </ul>
-        <TicketThread ticketId={id} senderId={user.id} senderRole="member" />
+        <div className="thread-compose card" style={{ padding: "var(--space-md)" }}>
+          <h3 className="section-heading" style={{ fontSize: "1rem", marginBottom: "var(--space-sm)" }}>Add a message</h3>
+          <TicketThread ticketId={id} senderId={user.id} senderRole="member" />
+        </div>
       </section>
     </main>
   );
+  } catch (err) {
+    const e = err as Error & { digest?: string };
+    if (e?.digest?.startsWith?.("NEXT_REDIRECT") || e?.digest?.startsWith?.("NEXT_NOT_FOUND")) throw err;
+    console.error("[member ticket page]", e?.message ?? e, e);
+    return (
+      <main className="app-shell">
+        <Link href="/member" className="back-link">
+          ← Back to tasks
+        </Link>
+        <h1 className="page-title">We couldn&apos;t load this task</h1>
+        <p className="form-note" style={{ marginBottom: "var(--space-lg)" }}>
+          Something went wrong loading this task. Please try again or go back to your tasks.
+        </p>
+        <div style={{ display: "flex", gap: "var(--space-md)", flexWrap: "wrap" }}>
+          <Link href="/member" className="btn btn-primary">
+            Back to tasks
+          </Link>
+        </div>
+      </main>
+    );
+  }
 }

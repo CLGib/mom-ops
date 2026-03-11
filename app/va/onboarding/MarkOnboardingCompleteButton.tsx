@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -74,7 +75,12 @@ export default function MarkOnboardingCompleteButton({ alreadyComplete, effectiv
     return (
       <div className="card" style={{ maxWidth: "720px", marginTop: "var(--space-xl)" }}>
         <p style={{ margin: 0, color: "var(--color-success, green)", fontWeight: 500 }}>
-          You have completed onboarding. You can claim tasks from the Dashboard or Tasks page.
+          You have completed onboarding. Next: complete <strong>Training</strong>. Once training is done, you can claim tasks from the Dashboard or Tasks page.
+        </p>
+        <p style={{ margin: "var(--space-sm) 0 0" }}>
+          <Link href="/va/training" className="btn btn-primary">
+            Go to Training
+          </Link>
         </p>
         {(effectiveDate || contractStartDate) && (
           <p style={{ margin: "var(--space-sm) 0 0", fontSize: "0.9rem", color: "var(--text-muted)" }}>

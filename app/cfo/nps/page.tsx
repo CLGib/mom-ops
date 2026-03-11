@@ -32,7 +32,7 @@ export default async function CfoNPSPage() {
         <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-lg)", marginBottom: "var(--space-lg)" }}>
           <div className="card" style={{ padding: "var(--space-md)", minWidth: "120px" }}>
             <p className="form-note" style={{ margin: "0 0 var(--space-xs)", fontSize: "0.85rem" }}>NPS score</p>
-            <p style={{ fontSize: "1.75rem", fontWeight: 600, margin: 0 }}>{npsScore != null ? npsScore : "—"}</p>
+            <p style={{ fontSize: "1.75rem", fontWeight: 600, margin: 0 }}>{npsScore != null ? npsScore : "-"}</p>
           </div>
           <div className="card" style={{ padding: "var(--space-md)", minWidth: "120px" }}>
             <p className="form-note" style={{ margin: "0 0 var(--space-xs)", fontSize: "0.85rem" }}>Responses</p>
@@ -40,7 +40,7 @@ export default async function CfoNPSPage() {
           </div>
           <div className="card" style={{ padding: "var(--space-md)", minWidth: "120px" }}>
             <p className="form-note" style={{ margin: "0 0 var(--space-xs)", fontSize: "0.85rem" }}>Avg score</p>
-            <p style={{ fontSize: "1.75rem", fontWeight: 600, margin: 0 }}>{npsAvg ?? "—"}</p>
+            <p style={{ fontSize: "1.75rem", fontWeight: 600, margin: 0 }}>{npsAvg ?? "-"}</p>
           </div>
           <div className="card" style={{ padding: "var(--space-md)", minWidth: "140px" }}>
             <p className="form-note" style={{ margin: "0 0 var(--space-xs)", fontSize: "0.85rem" }}>Promoters / Passives / Detractors</p>

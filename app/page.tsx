@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import CheckoutRedirect from "./(marketing)/components/CheckoutRedirect";
 import ReferralCookieSetter from "./(marketing)/components/ReferralCookieSetter";
+import AuthErrorBanner from "./(marketing)/components/AuthErrorBanner";
 import Header from "./(marketing)/components/Header";
 import Hero from "./(marketing)/components/Hero";
+import RealHumanSection from "./(marketing)/components/RealHumanSection";
+import LandingReviewsSection from "./(marketing)/components/LandingReviewsSection";
 import Problem from "./(marketing)/components/Problem";
 import Solution from "./(marketing)/components/Solution";
 import HowItWorks from "./(marketing)/components/HowItWorks";
@@ -29,6 +32,7 @@ export default function HomePage() {
       <Suspense fallback={null}>
         <ReferralCookieSetter />
         <CheckoutRedirect />
+        <AuthErrorBanner />
       </Suspense>
       <Header />
       <main>
@@ -37,6 +41,8 @@ export default function HomePage() {
         <Solution />
         <HowItWorks />
         <Credits />
+        <RealHumanSection />
+        <LandingReviewsSection />
         <Affordable />
         <Specialist />
         <Coffee />

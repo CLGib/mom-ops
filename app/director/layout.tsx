@@ -13,6 +13,7 @@ const DIRECTOR_NAV_LINKS = [
   { href: "/director/reviews", label: "Reviews" },
   { href: "/director/members", label: "Members" },
   { href: "/director/nps", label: "NPS" },
+  { href: "/toolbox", label: "VA Toolbox" },
   { href: "/director/feature-bug", label: "Feature & Bug Log" },
   { href: "/director/feedback", label: "Request a Feature & Report Bug" },
   { href: "/director/account", label: "Account" },
@@ -47,18 +48,21 @@ export default async function DirectorLayout({
     .single();
   const displayName = profile?.preferred_name?.trim() || profile?.full_name?.trim() || user.email || "Account";
 
+  const drawerFooter = (
+    <HeaderUser
+      displayName={displayName}
+      avatarUrl={profile?.avatar_url}
+      title={user.email ?? undefined}
+    />
+  );
+
   return (
     <SidebarLayout
       brandLabel="CXO"
       brandHref="/director"
       navLinks={DIRECTOR_NAV_LINKS.map((l) => ({ href: l.href, label: l.label }))}
-      headerRight={
-        <HeaderUser
-          displayName={displayName}
-          avatarUrl={profile?.avatar_url}
-          title={user.email ?? undefined}
-        />
-      }
+      headerRight={<></>}
+      drawerFooter={drawerFooter}
     >
       {children}
     </SidebarLayout>

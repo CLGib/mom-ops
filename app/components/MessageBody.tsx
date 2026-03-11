@@ -1,6 +1,6 @@
 import { sanitizeMessageBody } from "@/lib/sanitize-html";
 
-export default function MessageBody({ message }: { message: string }) {
+export default function MessageBody({ message }: { message: string | null | undefined }) {
   const html = sanitizeMessageBody(message);
   return (
     <div

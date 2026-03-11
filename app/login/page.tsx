@@ -11,7 +11,7 @@ function dashboardForRole(role: Role): string {
   if (role === "va") return "/va";
   if (role === "director") return "/director";
   if (role === "cfo") return "/cfo";
-  return "/admin";
+  return "/admin/tasks";
 }
 
 function roleCanAccessPath(role: Role, path: string): boolean {
@@ -48,8 +48,8 @@ export default async function LoginPage({
     const params = await searchParams;
     const next = typeof params.next === "string" ? params.next : undefined;
     const dashboard = dashboardForRole(role);
-    const target =
-      next && roleCanAccessPath(role, next) ? next : dashboard;
+    let target = next && roleCanAccessPath(role, next) ? next : dashboard;
+    if (target === "/admin" || target === "/admin/") target = "/admin/tasks";
     // Client-side redirect so the browser sends cookies on the next request (avoids redirect loop)
     return <RedirectToDashboard target={target} />;
   }

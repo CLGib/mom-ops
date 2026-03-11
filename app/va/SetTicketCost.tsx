@@ -2,23 +2,33 @@
 
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Props = {
   ticketId: string;
   currentCreditCost: number | null;
   currentTipAmount: number | null;
+  /** Suggested credit from task library (by subject match); used when current is empty */
+  suggestedCredit?: number | null;
 };
 
 export default function SetTicketCost({
   ticketId,
   currentCreditCost,
   currentTipAmount,
+  suggestedCredit,
 }: Props) {
   const router = useRouter();
   const [creditCost, setCreditCost] = useState(
-    currentCreditCost != null ? String(currentCreditCost) : ""
+    currentCreditCost != null ? String(currentCreditCost) : suggestedCredit != null ? String(suggestedCredit) : ""
   );
+
+  // Sync local state when server value changes (e.g. after "Apply to cost" in AI assistant)
+  useEffect(() => {
+    const next =
+      currentCreditCost != null ? String(currentCreditCost) : suggestedCredit != null ? String(suggestedCredit) : "";
+    setCreditCost(next);
+  }, [currentCreditCost, suggestedCredit]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

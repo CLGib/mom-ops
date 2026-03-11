@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 const SECTION_STYLE = {
   marginBottom: "var(--space-md)",
   border: "1px solid var(--color-border, #e5e5e5)",
@@ -44,6 +46,7 @@ export default function VAOnboardingContent() {
         <div style={DETAIL_CONTENT_STYLE}>
           <ul style={{ listStyle: "disc", paddingLeft: "1.5rem", marginBottom: "var(--space-md)" }}>
             <li>$0.20 USD per Task Credit completed</li>
+            <li>Earn 10% more on <strong>Hot</strong> tasks — tasks that had been waiting 6+ hours when you claim them (shown in the unassigned list)</li>
             <li>98% of tips go directly to you</li>
             <li>2% is retained for payment processing fees</li>
           </ul>
@@ -191,6 +194,24 @@ export default function VAOnboardingContent() {
             <li>If they are detailed, respond thoughtfully.</li>
           </ul>
           <p style={{ marginTop: "var(--space-md)" }}>Mirroring builds rapport.</p>
+        </div>
+      </details>
+
+      <details style={SECTION_STYLE}>
+        <summary style={SUMMARY_STYLE}>EMAIL COMMUNICATION & MACROS</summary>
+        <div style={DETAIL_CONTENT_STYLE}>
+          <p style={{ marginBottom: "var(--space-md)" }}>
+            When replying to members, use the <strong>Email macro library</strong> as examples for tone, structure, and going one step beyond. Macros are available in two places:
+          </p>
+          <ul style={{ listStyle: "disc", paddingLeft: "1.5rem", marginBottom: "var(--space-md)" }}>
+            <li><strong>On a task page:</strong> Use the &quot;Insert macro&quot; button in the reply box to insert a pre-written snippet at the cursor. You can then edit it to fit the member and the task.</li>
+            <li>
+              <strong>Email Macro Library:</strong> Open{" "}
+              <Link href="/va/email-macros" className="link">Email Macros</Link>
+              {" from the sidebar to browse all macros as reference. Use them to model warm, clear, low-friction communication; always personalize and adapt. Do not copy verbatim."}
+            </li>
+          </ul>
+          <p style={{ marginBottom: "var(--space-sm)" }}>These templates reflect Mom Ops voice: warm, calm, capable. Mirror the member&apos;s style and add a human touch where appropriate.</p>
         </div>
       </details>
 

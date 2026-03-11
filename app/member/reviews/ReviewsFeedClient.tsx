@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { formatRelative } from "@/lib/format-date";
+import { getFirstNameOnly } from "@/lib/member-display-name";
 
 export type FeedItem = {
   id: string;
@@ -79,7 +80,7 @@ export function ReviewCard({
   item,
   workedWithVaIds = [],
 }: { item: FeedItem; workedWithVaIds?: string[] }) {
-  const name = item.display_name?.trim() || "Anonymous";
+  const name = getFirstNameOnly(item.display_name);
   const vaName = item.va_display_name?.trim() || "Specialist";
   const hasWorkedWithVa = item.va_id ? workedWithVaIds.includes(item.va_id) : false;
   const [expanded, setExpanded] = useState(false);

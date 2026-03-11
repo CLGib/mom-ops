@@ -4,12 +4,16 @@ import { useState, useRef, useEffect } from "react";
 
 type VaOption = { id: string; label: string; imageUrl?: string | null };
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
+function getInitials(name: string | null | undefined): string {
+  const s = name == null ? "" : String(name).trim();
+  if (!s) return "?";
+  const parts = s.split(/\s+/);
   if (parts.length >= 2) {
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    const first = parts[0][0];
+    const last = parts[parts.length - 1][0];
+    return (first && last ? first + last : s.slice(0, 2)).toUpperCase();
   }
-  return name.slice(0, 2).toUpperCase() || "?";
+  return s.slice(0, 2).toUpperCase() || "?";
 }
 
 const avatarSize = 32;

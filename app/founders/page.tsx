@@ -10,6 +10,7 @@ import Problem from "../(marketing)/components/Problem";
 import Solution from "../(marketing)/components/Solution";
 import HowItWorks from "../(marketing)/components/HowItWorks";
 import Credits from "../(marketing)/components/Credits";
+import LandingReviewsSection from "../(marketing)/components/LandingReviewsSection";
 import Affordable from "../(marketing)/components/Affordable";
 import Specialist from "../(marketing)/components/Specialist";
 import Coffee from "../(marketing)/components/Coffee";
@@ -56,6 +57,7 @@ export default async function FoundersPage() {
           <Solution />
           <HowItWorks />
           <Credits tasks={staticTasks} categories={staticCategories} />
+          <LandingReviewsSection />
           <Affordable />
           <Specialist />
           <Coffee />

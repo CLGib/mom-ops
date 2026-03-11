@@ -3,21 +3,14 @@
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useState, useRef, useEffect } from "react";
+import confetti from "canvas-confetti";
 import { createTicket } from "./actions";
 import SpecialistRequestSelect from "../components/SpecialistRequestSelect";
+import EmojiPicker from "../components/EmojiPicker";
 
 const BUCKET = "task-attachments";
 const MAX_FILE_SIZE_MB = 50;
 const MAX_FILES = 10;
-
-const TASK_TEMPLATES = [
-  { id: "other", label: "Something else", subject: "", description: "" },
-  { id: "school", label: "School & activities", subject: "School or activities", description: "" },
-  { id: "events", label: "Events & celebrations", subject: "Events or celebrations", description: "" },
-  { id: "research", label: "Research & comparisons", subject: "Research or comparisons", description: "" },
-  { id: "household", label: "Household admin", subject: "Household admin", description: "" },
-  { id: "gifts", label: "Gifts & sourcing", subject: "Gifts or sourcing", description: "" },
-] as const;
 
 type VaOption = { id: string; label: string; imageUrl?: string | null };
 type Props = {
@@ -35,11 +28,11 @@ type Props = {
   requestedVaUnavailable?: boolean;
 };
 
-function getMediaType(file: File): "image" | "video" | "audio" {
+function getMediaType(file: File): "image" | "video" | "audio" | "document" {
   if (file.type.startsWith("image/")) return "image";
   if (file.type.startsWith("video/")) return "video";
   if (file.type.startsWith("audio/")) return "audio";
-  return "video";
+  return "document";
 }
 
 function isAudioFile(file: File): boolean {
@@ -70,11 +63,26 @@ export default function CreateTicketForm({
   const [submitting, setSubmitting] = useState(false);
   const [expanding, setExpanding] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [noRush, setNoRush] = useState(false);
   const [sessionLoaded, setSessionLoaded] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+
+  function insertEmojiInDescription(emoji: string) {
+    const ta = descriptionRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const newVal = description.slice(0, start) + emoji + description.slice(end);
+    setDescription(newVal);
+    setTimeout(() => {
+      ta.focus();
+      ta.setSelectionRange(start + emoji.length, start + emoji.length);
+    }, 0);
+  }
 
   useEffect(() => {
     if (initialSubject != null) setSubject(initialSubject);
@@ -148,26 +156,12 @@ export default function CreateTicketForm({
     }
   }
 
-  function onTemplateChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const id = e.target.value;
-    setTemplateId(id);
-    const t = TASK_TEMPLATES.find((x) => x.id === id);
-    if (t) {
-      setSubject(t.subject);
-      setDescription(t.description);
-    }
-  }
-
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(e.target.files ?? []);
     const valid: File[] = [];
     for (const f of selected) {
       if (f.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
         setError(`"${f.name}" is over ${MAX_FILE_SIZE_MB}MB and was skipped.`);
-        continue;
-      }
-      if (!f.type.startsWith("image/") && !f.type.startsWith("video/") && !f.type.startsWith("audio/")) {
-        setError(`"${f.name}" is not an image, video, or audio and was skipped.`);
         continue;
       }
       valid.push(f);
@@ -223,7 +217,9 @@ export default function CreateTicketForm({
           requestedVaId.trim() || null,
           fromReviewId?.trim() || null,
           templateId || null,
-          fromSpecialistProfile
+          fromSpecialistProfile,
+          undefined,
+          noRush
         );
       } catch (actionErr) {
         setError("Something went wrong. Please try again.");
@@ -278,9 +274,20 @@ export default function CreateTicketForm({
       setDescription("");
       setRequestedVaId("");
       setFiles([]);
+      setNoRush(false);
       setTemplateId("other");
       if (fileInputRef.current) fileInputRef.current.value = "";
       setSuccess(true);
+      const count = 200;
+      const defaults = { origin: { y: 0.7 }, zIndex: 9999 };
+      function fire(particleRatio: number, opts: confetti.Options) {
+        confetti({ ...defaults, ...opts, particleCount: Math.floor(count * particleRatio) });
+      }
+      fire(0.25, { spread: 26, startVelocity: 55 });
+      fire(0.2, { spread: 60 });
+      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+      fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+      fire(0.1, { spread: 120, startVelocity: 45 });
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -340,22 +347,6 @@ export default function CreateTicketForm({
         </>
       )}
       <div className="form-group">
-        <label htmlFor="task-template">Quick pick</label>
-        <select
-          id="task-template"
-          value={templateId}
-          onChange={onTemplateChange}
-          className="input"
-          style={{ width: "100%", minWidth: 0, boxSizing: "border-box" }}
-        >
-          {TASK_TEMPLATES.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="form-group">
         <label htmlFor="subject">Subject</label>
         <input
           id="subject"
@@ -367,8 +358,12 @@ export default function CreateTicketForm({
         />
       </div>
       <div className="form-group">
-        <label htmlFor="description">Description</label>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", marginBottom: "var(--space-2xs)" }}>
+          <label htmlFor="description" style={{ marginBottom: 0 }}>Description</label>
+          <EmojiPicker onInsert={insertEmojiInDescription} ariaLabel="Insert emoji" />
+        </div>
         <textarea
+          ref={descriptionRef}
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -403,19 +398,19 @@ export default function CreateTicketForm({
         </div>
       )}
       <div className="form-group">
-        <label htmlFor="attachments">Photos, video &amp; audio (optional)</label>
+        <label htmlFor="attachments">Attachments (optional)</label>
         <input
           ref={fileInputRef}
           id="attachments"
           type="file"
-          accept="image/*,video/*,audio/*"
+          accept="*"
           multiple
           onChange={onFileChange}
           className="input"
           aria-describedby="attachments-hint"
         />
         <p id="attachments-hint" className="form-note" style={{ marginTop: "var(--space-xs)" }}>
-          Up to {MAX_FILES} files, {MAX_FILE_SIZE_MB}MB each. Images, video, or audio. Or record a voice note below.
+          Up to {MAX_FILES} files, {MAX_FILE_SIZE_MB}MB each. Photos, video, audio, PDF, and other files. Or record a voice note below.
         </p>
         {files.length > 0 && (
           <ul style={{ marginTop: "var(--space-sm)", listStyle: "none", padding: 0 }}>
@@ -450,6 +445,9 @@ export default function CreateTicketForm({
                       alt={f.name}
                       style={{ maxWidth: 120, maxHeight: 120, objectFit: "cover", borderRadius: 4, marginTop: "var(--space-xs)" }}
                     />
+                  )}
+                  {getMediaType(f) === "document" && (
+                    <p className="form-note" style={{ marginTop: "var(--space-xs)" }}>File: {f.name}</p>
                   )}
                   {getMediaType(f) === "video" && !isAudioFile(f) && objectUrls[i] && (
                     <video
@@ -489,6 +487,23 @@ export default function CreateTicketForm({
             </p>
           )}
         </div>
+      </div>
+      <div className="form-group">
+        <label style={{ display: "flex", alignItems: "flex-start", gap: "var(--space-sm)", cursor: "pointer" }}>
+          <input
+            type="checkbox"
+            checked={noRush}
+            onChange={(e) => setNoRush(e.target.checked)}
+            style={{ marginTop: "0.2rem" }}
+            aria-describedby="no-rush-hint"
+          />
+          <span>
+            <strong>No rush</strong> — save 2 credits. We&apos;ll get to it within 3–5 business days.
+          </span>
+        </label>
+        <p id="no-rush-hint" className="form-note" style={{ marginTop: "var(--space-2xs)", marginLeft: "1.75rem" }}>
+          Great if your task can wait; you&apos;ll be charged 2 fewer credits when the task is completed.
+        </p>
       </div>
       {success && (
         <p role="status" className="form-note" style={{ color: "var(--color-success, #15803d)", marginBottom: "var(--space-sm)" }}>

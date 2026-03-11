@@ -54,13 +54,15 @@ export default function PublicProfileForm({
     }
 
     const { data: { publicUrl } } = supabase.storage.from("member-avatars").getPublicUrl(path);
-    const result = await updateMemberPublicProfile({ avatar_url: publicUrl });
+    // Append cache-busting param so the browser loads the new image after save (avoids stale cache)
+    const urlToSave = `${publicUrl}${publicUrl.includes("?") ? "&" : "?"}v=${Date.now()}`;
+    const result = await updateMemberPublicProfile({ avatar_url: urlToSave });
     if (result.error) {
       setError(result.error);
       setUploading(false);
       return;
     }
-    setAvatarUrl(publicUrl);
+    setAvatarUrl(urlToSave);
     setUploading(false);
     router.refresh();
   }

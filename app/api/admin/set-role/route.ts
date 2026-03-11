@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 const ALLOWED_ROLES = ["member", "va", "admin", "director", "cfo"] as const;
 
@@ -45,27 +46,35 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { data: targetRoleRow } = await supabase
+  // Use service for reading target's role so RLS does not 403 (admin check uses user_roles; RLS uses admins table)
+  const service = createServiceClient();
+  const { data: targetRoleRow } = await service
     .from("user_roles")
     .select("role")
     .eq("user_id", userId)
     .maybeSingle();
   const previousRole = targetRoleRow?.role ?? null;
 
-  const { error: profileError } = await supabase
+  const { error: profileError } = await service
     .from("profiles")
     .update({ role })
     .eq("id", userId);
   if (profileError) {
-    return NextResponse.json({ error: profileError.message }, { status: 500 });
+    return NextResponse.json(
+      { error: `profiles: ${profileError.message}` },
+      { status: 500 }
+    );
   }
 
   // Keep user_roles in sync (trigger may do this; explicit upsert ensures consistency)
-  const { error: roleError } = await supabase
+  const { error: roleError } = await service
     .from("user_roles")
     .upsert({ user_id: userId, role }, { onConflict: "user_id" });
   if (roleError) {
-    return NextResponse.json({ error: roleError.message }, { status: 500 });
+    return NextResponse.json(
+      { error: `user_roles: ${roleError.message}` },
+      { status: 500 }
+    );
   }
 
   const { error: auditError } = await supabase.from("audit_log").insert({

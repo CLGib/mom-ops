@@ -17,6 +17,7 @@ export type VAMemberProfileUpdate = {
   preferred_stores?: string[] | null;
   task_submission_preference?: "email" | "portal" | "either" | null;
   typical_turnaround?: "standard" | "rush_when_possible" | null;
+  custom_field_values?: Record<string, string | number | null> | null;
 };
 
 /** VA updates member profile (context learned in communication). Caller must be VA assigned to a ticket for this member. */
@@ -57,6 +58,7 @@ export async function updateMemberProfileFromVA(
   if (updates.preferred_stores !== undefined) payload.preferred_stores = updates.preferred_stores;
   if (updates.task_submission_preference !== undefined) payload.task_submission_preference = updates.task_submission_preference;
   if (updates.typical_turnaround !== undefined) payload.typical_turnaround = updates.typical_turnaround;
+  if (updates.custom_field_values !== undefined) payload.custom_field_values = updates.custom_field_values;
 
   if (Object.keys(payload).length === 0) return { error: null };
 

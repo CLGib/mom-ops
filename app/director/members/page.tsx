@@ -50,8 +50,11 @@ export default async function DirectorMembersPage({
       <p className="form-note" style={{ marginBottom: "var(--space-lg)" }}>
         Adjust member credits and view task volume. Reviews left by members are visible in Reviews.
       </p>
-      <section className="card" style={{ marginBottom: "var(--space-xl)" }}>
+      <section id="adjust-credits" className="card" style={{ marginBottom: "var(--space-xl)" }}>
         <h2 className="section-heading">Adjust member credits</h2>
+        <p className="form-note" style={{ marginBottom: "var(--space-md)" }}>
+          Enter a member&apos;s email and an amount (positive to add credits, negative to subtract). Changes are recorded in audit log.
+        </p>
         <AdjustCreditForm />
       </section>
       <section className="card">
