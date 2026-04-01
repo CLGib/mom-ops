@@ -12,11 +12,11 @@ export default function FoundersHero() {
     <section className="hero founders-hero">
       <div className="container">
         <h1 className="hero-headline">
-          Your Personal Household Virtual Assistant (VA), without Hiring
+          Your Personal Household Virtual Assistant, without Hiring
           Full-Time
         </h1>
         <p className="hero-subhead">
-          Household admin, handled by a real mom VA.
+          Household admin, handled by a real mom virtual assistant.
           <br />
           Clear timelines.
           <br />

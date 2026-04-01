@@ -21,6 +21,8 @@ type Ticket = {
   updated_at?: string;
   /** True when ticket is in inbox only because VA was @mentioned in an internal note */
   mentionedOnly?: boolean;
+  is_free_trial_task?: boolean | null;
+  is_member_first_task?: boolean | null;
 };
 
 type Props = {
@@ -140,6 +142,34 @@ export default function VAAssignedTaskList({ tickets, inboxMode, showClosedOnly 
             <li key={t.id} className="ticket-item">
               <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "var(--space-sm)" }}>
                 <Link href={`/va/${t.id}`}>#{t.ticket_number ?? t.id.slice(0, 8)} {t.subject}</Link>
+                {t.is_free_trial_task && (
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                      padding: "0.125rem 0.5rem",
+                      borderRadius: 4,
+                      backgroundColor: "var(--color-error-bg, #fef2f2)",
+                      color: "var(--color-error, #b91c1c)",
+                    }}
+                  >
+                    Free trial
+                  </span>
+                )}
+                {t.is_member_first_task && (
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                      padding: "0.125rem 0.5rem",
+                      borderRadius: 4,
+                      backgroundColor: "var(--color-info-bg, #eff6ff)",
+                      color: "var(--color-info, #1d4ed8)",
+                    }}
+                  >
+                    1st time user
+                  </span>
+                )}
                 {t.mentionedOnly && (
                   <span className="ticket-status-badge" style={{ fontSize: "0.75rem", background: "var(--accent-soft-bg, rgba(184,134,11,0.15))", color: "var(--accent, #b8860b)" }}>
                     @Mentioned

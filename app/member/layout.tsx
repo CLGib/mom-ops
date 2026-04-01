@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import MemberPortalLayout from "../components/MemberPortalLayout";
 import HeaderUser from "../components/HeaderUser";
+import MemberMetaPixelRegistration from "./MemberMetaPixelRegistration";
 import NPSPopover from "./NPSPopover";
 import ProfilePhotoOfferPopover from "./ProfilePhotoOfferPopover";
+import FreeTrialActivator from "./FreeTrialActivator";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +30,7 @@ export default async function MemberLayout({
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("is_founding_member, profile_completion, preferred_name, full_name, avatar_url")
+      .select("is_founding_member, is_free_trial, profile_completion, preferred_name, full_name, avatar_url")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -41,6 +44,7 @@ export default async function MemberLayout({
       { href: "/member", label: "Home" },
       { href: "/member/pending", label: "Tasks" },
       { href: "/member/completed", label: "Completed Tasks" },
+      { href: "/member/recurring", label: "Recurring tasks" },
       { href: "/member/explore-tasks", label: "Explore tasks" },
       { href: "/member/reviews", label: "Reviews" },
       { href: "/member/discovery", label: "Just for Fun" },
@@ -81,9 +85,28 @@ export default async function MemberLayout({
                 Founding Member
               </span>
             )}
+            {profile?.is_free_trial && !profile?.is_founding_member && (
+              <span
+                style={{
+                  fontSize: "0.75rem",
+                  fontWeight: 600,
+                  padding: "0.25rem 0.5rem",
+                  borderRadius: "4px",
+                  background: "var(--color-info-bg, #eff6ff)",
+                  color: "var(--color-info, #1d4ed8)",
+                  letterSpacing: "0.02em",
+                }}
+              >
+                Free trial
+              </span>
+            )}
           </HeaderUser>
         }
       >
+        <MemberMetaPixelRegistration />
+        <Suspense fallback={null}>
+          <FreeTrialActivator />
+        </Suspense>
         {children}
         <NPSPopover />
         <ProfilePhotoOfferPopover />

@@ -20,6 +20,8 @@ export default function Footer() {
             <a href="mailto:support@themomops.com">Contact</a>
             <a href="/privacy">Privacy</a>
             <a href="/terms">Terms</a>
+            <a href="https://www.instagram.com/momopsassist/?hl=en" target="_blank" rel="noopener noreferrer">Instagram</a>
+            <a href="https://www.facebook.com/profile.php?id=61585808027157" target="_blank" rel="noopener noreferrer">Facebook</a>
             <CheckoutButton className="footer-cta-button">
               Get Started
             </CheckoutButton>

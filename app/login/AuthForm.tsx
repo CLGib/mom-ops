@@ -9,6 +9,11 @@ import posthog from "posthog-js";
 
 type Mode = "login" | "magiclink" | "forgot";
 
+type AuthFormProps = {
+  defaultMode?: Mode;
+  signupCopy?: boolean;
+};
+
 function formatAuthError(message: string): string {
   if (
     /rate limit|too many requests|too many attempts/i.test(message)
@@ -18,7 +23,7 @@ function formatAuthError(message: string): string {
   return message;
 }
 
-export default function AuthForm() {
+export default function AuthForm({ defaultMode, signupCopy = false }: AuthFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/";
@@ -26,16 +31,18 @@ export default function AuthForm() {
   const roleNotSet = searchParams.get("error") === "role_not_set";
   const otpExpired = searchParams.get("error") === "otp_expired";
 
-  const [mode, setMode] = useState<Mode>(isCheckoutIntent ? "magiclink" : "login");
+  const initialMode = defaultMode ?? (isCheckoutIntent ? "magiclink" : "login");
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(
     otpExpired
-      ? "This email change link has expired or was already used. Sign in and try changing your email again from account settings."
+      ? "This link has expired or was already used. Request a new link below or sign in with your password."
       : null
   );
   const [loading, setLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [signUpConfirmSent, setSignUpConfirmSent] = useState(false);
   const [resetLinkSent, setResetLinkSent] = useState(false);
   const [emailCooldown, setEmailCooldown] = useState(0);
   const [clientHasSession, setClientHasSession] = useState<boolean | null>(null);
@@ -59,8 +66,8 @@ export default function AuthForm() {
 
   function redirect() {
     // Full page load so the server receives the session cookies and can redirect by role (A1).
-    // Go to /login (with optional next) so the login page server component runs and redirects to dashboard or next.
-    const url = next && next !== "/" ? `/login?next=${encodeURIComponent(next)}` : "/login";
+    const path = signupCopy ? "/signup" : "/login";
+    const url = next && next !== "/" ? `${path}?next=${encodeURIComponent(next)}` : path;
     setTimeout(() => {
       window.location.href = url;
     }, 150);
@@ -70,6 +77,7 @@ export default function AuthForm() {
     e.preventDefault();
     setError(null);
     setMagicLinkSent(false);
+    setSignUpConfirmSent(false);
     setResetLinkSent(false);
     setLoading(true);
 
@@ -119,7 +127,29 @@ export default function AuthForm() {
       return;
     }
 
-    // login
+    // login or sign up with password
+    if (signupCopy) {
+      const origin = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      const { data, error: err } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
+        },
+      });
+      setLoading(false);
+      if (err) {
+        setError(formatAuthError(err.message));
+        return;
+      }
+      posthog.capture("user_signed_up", { method: "password", email });
+      if (data?.session) {
+        redirect();
+        return;
+      }
+      setSignUpConfirmSent(true);
+      return;
+    }
     const { error: err } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -144,38 +174,54 @@ export default function AuthForm() {
           onClick={() => setMode("login")}
           className={mode === "login" ? "auth-tab auth-tab--active" : "auth-tab"}
         >
-          Log in
+          {signupCopy ? "Sign up with password" : "Log in"}
         </button>
         <button
           type="button"
           onClick={() => setMode("magiclink")}
           className={mode === "magiclink" ? "auth-tab auth-tab--active" : "auth-tab"}
         >
-          Email me a link
+          {signupCopy ? "Email me a link" : "Email me a link"}
         </button>
       </div>
 
       {mode === "magiclink" && (
         <p className="auth-form-note">
-          No account? We&apos;ll send you a link to sign in or create one.
+          {signupCopy
+            ? "We'll send you a link to create your account. No password needed."
+            : "No account? We'll send you a link to sign in or create one."}
         </p>
       )}
 
       {mode === "login" && (
         <p className="auth-form-note" style={{ marginBottom: 0 }}>
-          <button
-            type="button"
-            onClick={() => setMode("forgot")}
-            className="auth-form-link"
-          >
-            Forgot password?
-          </button>
+          {signupCopy ? null : (
+            <button
+              type="button"
+              onClick={() => setMode("forgot")}
+              className="auth-form-link"
+            >
+              Forgot password?
+            </button>
+          )}
         </p>
       )}
 
       {magicLinkSent && (
         <p className="auth-success-message" role="status">
-          Check your email for the sign-in link. Click it to sign in or set your password.
+          {signupCopy
+            ? "Check your email for the sign-up link. Click it to create your account."
+            : "Check your email for the sign-in link. Click it to sign in or set your password."}
+        </p>
+      )}
+
+      {signUpConfirmSent && (
+        <p className="auth-success-message" role="status">
+          Check your email to confirm your account. Once confirmed,{" "}
+          <a href={next && next !== "/" ? `/login?next=${encodeURIComponent(next)}` : "/login"} className="auth-form-link">
+            log in
+          </a>
+          {" "}with your email and password.
         </p>
       )}
 
@@ -199,6 +245,7 @@ export default function AuthForm() {
           </a>
         </p>
       )}
+      {!signUpConfirmSent && (
       <form onSubmit={handleSubmit}>
         {roleNotSet && (
           <p className="form-error" role="alert">
@@ -243,7 +290,7 @@ export default function AuthForm() {
               onClick={() => setMode("login")}
               className="auth-form-link"
             >
-              ← Back to log in
+              ← Back to {signupCopy ? "sign up" : "log in"}
             </button>
           </p>
         )}
@@ -258,14 +305,21 @@ export default function AuthForm() {
               ? "Sending link…"
               : mode === "forgot"
                 ? "Sending reset link…"
-                : "Signing in…"
+                : signupCopy
+                  ? "Creating account…"
+                  : "Signing in…"
             : mode === "magiclink"
-              ? "Send me a link"
+              ? signupCopy
+                ? "Send me a sign-up link"
+                : "Send me a link"
               : mode === "forgot"
                 ? "Send reset link"
-                : "Log in"}
+                : signupCopy
+                  ? "Sign up"
+                  : "Log in"}
         </button>
       </form>
+      )}
     </div>
   );
 }

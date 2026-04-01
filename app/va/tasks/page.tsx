@@ -49,14 +49,16 @@ export default async function VATasksPage() {
 
   const { data: unassigned } = await supabase
     .from("tickets")
-    .select("id, ticket_number, subject, member_id, status, created_at, requested_va_id, no_rush")
+    .select("id, ticket_number, subject, member_id, status, created_at, requested_va_id, no_rush, is_free_trial_task, is_member_first_task")
     .in("status", ["new", "reopened"])
     .is("assigned_va_id", null)
+    .order("is_free_trial_task", { ascending: false })
+    .order("is_member_first_task", { ascending: false })
     .order("created_at", { ascending: true });
 
   const { data: assigned } = await supabase
     .from("tickets")
-    .select("id, ticket_number, subject, status, credit_cost, tip_amount, created_at, updated_at")
+    .select("id, ticket_number, subject, status, credit_cost, tip_amount, created_at, updated_at, is_free_trial_task, is_member_first_task")
     .eq("assigned_va_id", user.id)
     .order("updated_at", { ascending: false });
 
@@ -88,7 +90,7 @@ export default async function VATasksPage() {
   if (openMentionedIds.length > 0) {
     const { data: mentioned } = await supabase
       .from("tickets")
-      .select("id, ticket_number, subject, status, credit_cost, tip_amount, created_at, updated_at")
+      .select("id, ticket_number, subject, status, credit_cost, tip_amount, created_at, updated_at, is_free_trial_task, is_member_first_task")
       .in("id", openMentionedIds);
     mentionedTickets = (mentioned ?? []).filter(
       (t) =>

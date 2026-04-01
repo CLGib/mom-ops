@@ -45,48 +45,55 @@ export default function ExploreTasksLibrary({ tasks, categories, mode, showOnlyW
 
   return (
     <div style={{ maxWidth: 720 }}>
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "var(--space-md)",
-          marginBottom: "var(--space-lg)",
-        }}
+      <form
+        onSubmit={(e) => e.preventDefault()}
+        style={{ marginBottom: "var(--space-lg)" }}
+        role="search"
+        aria-label="Filter task library"
       >
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <label htmlFor="explore-search" className="form-note" style={{ display: "block", marginBottom: "var(--space-xs)" }}>
-            Search
-          </label>
-          <input
-            id="explore-search"
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search tasks..."
-            className="input"
-            style={{ width: "100%", boxSizing: "border-box" }}
-          />
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "var(--space-md)",
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <label htmlFor="explore-search" className="form-note" style={{ display: "block", marginBottom: "var(--space-xs)" }}>
+              Search
+            </label>
+            <input
+              id="explore-search"
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search tasks..."
+              className="input"
+              style={{ width: "100%", boxSizing: "border-box" }}
+              autoComplete="off"
+            />
+          </div>
+          <div style={{ minWidth: 200 }}>
+            <label htmlFor="explore-category" className="form-note" style={{ display: "block", marginBottom: "var(--space-xs)" }}>
+              Category
+            </label>
+            <select
+              id="explore-category"
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="input"
+              style={{ width: "100%", boxSizing: "border-box" }}
+            >
+              <option value="">All categories</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div style={{ minWidth: 200 }}>
-          <label htmlFor="explore-category" className="form-note" style={{ display: "block", marginBottom: "var(--space-xs)" }}>
-            Category
-          </label>
-          <select
-            id="explore-category"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="input"
-            style={{ width: "100%", boxSizing: "border-box" }}
-          >
-            <option value="">All categories</option>
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      </form>
 
       {showList ? (
         <>

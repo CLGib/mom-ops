@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+const RECURRING_OUTREACH_MACRO = {
+  name: "Recurring outreach - meal planning",
+  category: "Recurring tasks",
+  body: `Hi {{member-name}}! This is {{va-name}}.
+
+We are now offering recurring tasks, and I would love to set one up for you if helpful.
+
+For example, I can create your meal plan once a week on your preferred day.
+
+If you want this, reply with:
+- Preferred day (Monday, Friday, etc.)
+- Store preference (Publix, Costco, etc.)
+- Budget target
+- Foods you like
+- Foods you want to avoid
+
+Once I have that, I will set up your recurring task for you.`,
+} as const;
+
 async function requireVaOrAdminOrDirector(supabase: Awaited<ReturnType<typeof createClient>>) {
   const {
     data: { user },
@@ -26,11 +45,33 @@ async function requireVaOrAdminOrDirector(supabase: Awaited<ReturnType<typeof cr
   return { user, isAdmin, isDirector, error: null as null };
 }
 
+async function ensureRecurringOutreachMacro(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+) {
+  const { data: existing } = await supabase
+    .from("va_email_macros")
+    .select("id")
+    .eq("name", RECURRING_OUTREACH_MACRO.name)
+    .eq("category", RECURRING_OUTREACH_MACRO.category)
+    .limit(1)
+    .maybeSingle();
+  if (existing?.id) return;
+
+  await supabase.from("va_email_macros").insert({
+    name: RECURRING_OUTREACH_MACRO.name,
+    category: RECURRING_OUTREACH_MACRO.category,
+    body: RECURRING_OUTREACH_MACRO.body,
+    created_by: userId,
+  });
+}
+
 /** GET: List all email macros (VA, admin, director). */
 export async function GET() {
   const supabase = await createClient();
   const auth = await requireVaOrAdminOrDirector(supabase);
   if (auth.error) return auth.error;
+  await ensureRecurringOutreachMacro(supabase, auth.user!.id);
 
   const { data: macros, error } = await supabase
     .from("va_email_macros")

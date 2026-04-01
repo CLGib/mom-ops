@@ -14,8 +14,8 @@ export default function RealHumanSection() {
             </p>
             <p className="section-body">The difference? Real relationships.</p>
             <p className="section-body">
-              Over time, your VA learns how you think, what you prefer, and how
-              you work. And your real human VA makes sure every final result
+              Over time, your virtual assistant learns how you think, what you prefer, and how
+              you work. And your real human virtual assistant makes sure every final result
               actually reflects you.
             </p>
           </div>

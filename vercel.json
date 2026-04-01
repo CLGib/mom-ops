@@ -3,6 +3,10 @@
     {
       "path": "/api/jobs/send-email",
       "schedule": "*/2 * * * *"
+    },
+    {
+      "path": "/api/jobs/create-recurring-tasks",
+      "schedule": "0 6 * * *"
     }
   ]
 }

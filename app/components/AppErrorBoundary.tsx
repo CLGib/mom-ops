@@ -1,7 +1,7 @@
 "use client";
 
+import posthog from "posthog-js";
 import React from "react";
-import { getAirbrake } from "@/lib/airbrake";
 
 interface Props {
   children: React.ReactNode;
@@ -11,7 +11,7 @@ interface State {
   hasError: boolean;
 }
 
-export class AirbrakeErrorBoundary extends React.Component<Props, State> {
+export class AppErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false };
@@ -22,13 +22,9 @@ export class AirbrakeErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo): void {
-    const airbrake = getAirbrake();
-    if (airbrake) {
-      airbrake.notify({
-        error,
-        params: { reactErrorInfo: info },
-      });
-    }
+    posthog.captureException(error, {
+      reactErrorInfo: info.componentStack,
+    });
   }
 
   render(): React.ReactNode {
@@ -39,7 +35,7 @@ export class AirbrakeErrorBoundary extends React.Component<Props, State> {
             Something went wrong
           </h1>
           <p className="text-gray-600">
-            We’ve been notified. Try refreshing the page, or come back later.
+            We&rsquo;ve been notified. Try refreshing the page, or come back later.
           </p>
           <button
             type="button"

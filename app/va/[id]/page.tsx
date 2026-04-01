@@ -36,7 +36,7 @@ export default async function VATicketPage({
 
   const { data: ticket } = await supabase
     .from("tickets")
-    .select("id, ticket_number, subject, status, description, member_id, assigned_va_id, requested_va_id, credit_cost, tip_amount, created_at, rating, feedback, completed_at")
+    .select("id, ticket_number, subject, status, description, member_id, assigned_va_id, requested_va_id, credit_cost, tip_amount, created_at, rating, feedback, completed_at, is_free_trial_task, is_member_first_task")
     .eq("id", id)
     .single();
 
@@ -136,6 +136,32 @@ export default async function VATicketPage({
                 }}
               >
                 Member requested you
+              </span>
+            </>
+          )}
+          {ticket.is_free_trial_task && (
+            <>
+              {" · "}
+              <span
+                style={{
+                  fontWeight: 600,
+                  color: "var(--color-error, #b91c1c)",
+                }}
+              >
+                Free trial
+              </span>
+            </>
+          )}
+          {ticket.is_member_first_task && (
+            <>
+              {" · "}
+              <span
+                style={{
+                  fontWeight: 600,
+                  color: "var(--color-info, #1d4ed8)",
+                }}
+              >
+                1st time user
               </span>
             </>
           )}
@@ -353,6 +379,32 @@ export default async function VATicketPage({
           )}
           {isAssignedToMe && (
             <> · Status: {getStatusLabel(ticket.status)}</>
+          )}
+          {ticket.is_free_trial_task && (
+            <>
+              {" · "}
+              <span
+                style={{
+                  fontWeight: 600,
+                  color: "var(--color-error, #b91c1c)",
+                }}
+              >
+                Free trial
+              </span>
+            </>
+          )}
+          {ticket.is_member_first_task && (
+            <>
+              {" · "}
+              <span
+                style={{
+                  fontWeight: 600,
+                  color: "var(--color-info, #1d4ed8)",
+                }}
+              >
+                1st time user
+              </span>
+            </>
           )}
         </p>
         {isAssignedToMe && (

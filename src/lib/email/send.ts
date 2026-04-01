@@ -317,6 +317,19 @@ function getTemplate(
         `.trim(),
       };
     },
+    va_new_task_available_v1: () => {
+      const { shortLabel, subjectSuffix } = getTaskLabel(payload);
+      const vaTasksUrl = `${SITE_URL}/va/tasks`;
+      return {
+        subject: `New task available${subjectSuffix}`,
+        html: `
+          <p>A new task is available to claim.</p>
+          <p><strong>${shortLabel === "your task" ? "New task" : escapeHtml(shortLabel)}</strong></p>
+          <p><a href="${vaTasksUrl}">View tasks and claim</a></p>
+          <p>- Mom Ops</p>
+        `.trim(),
+      };
+    },
     new_message_v1: () => {
       const messageBody = typeof payload.message_body === "string" && payload.message_body.trim()
         ? sanitizeMessageBody(payload.message_body.trim())

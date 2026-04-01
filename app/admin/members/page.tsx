@@ -13,7 +13,7 @@ const PAGE_SIZE = 20;
 export default async function AdminMembersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; page?: string }>;
+  searchParams: Promise<{ search?: string; page?: string; created_from?: string; created_to?: string }>;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -21,13 +21,15 @@ export default async function AdminMembersPage({
 
   const params = await searchParams;
   const searchQuery = (params.search ?? "").trim().toLowerCase();
+  const createdFrom = (params.created_from ?? "").trim() || null;
+  const createdTo = (params.created_to ?? "").trim() || null;
   const page = Math.max(0, parseInt(params.page ?? "0", 10) || 0);
 
   const { data: memberProfiles } = await supabase
     .from("profiles")
-    .select("id, full_name, preferred_name, is_founding_member")
+    .select("id, full_name, preferred_name, is_founding_member, created_at")
     .eq("role", "member")
-    .order("id");
+    .order("created_at", { ascending: false });
 
   const foundingMemberCount = (memberProfiles ?? []).filter((p) => p.is_founding_member === true).length;
 
@@ -68,7 +70,7 @@ export default async function AdminMembersPage({
     }
   }
 
-  const filtered =
+  let filtered =
     !searchQuery
       ? memberProfiles ?? []
       : (memberProfiles ?? []).filter((p) => {
@@ -77,41 +79,57 @@ export default async function AdminMembersPage({
           return name.includes(searchQuery) || email.includes(searchQuery);
         });
 
+  if (createdFrom || createdTo) {
+    const fromMs = createdFrom ? new Date(createdFrom + "T00:00:00.000Z").getTime() : null;
+    const toMs = createdTo ? new Date(createdTo + "T23:59:59.999Z").getTime() : null;
+    filtered = filtered.filter((p) => {
+      const t = p.created_at ? new Date(p.created_at).getTime() : 0;
+      if (fromMs != null && t < fromMs) return false;
+      if (toMs != null && t > toMs) return false;
+      return true;
+    });
+  }
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages - 1);
   const paginated = filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
 
   return (
     <>
-      <h1 className="page-title">Members</h1>
+      <h1 className="page-title" style={{ marginBottom: "var(--space-sm)" }}>Members</h1>
       <InviteMemberForm />
-      <section className="card" style={{ marginBottom: "var(--space-md)" }}>
-        <h2 className="section-heading" style={{ fontSize: "1rem", marginBottom: "var(--space-sm)" }}>
+      <section className="card" style={{ marginBottom: "var(--space-sm)", padding: "var(--space-sm)" }}>
+        <h2 className="section-heading" style={{ fontSize: "0.9rem", marginBottom: "var(--space-xs)" }}>
           Founding member welcome email
         </h2>
-        <p className="form-note" style={{ marginBottom: "var(--space-sm)" }}>
+        <p className="form-note" style={{ marginBottom: "var(--space-xs)", fontSize: "0.85rem" }}>
           Send a test of the founders launch email to your inbox, or send the real welcome to current founding members who haven&apos;t received it yet.
         </p>
         <BackfillFoundingMemberWelcomeButton founderCount={foundingMemberCount} />
       </section>
-      <section className="card">
-        <AdminMembersSearch initialSearch={params.search ?? ""} />
+      <section className="card" style={{ padding: "var(--space-sm)" }}>
+        <AdminMembersSearch
+          initialSearch={params.search ?? ""}
+          initialCreatedFrom={params.created_from ?? ""}
+          initialCreatedTo={params.created_to ?? ""}
+        />
         <MemberByEmailLookup />
         {filtered.length === 0 ? (
-          <p className="form-note" style={{ marginTop: "var(--space-md)" }}>
+          <p className="form-note" style={{ marginTop: "var(--space-sm)", fontSize: "0.85rem" }}>
             {(memberProfiles?.length ?? 0) > 0 ? "No members match your search." : "No members yet."}
           </p>
         ) : (
           <>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8rem" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--color-border, #e5e5e5)" }}>
-                  <th style={{ textAlign: "left", padding: "var(--space-sm)" }}>Name</th>
-                  <th style={{ textAlign: "left", padding: "var(--space-sm)" }}>Email</th>
-                  <th style={{ textAlign: "right", padding: "var(--space-sm)" }}>Credits</th>
-                  <th style={{ textAlign: "right", padding: "var(--space-sm)" }}>Tasks</th>
-                  <th style={{ textAlign: "right", padding: "var(--space-sm)" }}>Avg rating</th>
-                  <th style={{ textAlign: "right", padding: "var(--space-sm)" }}>Actions</th>
+                  <th style={{ textAlign: "left", padding: "4px 6px" }}>Name</th>
+                  <th style={{ textAlign: "left", padding: "4px 6px" }}>Email</th>
+                  <th style={{ textAlign: "left", padding: "4px 6px", whiteSpace: "nowrap" }}>Created</th>
+                  <th style={{ textAlign: "right", padding: "4px 6px" }}>Credits</th>
+                  <th style={{ textAlign: "right", padding: "4px 6px" }}>Tasks</th>
+                  <th style={{ textAlign: "right", padding: "4px 6px" }}>Avg</th>
+                  <th style={{ textAlign: "right", padding: "4px 6px" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -121,6 +139,9 @@ export default async function AdminMembersPage({
                     ratingCount > 0
                       ? (ratingSumByMember[p.id]! / ratingCount).toFixed(1)
                       : null;
+                  const createdStr = p.created_at
+                    ? new Date(p.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+                    : "-";
                   return (
                     <tr key={p.id} style={{ borderBottom: "1px solid var(--color-border, #e5e5e5)" }}>
                       <EditMemberNameCell
@@ -129,19 +150,22 @@ export default async function AdminMembersPage({
                         preferredName={p.preferred_name ?? null}
                         displayLabel={p.preferred_name || p.full_name || "-"}
                       />
-                      <td style={{ padding: "var(--space-sm)" }}>
+                      <td style={{ padding: "4px 6px" }}>
                         {emailByMemberId[p.id] ?? "-"}
                       </td>
-                      <td style={{ padding: "var(--space-sm)", textAlign: "right" }}>
+                      <td style={{ padding: "4px 6px", whiteSpace: "nowrap" }}>
+                        {createdStr}
+                      </td>
+                      <td style={{ padding: "4px 6px", textAlign: "right" }}>
                         {creditsByMember[p.id] ?? 0}
                       </td>
-                      <td style={{ padding: "var(--space-sm)", textAlign: "right" }}>
+                      <td style={{ padding: "4px 6px", textAlign: "right" }}>
                         {taskCountByMember[p.id] ?? 0}
                       </td>
-                      <td style={{ padding: "var(--space-sm)", textAlign: "right" }}>
+                      <td style={{ padding: "4px 6px", textAlign: "right" }}>
                         {avgRating ?? "-"}
                       </td>
-                      <td style={{ padding: "var(--space-sm)", textAlign: "right" }}>
+                      <td style={{ padding: "4px 6px", textAlign: "right" }}>
                         <DeleteMemberButton
                           memberId={p.id}
                           memberName={[p.preferred_name, p.full_name].filter(Boolean).join(" ") || "Member"}
@@ -155,6 +179,8 @@ export default async function AdminMembersPage({
             {totalPages > 1 && (() => {
               const q = new URLSearchParams();
               if (params.search) q.set("search", params.search);
+              if (params.created_from) q.set("created_from", params.created_from);
+              if (params.created_to) q.set("created_to", params.created_to);
               const prevPage = currentPage - 1;
               const nextPage = currentPage + 1;
               q.set("page", String(prevPage));
@@ -162,7 +188,7 @@ export default async function AdminMembersPage({
               q.set("page", String(nextPage));
               const nextHref = `?${q.toString()}`;
               return (
-                <div style={{ display: "flex", gap: "var(--space-md)", marginTop: "var(--space-md)", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: "var(--space-sm)", marginTop: "var(--space-sm)", alignItems: "center", fontSize: "0.85rem" }}>
                   <a
                     href={currentPage > 0 ? prevHref : "#"}
                     className="btn btn-secondary"

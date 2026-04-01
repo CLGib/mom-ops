@@ -19,6 +19,7 @@ const ADMIN_NAV_LINKS = [
   { href: "/admin/feature-bug", label: "Feature & Bug Log" },
   { href: "/admin/task-library", label: "Task Library" },
   { href: "/admin/email-macros", label: "Email Macros" },
+  { href: "/admin/landing-examples", label: "Landing examples" },
   { href: "/admin/va-training", label: "VA Training (SOPs)" },
   { href: "/toolbox", label: "VA Toolbox" },
   { href: "/admin/feedback", label: "Request a Feature & Report Bug" },

@@ -20,7 +20,7 @@ export default async function AdminVAProfilePage({
 
   const { data: vaProfile } = await supabase
     .from("va_profiles")
-    .select("user_id, display_name, profile_image_url, bio, specialties, work_requires_review")
+    .select("user_id, display_name, profile_image_url, bio, specialties, work_requires_review, payment_per_credit")
     .eq("user_id", vaId)
     .single();
 
@@ -37,6 +37,7 @@ export default async function AdminVAProfilePage({
     profile_image_url: vaProfile?.profile_image_url ?? null,
     bio: vaProfile?.bio ?? "",
     work_requires_review: vaProfile?.work_requires_review ?? true,
+    payment_per_credit: vaProfile?.payment_per_credit ?? 0.2,
   };
 
   return (

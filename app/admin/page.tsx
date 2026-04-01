@@ -6,6 +6,7 @@ import AdminTicketList from "./AdminTicketList";
 import AdjustCreditForm from "./AdjustCreditForm";
 import AdminClaimedTicketsList from "./AdminClaimedTicketsList";
 import AdminUnassignedTicketsList from "./AdminUnassignedTicketsList";
+import AdminReleasePendingTasksButton from "./AdminReleasePendingTasksButton";
 
 const CANCELLED_STATUSES = ["cancelled_by_va", "cancelled_by_admin"] as const;
 const isCancelled = (status: string) => CANCELLED_STATUSES.includes(status as (typeof CANCELLED_STATUSES)[number]);
@@ -115,6 +116,10 @@ export default async function AdminPage() {
       (t) => t.status === "new" && t.assigned_va_id == null
     );
 
+    const pendingAssignedCount = ticketList.filter(
+      (t) => t.assigned_va_id != null && !isCancelled(t.status) && t.status !== "completed" && t.status !== "closed"
+    ).length;
+
     const myClaimedTickets = ticketList.filter(
       (t) => t.assigned_va_id === user.id && !isCancelled(t.status)
     );
@@ -183,6 +188,7 @@ export default async function AdminPage() {
         />
         </section>
       )}
+      <AdminReleasePendingTasksButton pendingCount={pendingAssignedCount} />
       <section style={{ marginBottom: "var(--space-2xl)" }}>
         <h2 className="section-heading">Adjust credit balance</h2>
         <div className="card">

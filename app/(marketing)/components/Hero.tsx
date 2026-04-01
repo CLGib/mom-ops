@@ -1,27 +1,22 @@
-import CheckoutButton from "./CheckoutButton";
+import Link from "next/link";
 
 export default function Hero() {
   return (
     <section className="hero">
       <div className="container">
         <h1 className="hero-headline">
-          Your Personal Household Virtual Assistant (VA), without Hiring
-          Full-Time
+          Finally, a Virtual Assistant for Your To-Do List
         </h1>
         <p className="hero-subhead">
-          Household admin, handled by a real mom VA.
-          <br />
-          Clear timelines.
-          <br />
-          No hourly billing. No guesswork.
+          Mom Ops helps busy moms offload everyday tasks like planning birthday
+          parties, researching summer camps, grocery planning, and more.
         </p>
-        <p className="hero-price">
-          $29.95/month includes 35 Task Credits. Roll over up to 3 months. Add
-          more anytime.
-        </p>
-        <CheckoutButton className="btn btn-primary">
-          Get started
-        </CheckoutButton>
+        <Link
+          href="/signup?next=/member&offer=free_trial"
+          className="btn btn-primary"
+        >
+          Try Your First Task Free
+        </Link>
       </div>
     </section>
   );

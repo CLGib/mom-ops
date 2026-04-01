@@ -87,6 +87,9 @@ const TASK_CATEGORIES = [
   { title: "Organization & Admin", description: "Spreadsheets, comparison tables, polished communication." },
 ];
 
+/** On marketing we only show these categories in the task library to keep it simple and positive. */
+const MARKETING_TASK_LIBRARY_CATEGORIES = TASK_CATEGORIES.map((c) => c.title);
+
 const TOKEN_CARDS = [
   { label: "10 Task Credits", price: "$15" },
   { label: "30 Task Credits", price: "$39" },
@@ -109,6 +112,11 @@ export default async function Credits(props: CreditsProps) {
     const { getTaskLibrary, getCategories } = await import("@/lib/task-library");
     [tasks, categories] = await Promise.all([getTaskLibrary(), getCategories()]);
   }
+
+  // Limit to a few simple positive categories on marketing so the library isn't overwhelming
+  const allowedSet = new Set(MARKETING_TASK_LIBRARY_CATEGORIES);
+  tasks = tasks.filter((t) => allowedSet.has(t.category));
+  categories = MARKETING_TASK_LIBRARY_CATEGORIES.filter((c) => categories.includes(c));
 
   return (
     <section id="credits" className="section">

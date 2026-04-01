@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./landing.css";
-import { AirbrakeProvider } from "./components/AirbrakeProvider";
+import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { Hotjar } from "./components/Hotjar";
 import { MetaPixel } from "./components/MetaPixel";
 
@@ -38,7 +38,7 @@ export default function RootLayout({
       <body>
         {process.env.NODE_ENV === "production" && <Hotjar />}
         <MetaPixel />
-        <AirbrakeProvider>{children}</AirbrakeProvider>
+        <AppErrorBoundary>{children}</AppErrorBoundary>
       </body>
     </html>
   );

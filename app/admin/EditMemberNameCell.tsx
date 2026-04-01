@@ -60,7 +60,7 @@ export default function EditMemberNameCell({
 
   if (editing) {
     return (
-      <td style={{ padding: "var(--space-sm)", verticalAlign: "top" }}>
+      <td style={{ padding: "4px 6px", verticalAlign: "top" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-xs)" }}>
           <input
             type="text"
@@ -111,7 +111,7 @@ export default function EditMemberNameCell({
   }
 
   return (
-    <td style={{ padding: "var(--space-sm)" }}>
+    <td style={{ padding: "4px 6px" }}>
       <span style={{ marginRight: "var(--space-xs)" }}>{displayLabel}</span>
       <button
         type="button"

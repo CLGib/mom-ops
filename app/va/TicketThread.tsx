@@ -11,6 +11,20 @@ const MAX_FILES = 5;
 
 type EmailMacro = { id: string; name: string; body: string; category: string | null };
 type VaPeer = { id: string; display_name: string | null };
+const RECURRING_TASK_TEMPLATE = `Hi {{member-name}}! This is {{va-name}}.
+
+We are now offering recurring tasks, and I would love to set one up for you if helpful.
+
+For example, I can create your meal plan once a week on your preferred day.
+
+If you want this, reply with:
+- Preferred day (Monday, Friday, etc.)
+- Store preference (Publix, Costco, etc.)
+- Budget target
+- Foods you like
+- Foods you want to avoid
+
+Once I have that, I will set up your recurring task for you.`;
 
 type Props = {
   ticketId: string;
@@ -108,20 +122,25 @@ export default function TicketThread({
   }
 
   function openMacroDropdown() {
-    const el = editorRef.current;
-    if (el) {
-      const sel = window.getSelection();
-      if (sel && sel.rangeCount > 0 && el.contains(sel.anchorNode)) {
-        const range = sel.getRangeAt(0);
-        savedSelectionRef.current = {
-          anchorNode: range.startContainer,
-          anchorOffset: range.startOffset,
-          focusNode: range.endContainer,
-          focusOffset: range.endOffset,
-        };
-      } else savedSelectionRef.current = null;
-    }
+    captureSelectionInEditor();
     setMacroOpen((prev) => !prev);
+  }
+
+  function captureSelectionInEditor() {
+    const el = editorRef.current;
+    if (!el) return;
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && el.contains(sel.anchorNode)) {
+      const range = sel.getRangeAt(0);
+      savedSelectionRef.current = {
+        anchorNode: range.startContainer,
+        anchorOffset: range.startOffset,
+        focusNode: range.endContainer,
+        focusOffset: range.endOffset,
+      };
+      return;
+    }
+    savedSelectionRef.current = null;
   }
 
   function insertMacroBody(body: string) {
@@ -153,6 +172,19 @@ export default function TicketThread({
     }
     document.execCommand("insertText", false, filled);
     setMacroOpen(false);
+  }
+
+  function insertRecurringTemplate() {
+    const el = editorRef.current;
+    if (!el) return;
+    captureSelectionInEditor();
+    const hasDraft = (el.innerText ?? "").trim().length > 0;
+    const hadSelectionInEditor = !!savedSelectionRef.current;
+    if (hasDraft && !hadSelectionInEditor) {
+      insertMacroBody(`\n\n${RECURRING_TASK_TEMPLATE}`);
+      return;
+    }
+    insertMacroBody(RECURRING_TASK_TEMPLATE);
   }
 
   function openMentionDropdown() {
@@ -519,6 +551,17 @@ export default function TicketThread({
               </>
             )}
           </div>
+        )}
+        {isVa && (
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ padding: "var(--space-2xs) var(--space-sm)", fontSize: "0.875rem" }}
+            onClick={insertRecurringTemplate}
+            aria-label="Suggest recurring task"
+          >
+            Suggest recurring task
+          </button>
         )}
         {isVa && (
           <div style={{ position: "relative" }}>

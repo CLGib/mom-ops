@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { unstable_noStore } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { getTaskByFromTaskParam, getTaskLibrary } from "@/lib/task-library";
 import { fillTaskTemplate } from "@/lib/fill-task-template";
 import { getSuggestedTasks } from "@/lib/suggested-tasks";
@@ -13,13 +14,16 @@ import OnboardingBanner from "./OnboardingBanner";
 import ExploreTasksLibrary from "../components/ExploreTasksLibrary";
 import ReferralSection from "./ReferralSection";
 import ClearReferralCookieOnSuccess from "./ClearReferralCookieOnSuccess";
+import CheckoutButton from "../(marketing)/components/CheckoutButton";
+import { createTicket } from "./actions";
+import { getPostHogClient, shutdownPostHog } from "@/lib/posthog-server";
 
 export const dynamic = "force-dynamic";
 
 export default async function MemberPage({
   searchParams,
 }: {
-  searchParams: Promise<{ checkout?: string; subject?: string; requested_va_id?: string; from_review_id?: string; category?: string; from_specialist?: string; from_task?: string }>;
+  searchParams: Promise<{ checkout?: string; subject?: string; requested_va_id?: string; from_review_id?: string; category?: string; from_specialist?: string; from_task?: string; freetask_draft?: string; freetask_failed?: string }>;
 }) {
   unstable_noStore();
   const supabase = await createClient();
@@ -38,9 +42,80 @@ export default async function MemberPage({
 
   if (!user) redirect("/login?next=" + encodeURIComponent("/member"));
 
+  const freetaskDraftId = params.freetask_draft?.trim();
+  if (freetaskDraftId) {
+    const service = createServiceClient();
+    const { data: draft, error: draftErr } = await service
+      .from("freetask_drafts")
+      .select("id, email, subject, description, requested_va_id")
+      .eq("id", freetaskDraftId)
+      .single();
+
+    const draftEmail = draft?.email?.trim().toLowerCase();
+    const userEmail = user.email?.trim().toLowerCase();
+    const emailMatch = Boolean(draft && userEmail && draftEmail === userEmail);
+
+    if (draftErr || !draft) {
+      console.warn("[member] freetask_draft: draft not found or error", {
+        draftId: freetaskDraftId,
+        error: draftErr?.message,
+      });
+      redirect("/member?freetask_failed=1");
+    }
+
+    if (!emailMatch) {
+      console.warn("[member] freetask_draft: email mismatch", {
+        draftId: freetaskDraftId,
+        draftEmail: draftEmail ?? "(empty)",
+        userEmail: userEmail ?? "(empty)",
+      });
+      redirect("/member?freetask_failed=1");
+    }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token ?? undefined;
+
+    const result = await createTicket(
+      draft.subject,
+      draft.description ?? null,
+      accessToken,
+      draft.requested_va_id ?? null,
+      undefined,
+      undefined,
+      false,
+      undefined,
+      false
+    );
+
+    if (result.error) {
+      console.warn("[member] freetask_draft: createTicket failed", {
+        draftId: freetaskDraftId,
+        error: result.error,
+      });
+      redirect("/member?freetask_failed=1");
+    }
+
+    if (result.ticketId) {
+      await service.from("freetask_drafts").delete().eq("id", draft.id);
+      try {
+        const posthog = getPostHogClient();
+        posthog.capture({
+          distinctId: user.id,
+          event: "freetask_task_created",
+          properties: { ticket_id: result.ticketId },
+        });
+        await shutdownPostHog();
+      } catch {
+        // best-effort
+      }
+    }
+
+    redirect("/member");
+  }
+
   const { data: profile } = await supabase
     .from("profiles")
-    .select("subscription_status, onboarding_completed_at, preferred_name, full_name, city, state, timezone, partner_name, kids_count, kids_ages, household_members, diet_notes, custom_field_values, is_founding_member")
+    .select("subscription_status, onboarding_completed_at, preferred_name, full_name, city, state, timezone, partner_name, kids_count, kids_ages, household_members, diet_notes, custom_field_values, is_founding_member, is_free_trial")
     .eq("id", user.id)
     .single();
 
@@ -134,10 +209,35 @@ export default async function MemberPage({
         </p>
       )}
 
+      {params.freetask_failed === "1" && (
+        <p className="form-note" role="alert" style={{ marginBottom: "var(--space-md)", padding: "var(--space-sm) var(--space-md)", background: "var(--accent-soft-bg, #f8f5ed)", borderRadius: 6, borderLeft: "3px solid var(--accent, #b8860b)" }}>
+          We couldn&apos;t create your task from your signup link. Please submit it below.
+        </p>
+      )}
+
       {checkoutSuccess === false && params.checkout === "cancel" && (
         <p className="form-note" style={{ marginBottom: "var(--space-md)" }}>
           Checkout was canceled. You can reactivate anytime from this dashboard.
         </p>
+      )}
+
+      {profile?.is_free_trial && isActive && (
+        <p className="form-note" style={{ marginBottom: "var(--space-md)" }}>
+          You&apos;re on a free trial — your first task is free.
+        </p>
+      )}
+
+      {profile?.is_free_trial &&
+        profile?.subscription_status !== "active" &&
+        ((balance != null && (balance as number) < 10) || (memberTickets && memberTickets.length >= 1)) && (
+        <div className="card" style={{ marginBottom: "var(--space-lg)", borderColor: "var(--accent)" }}>
+          <p className="section-lead" style={{ marginBottom: "var(--space-sm)" }}>
+            You&apos;ve used most of your free trial credits. Subscribe for $29.95/month to get 35 Task Credits every month and keep going.
+          </p>
+          <CheckoutButton className="btn btn-primary">
+            Subscribe — $29.95/month
+          </CheckoutButton>
+        </div>
       )}
 
       {!isActive && (

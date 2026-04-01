@@ -2,6 +2,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { notifyVAsNewTask } from "@/lib/email/notify-vas-new-task";
 
 function supabaseFromToken(token: string) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -115,6 +116,19 @@ export async function createTicket(
         }
       }
     }
+    const { data: memberProfile } = await supabase
+      .from("profiles")
+      .select("is_free_trial")
+      .eq("id", user.id)
+      .single();
+    const isFreeTrialTask = memberProfile?.is_free_trial === true;
+
+    const { count: existingTicketCount } = await supabase
+      .from("tickets")
+      .select("id", { count: "exact", head: true })
+      .eq("member_id", user.id);
+    const isMemberFirstTask = (existingTicketCount ?? 0) === 0;
+
     const insertPayload: {
       member_id: string;
       subject: string;
@@ -126,6 +140,8 @@ export async function createTicket(
       created_from_review?: boolean;
       credit_cost?: number | null;
       no_rush?: boolean;
+      is_free_trial_task?: boolean;
+      is_member_first_task?: boolean;
     } = {
       member_id: user.id,
       subject,
@@ -148,6 +164,12 @@ export async function createTicket(
     if (noRush === true) {
       insertPayload.no_rush = true;
     }
+    if (isFreeTrialTask) {
+      insertPayload.is_free_trial_task = true;
+    }
+    if (isMemberFirstTask) {
+      insertPayload.is_member_first_task = true;
+    }
     const { data: ticket, error } = await supabase
       .from("tickets")
       .insert(insertPayload)
@@ -160,6 +182,11 @@ export async function createTicket(
     const id = ticket?.id;
     if (id == null) {
       return { error: "Failed to create task." };
+    }
+    try {
+      await notifyVAsNewTask(String(id));
+    } catch {
+      // best-effort: don't fail ticket creation if VA notify fails
     }
     return { ticketId: String(id) };
   } catch (err) {
@@ -470,6 +497,130 @@ export async function updateMemberPublicProfile(updates: {
     if (Object.hasOwn(payload, "avatar_url") && updated?.avatar_url) {
       await serverClient.rpc("maybe_grant_profile_photo_bonus", { p_member_id: user.id });
     }
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong." };
+  }
+}
+
+// ---- Recurring tasks ----
+
+export type RecurringTaskForm = {
+  task_library_id: string | null;
+  subject: string | null;
+  description_template: string | null;
+  schedule_type: "weekly";
+  day_of_week: number; // 0 = Sunday, 6 = Saturday
+  context_notes: string | null;
+  credit_cost: number | null;
+};
+
+export async function createRecurringTask(
+  form: RecurringTaskForm
+): Promise<{ id?: string; error?: string }> {
+  try {
+    const serverClient = await createServerClient();
+    const { data: { user } } = await serverClient.auth.getUser();
+    if (!user) return { error: "Not logged in." };
+
+    const subject = (form.subject ?? "").trim() || null;
+    const hasLibrary = form.task_library_id != null && form.task_library_id.trim() !== "";
+    if (!hasLibrary && !subject) return { error: "Choose a task from the library or enter a custom subject." };
+
+    const scheduleConfig = { day_of_week: form.day_of_week };
+    const insertPayload = {
+      member_id: user.id,
+      task_library_id: hasLibrary ? form.task_library_id!.trim() : null,
+      subject: hasLibrary ? null : subject,
+      description_template: (form.description_template ?? "").trim() || null,
+      schedule_type: "weekly",
+      schedule_config: scheduleConfig,
+      context_notes: (form.context_notes ?? "").trim() || null,
+      credit_cost: form.credit_cost != null && Number.isInteger(form.credit_cost) && form.credit_cost >= 0 ? form.credit_cost : null,
+      is_active: true,
+    };
+
+    const { data: row, error } = await serverClient
+      .from("member_recurring_tasks")
+      .insert(insertPayload)
+      .select("id")
+      .single();
+
+    if (error) return { error: error.message };
+    return { id: row?.id };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong." };
+  }
+}
+
+export async function updateRecurringTask(
+  id: string,
+  form: RecurringTaskForm
+): Promise<{ error?: string }> {
+  try {
+    const serverClient = await createServerClient();
+    const { data: { user } } = await serverClient.auth.getUser();
+    if (!user) return { error: "Not logged in." };
+
+    const subject = (form.subject ?? "").trim() || null;
+    const hasLibrary = form.task_library_id != null && form.task_library_id.trim() !== "";
+    if (!hasLibrary && !subject) return { error: "Choose a task from the library or enter a custom subject." };
+
+    const scheduleConfig = { day_of_week: form.day_of_week };
+    const updatePayload = {
+      task_library_id: hasLibrary ? form.task_library_id!.trim() : null,
+      subject: hasLibrary ? null : subject,
+      description_template: (form.description_template ?? "").trim() || null,
+      schedule_config: scheduleConfig,
+      context_notes: (form.context_notes ?? "").trim() || null,
+      credit_cost: form.credit_cost != null && Number.isInteger(form.credit_cost) && form.credit_cost >= 0 ? form.credit_cost : null,
+    };
+
+    const { error } = await serverClient
+      .from("member_recurring_tasks")
+      .update(updatePayload)
+      .eq("id", id)
+      .eq("member_id", user.id);
+
+    if (error) return { error: error.message };
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong." };
+  }
+}
+
+export async function deleteRecurringTask(id: string): Promise<{ error?: string }> {
+  try {
+    const serverClient = await createServerClient();
+    const { data: { user } } = await serverClient.auth.getUser();
+    if (!user) return { error: "Not logged in." };
+
+    const { error } = await serverClient
+      .from("member_recurring_tasks")
+      .delete()
+      .eq("id", id)
+      .eq("member_id", user.id);
+
+    if (error) return { error: error.message };
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong." };
+  }
+}
+
+export async function setRecurringTaskActive(id: string, isActive: boolean): Promise<{ error?: string }> {
+  try {
+    const serverClient = await createServerClient();
+    const { data: { user } } = await serverClient.auth.getUser();
+    if (!user) return { error: "Not logged in." };
+
+    const { error } = await serverClient
+      .from("member_recurring_tasks")
+      .update({ is_active: isActive })
+      .eq("id", id)
+      .eq("member_id", user.id);
+
+    if (error) return { error: error.message };
     return {};
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Something went wrong." };

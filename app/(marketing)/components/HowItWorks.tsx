@@ -12,7 +12,7 @@ const STEPS = [
   {
     num: "03",
     title: "We Assign a Mom Virtual Assistant",
-    body: "A real mom virtual assistant takes your task.\nStandard turnaround: 1 business day.\nYou can request the same VA when available.",
+    body: "A real mom virtual assistant takes your task.\nStandard turnaround: 1 business day.\nYou can request the same virtual assistant when available.",
   },
   {
     num: "04",
@@ -41,18 +41,6 @@ export default function HowItWorks() {
               )}
             </span>
           ))}
-        </div>
-        <div className="how-it-works-example transformation-block">
-          <p className="how-it-works-example-label">Real example</p>
-          <div className="transformation-single">
-            <img
-              src="/assets/example-request-deliverable.png"
-              alt="Your request: email with event details and tone for a piano recital flyer. Final deliverable: polished Melodies in May invitation with soft spring colors, ready to print or share."
-              width={900}
-              height={600}
-              className="transformation-single-image"
-            />
-          </div>
         </div>
       </div>
     </section>

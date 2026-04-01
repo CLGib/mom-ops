@@ -61,14 +61,14 @@ API routes and the login page are rate limited to prevent abuse. When `UPSTASH_R
 
 To enable production rate limiting, create a Redis database at [Upstash](https://console.upstash.com) and add the REST URL and token to your env.
 
-## Error monitoring (Airbrake)
+## Error monitoring
 
-Client-side errors are reported to [Airbrake](https://airbrake.io) when configured. In `.env.local` (or your host) set:
+Client-side errors are captured in [PostHog](https://posthog.com) with two layers:
 
-- `NEXT_PUBLIC_AIRBRAKE_PROJECT_ID` – project ID from Airbrake
-- `NEXT_PUBLIC_AIRBRAKE_PROJECT_KEY` – project key (write key) from Airbrake
+- global browser exception capture enabled in `instrumentation-client.ts`
+- app-level runtime error capture in `app/components/AppErrorBoundary.tsx`
 
-If these are unset, the notifier is not initialized (e.g. local dev). To report errors manually: `import { getAirbrake } from '@/lib/airbrake'` then `getAirbrake()?.notify(error)`.
+Unhandled or boundary-caught runtime errors are sent to PostHog automatically.
 
 ## Analytics dashboard (PostHog)
 

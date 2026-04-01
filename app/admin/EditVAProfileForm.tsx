@@ -13,6 +13,7 @@ type Props = {
     profile_image_url: string | null;
     bio: string;
     work_requires_review?: boolean;
+    payment_per_credit?: number;
   };
 };
 
@@ -21,6 +22,9 @@ export default function EditVAProfileForm({ vaId, initial }: Props) {
   const [displayName, setDisplayName] = useState(initial.display_name);
   const [bio, setBio] = useState(initial.bio);
   const [workRequiresReview, setWorkRequiresReview] = useState(initial.work_requires_review ?? true);
+  const [paymentPerCredit, setPaymentPerCredit] = useState(
+    initial.payment_per_credit != null ? String(initial.payment_per_credit) : "0.2"
+  );
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(initial.profile_image_url);
   const [error, setError] = useState<string | null>(null);
@@ -65,6 +69,10 @@ export default function EditVAProfileForm({ vaId, initial }: Props) {
       formData.set("display_name", trimmedName);
       formData.set("bio", bio.slice(0, MAX_BIO));
       formData.set("work_requires_review", workRequiresReview ? "true" : "false");
+      const paymentNum = parseFloat(paymentPerCredit);
+      if (!Number.isNaN(paymentNum) && paymentNum > 0) {
+        formData.set("payment_per_credit", String(paymentNum));
+      }
       if (avatarFile) formData.set("avatar", avatarFile);
 
       const res = await fetch("/api/admin/va-profile", {
@@ -144,6 +152,26 @@ export default function EditVAProfileForm({ vaId, initial }: Props) {
         </label>
         <p className="form-note" style={{ marginTop: "var(--space-2xs)" }}>
           When on, this VA&apos;s messages are hidden from the member until you approve them. Turn off for full-access VAs.
+        </p>
+      </div>
+
+      <div style={{ marginBottom: "var(--space-md)" }}>
+        <label htmlFor="va-payment-per-credit" className="form-label">
+          Payment per credit ($)
+        </label>
+        <input
+          id="va-payment-per-credit"
+          type="number"
+          min={0.01}
+          max={100}
+          step={0.01}
+          value={paymentPerCredit}
+          onChange={(e) => setPaymentPerCredit(e.target.value)}
+          className="form-input"
+          style={{ maxWidth: 120 }}
+        />
+        <p className="form-note" style={{ marginTop: "var(--space-2xs)" }}>
+          Amount paid to this VA per member credit (e.g. 0.2 = $0.20/credit). Default 0.2.
         </p>
       </div>
 

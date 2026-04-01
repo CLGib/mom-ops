@@ -2,7 +2,7 @@ const FAQ_ITEMS = [
   {
     question: "Is this a real human or AI?",
     answer:
-      "You get a 100% real human virtual assistant.\n\nWe use AI the same way you might use Google - as a tool to work smarter and faster. But you won't get generic, copy-pasted AI responses.\n\nThe difference? Real relationships.\n\nOver time, your VA learns how you think, what you prefer, and how you work. And your real human VA makes sure every final result actually reflects you.",
+      "You get a 100% real human virtual assistant.\n\nWe use AI the same way you might use Google - as a tool to work smarter and faster. But you won't get generic, copy-pasted AI responses.\n\nThe difference? Real relationships.\n\nOver time, your virtual assistant learns how you think, what you prefer, and how you work. And your real human virtual assistant makes sure every final result actually reflects you.",
   },
   {
     question: "Do I have to be a mom to use Mom Ops?",

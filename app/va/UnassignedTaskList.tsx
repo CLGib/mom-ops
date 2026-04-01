@@ -29,6 +29,8 @@ type Ticket = {
   created_at: string;
   requested_va_id: string | null;
   no_rush?: boolean;
+  is_free_trial_task?: boolean | null;
+  is_member_first_task?: boolean | null;
 };
 
 type Props = {
@@ -45,6 +47,34 @@ export default function UnassignedTaskList({ tickets, currentUserId, onboardingC
       {(t) => (
         <div className="ticket-item" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "var(--space-xs)" }}>
           <Link href={`/va/${t.id}`}>#{t.ticket_number ?? t.id.slice(0, 8)} {t.subject}</Link>
+          {t.is_free_trial_task && (
+            <span
+              style={{
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                padding: "0.125rem 0.5rem",
+                borderRadius: 4,
+                backgroundColor: "var(--color-error-bg, #fef2f2)",
+                color: "var(--color-error, #b91c1c)",
+              }}
+            >
+              Free trial
+            </span>
+          )}
+          {t.is_member_first_task && (
+            <span
+              style={{
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                padding: "0.125rem 0.5rem",
+                borderRadius: 4,
+                backgroundColor: "var(--color-info-bg, #eff6ff)",
+                color: "var(--color-info, #1d4ed8)",
+              }}
+            >
+              1st time user
+            </span>
+          )}
           {t.no_rush && isNoRushWithinWindow(t.created_at) && (
             <span
               style={{

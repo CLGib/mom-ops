@@ -9,29 +9,32 @@ export async function GET(request: Request) {
   const errorCode = requestUrl.searchParams.get("error_code");
   const error = requestUrl.searchParams.get("error");
 
-  // Supabase redirects here with error params when e.g. email change link expired or invalid
+  // Supabase redirects here with error params when e.g. link expired or invalid.
+  // Only treat as otp_expired when Supabase explicitly sends that code; other errors (e.g. "invalid
+  // request") can be transient or different issues.
   if (error || errorCode) {
-    const otpExpired = errorCode === "otp_expired" || /expired|invalid/i.test(error ?? "");
-    const loginError = otpExpired ? "otp_expired" : "auth_failed";
-    return NextResponse.redirect(new URL(`/login?error=${loginError}`, requestUrl.origin));
+    const loginError = errorCode === "otp_expired" ? "otp_expired" : "auth_failed";
+    const redirectUrl = new URL("/login", requestUrl.origin);
+    redirectUrl.searchParams.set("error", loginError);
+    if (next && next !== "/") redirectUrl.searchParams.set("next", next);
+    return NextResponse.redirect(redirectUrl);
   }
 
-  // No code: Supabase may have sent tokens in the URL hash (e.g. recovery links). Hash is only
-  // visible client-side, so send a page that preserves the hash and lets the client handle it.
+  // No code: Supabase may have sent tokens in the URL hash (magic link / recovery). Hash is only
+  // visible client-side, so serve a page that reads the hash, completes auth, and redirects to next.
   if (!code) {
     const nextPath = requestUrl.searchParams.get("next") ?? "/";
-    // Only allow recovery flow to /reset-password (allowlist to avoid injection / open redirect)
+    const safeNext = nextPath.startsWith("/") ? nextPath : `/${nextPath}`;
     const allowedNext = "/reset-password";
     const isResetPassword = nextPath === allowedNext || nextPath === `${allowedNext}/`;
-    if (isResetPassword) {
-      const recoveryUrl = "/auth/recovery?next=" + encodeURIComponent(allowedNext);
-      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Redirecting…</title></head><body><p>Redirecting…</p><script>window.location.replace("${recoveryUrl}" + window.location.hash);</script></body></html>`;
-      return new NextResponse(html, {
-        status: 200,
-        headers: { "Content-Type": "text/html; charset=utf-8" },
-      });
-    }
-    return NextResponse.redirect(new URL("/login?error=missing_code", requestUrl.origin));
+    const recoveryNext = isResetPassword ? allowedNext : safeNext;
+    // Client page will read hash, set session, then redirect to recoveryNext
+    const recoveryUrl = `/auth/recovery?next=${encodeURIComponent(recoveryNext)}`;
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Signing you in…</title></head><body><p>Signing you in…</p><script>window.location.replace("${recoveryUrl}" + window.location.hash);</script></body></html>`;
+    return new NextResponse(html, {
+      status: 200,
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
   }
 
   const cookieStore = await cookies();

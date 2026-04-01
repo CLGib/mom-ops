@@ -29,6 +29,7 @@ export async function POST(req: Request) {
   const bioRaw = formData.get("bio") as string | null;
   const avatar = formData.get("avatar") as File | null;
   const workRequiresReviewRaw = formData.get("work_requires_review") as string | null;
+  const paymentPerCreditRaw = formData.get("payment_per_credit") as string | null;
 
   if (!vaId) {
     return NextResponse.json({ error: "vaId is required" }, { status: 400 });
@@ -97,6 +98,14 @@ export async function POST(req: Request) {
     profileImageUrl = existing.profile_image_url;
   }
 
+  let payment_per_credit: number | undefined;
+  if (paymentPerCreditRaw != null && paymentPerCreditRaw !== "") {
+    const parsed = parseFloat(paymentPerCreditRaw);
+    if (!Number.isNaN(parsed) && parsed > 0 && parsed <= 100) {
+      payment_per_credit = parsed;
+    }
+  }
+
   const upsertPayload: {
     user_id: string;
     display_name: string;
@@ -104,6 +113,7 @@ export async function POST(req: Request) {
     profile_image_url: string | null;
     updated_at: string;
     work_requires_review?: boolean;
+    payment_per_credit?: number;
   } = {
     user_id: vaId,
     display_name,
@@ -112,6 +122,7 @@ export async function POST(req: Request) {
     updated_at: new Date().toISOString(),
   };
   if (workRequiresReview !== null) upsertPayload.work_requires_review = workRequiresReview;
+  if (payment_per_credit !== undefined) upsertPayload.payment_per_credit = payment_per_credit;
   const { error: upsertError } = await supabase.from("va_profiles").upsert(upsertPayload, {
     onConflict: "user_id",
   });
@@ -133,19 +144,23 @@ export async function PATCH(req: Request) {
   const roleRes = await supabase.from("user_roles").select("role").eq("user_id", user.id).single();
   if (roleRes.data?.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  let body: { vaId?: string; work_requires_review?: boolean; training_complete?: boolean };
+  let body: { vaId?: string; work_requires_review?: boolean; training_complete?: boolean; payment_per_credit?: number };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
-  const { vaId, work_requires_review, training_complete } = body;
+  const { vaId, work_requires_review, training_complete, payment_per_credit } = body;
   if (!vaId) {
     return NextResponse.json({ error: "vaId is required" }, { status: 400 });
   }
-  if (typeof work_requires_review !== "boolean" && typeof training_complete !== "boolean") {
+  const hasUpdate =
+    typeof work_requires_review === "boolean" ||
+    typeof training_complete === "boolean" ||
+    (typeof payment_per_credit === "number" && payment_per_credit > 0 && payment_per_credit <= 100);
+  if (!hasUpdate) {
     return NextResponse.json(
-      { error: "At least one of work_requires_review (boolean) or training_complete (boolean) is required" },
+      { error: "At least one of work_requires_review (boolean), training_complete (boolean), or payment_per_credit (number 0-100) is required" },
       { status: 400 }
     );
   }
@@ -160,11 +175,19 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "vaId must be a user with VA role" }, { status: 400 });
   }
 
-  const updates: { work_requires_review?: boolean; training_complete?: boolean; updated_at: string } = {
+  const updates: {
+    work_requires_review?: boolean;
+    training_complete?: boolean;
+    payment_per_credit?: number;
+    updated_at: string;
+  } = {
     updated_at: new Date().toISOString(),
   };
   if (typeof work_requires_review === "boolean") updates.work_requires_review = work_requires_review;
   if (typeof training_complete === "boolean") updates.training_complete = training_complete;
+  if (typeof payment_per_credit === "number" && payment_per_credit > 0 && payment_per_credit <= 100) {
+    updates.payment_per_credit = payment_per_credit;
+  }
 
   const { error } = await supabase.from("va_profiles").update(updates).eq("user_id", vaId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
