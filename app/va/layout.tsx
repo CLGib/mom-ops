@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 function getVaNavLinks(inboxBadgeCount: number) {
   return [
     { group: "Work" as const, href: "/va/tasks", label: "Tasks", badge: inboxBadgeCount > 0 ? inboxBadgeCount : undefined },
+    { group: "Work" as const, href: "/va/outreach", label: "Check-ins" },
     { group: "Resources" as const, href: "/va/explore-tasks", label: "Search Tasks" },
     { group: "Resources" as const, href: "/va/canva-links", label: "Canva links" },
     { group: "Resources" as const, href: "/va/email-macros", label: "Macros" },

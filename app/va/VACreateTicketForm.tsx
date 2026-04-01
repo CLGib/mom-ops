@@ -22,16 +22,21 @@ export default function VACreateTicketForm({
   taskLibrary = [],
   defaultMemberId,
   lockMember = false,
+  initialSubject = "",
+  initialDescription = "",
 }: {
   members: MemberOption[];
   taskLibrary?: TaskLibraryEntry[];
   defaultMemberId?: string;
   lockMember?: boolean;
+  /** When form remounts (e.g. outreach check-in), prefill subject. */
+  initialSubject?: string;
+  initialDescription?: string;
 }) {
   const router = useRouter();
   const [memberId, setMemberId] = useState(defaultMemberId ?? "");
-  const [subject, setSubject] = useState("");
-  const [description, setDescription] = useState("");
+  const [subject, setSubject] = useState(initialSubject);
+  const [description, setDescription] = useState(initialDescription);
   const [creditCost, setCreditCost] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);

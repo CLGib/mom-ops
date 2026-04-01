@@ -147,7 +147,13 @@ export default async function VATasksPage() {
       <section style={{ marginBottom: "var(--space-2xl)" }}>
         <h2 className="section-heading">Claim more tasks</h2>
         {(unassigned ?? []).length === 0 ? (
-          <p className="form-note">No unassigned tasks right now.</p>
+          <p className="form-note">
+            No unassigned tasks right now.{" "}
+            <Link href="/va/outreach" className="link">
+              See members to check in
+            </Link>
+            .
+          </p>
         ) : (
           <UnassignedTaskList
             tickets={unassigned ?? []}
