@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
 import { queueEmail } from "@/lib/email/queue";
+import { notifyVaMemberReplied } from "@/lib/email/notify-va-member-replied";
 
 const BUCKET = "task-attachments";
 
@@ -206,6 +207,20 @@ export async function POST(request: NextRequest) {
           .from("tickets")
           .update({ status: "reopened" })
           .eq("id", existingTicket.id);
+      }
+
+      try {
+        const replyBody =
+          (emailData.html && String(emailData.html).trim()) ||
+          (emailData.text && String(emailData.text).trim()) ||
+          messageBody;
+        await notifyVaMemberReplied({
+          ticketId: existingTicket.id,
+          messageId: newMessage.id,
+          messageBody: replyBody,
+        });
+      } catch (e) {
+        console.warn("[inbound-email] notifyVaMemberReplied failed:", e);
       }
 
       return NextResponse.json({ ok: true, ticket_id: existingTicket.id, reply: true });

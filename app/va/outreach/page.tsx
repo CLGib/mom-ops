@@ -2,11 +2,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getTaskLibrary } from "@/lib/task-library";
+import { VA_STALE_CHECKIN_DAYS } from "@/lib/va/recurring-outreach";
 import VAOutreachClient from "./VAOutreachClient";
 
 export const dynamic = "force-dynamic";
-
-const STALE_DAYS = 14;
 const STALE_LIMIT = 50;
 
 export default async function VAOutreachPage() {
@@ -25,7 +24,7 @@ export default async function VAOutreachPage() {
   if (!vaProfile.training_complete) redirect("/va/training");
 
   const { data: staleRows, error: staleError } = await supabase.rpc("va_get_stale_members", {
-    p_days: STALE_DAYS,
+    p_days: VA_STALE_CHECKIN_DAYS,
     p_limit: STALE_LIMIT,
   });
 
@@ -51,7 +50,8 @@ export default async function VAOutreachPage() {
       <h1 className="page-title">Check-ins</h1>
       <p className="form-note" style={{ marginBottom: "var(--space-md)", maxWidth: "42rem" }}>
         When there are no unassigned tasks, use this list to reach out to members who have been quiet (no ticket activity in the last{" "}
-        {STALE_DAYS} days, or no tasks yet). Create a check-in task to message them in the thread, then personalize before sending.
+        {VA_STALE_CHECKIN_DAYS} days, or no tasks yet). Use View profile on each row for saved details, onboarding, and recent tasks to tailor
+        suggestions—then create a check-in task to message them in the thread and personalize before sending.
       </p>
       <p className="form-note" style={{ marginBottom: "var(--space-lg)" }}>
         <Link href="/va/tasks" className="link">

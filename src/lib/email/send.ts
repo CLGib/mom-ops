@@ -330,6 +330,27 @@ function getTemplate(
         `.trim(),
       };
     },
+    va_member_replied_v1: () => {
+      const { shortLabel, subjectSuffix } = getTaskLabel(payload);
+      const vaTaskLink =
+        typeof payload.ticket_id === "string"
+          ? `${SITE_URL}/va/${payload.ticket_id}`
+          : `${SITE_URL}/va/tasks`;
+      const messageBody =
+        typeof payload.message_body === "string" && payload.message_body.trim()
+          ? sanitizeMessageBody(payload.message_body.trim())
+          : "";
+      return {
+        subject: `Member replied${subjectSuffix}`,
+        html: `
+          <p>A member replied on a task you're assigned to.</p>
+          <p><strong>${shortLabel === "your task" ? "Task" : escapeHtml(shortLabel)}</strong></p>
+          ${messageBody ? `<div style="margin: 1rem 0; padding: 0.75rem; background: #f5f5f5; border-radius: 4px;">${messageBody}</div>` : ""}
+          <p><a href="${vaTaskLink}">Open task</a></p>
+          <p>- Mom Ops</p>
+        `.trim(),
+      };
+    },
     new_message_v1: () => {
       const messageBody = typeof payload.message_body === "string" && payload.message_body.trim()
         ? sanitizeMessageBody(payload.message_body.trim())

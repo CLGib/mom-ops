@@ -205,7 +205,9 @@ export default function VAOnboardingContent() {
           </p>
           <ul style={{ listStyle: "disc", paddingLeft: "1.5rem", marginBottom: "var(--space-md)" }}>
             <li><strong>On a task page:</strong> Use the &quot;Insert macro&quot; button in the reply box to insert a pre-written snippet at the cursor. You can then edit it to fit the member and the task.</li>
-            <li><strong>Recurring outreach:</strong> Use <strong>Suggest recurring task</strong> in the reply toolbar when a member could benefit from weekly help (meal plans, routines, planning). Personalize the prompt and collect day, store, budget, and preference details in one message.</li>
+            <li>
+              <strong>Recurring outreach:</strong> Use <strong>Suggest recurring task</strong> in the reply toolbar when a member could benefit from weekly help (meal plans, routines, planning). The starter text is the same for everyone—personalize it using their profile. After you send it, use the <strong>Recurring outreach (team log)</strong> on the check-in profile or member context page so other VAs don&apos;t repeat the same pitch.
+            </li>
             <li>
               <strong>Email Macro Library:</strong> Open{" "}
               <Link href="/va/email-macros" className="link">Email Macros</Link>

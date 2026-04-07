@@ -2,6 +2,8 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatInCentral } from "@/lib/format-date";
+import { parseRecurringOutreachEvents } from "@/lib/va/recurring-outreach";
+import RecurringOutreachTeamLog from "../../RecurringOutreachTeamLog";
 import { getStatusLabel } from "@/lib/ticket-status";
 import { getAgeFromBirthday, deriveKidsDisplay } from "@/lib/age-from-birthday";
 import VAProfileEditForm from "./VAProfileEditForm";
@@ -61,6 +63,9 @@ export default async function VAMemberContextPage({
       .order("key", { ascending: true }),
   ]);
   const memberContext = Array.isArray(memberContextRows) && memberContextRows.length > 0 ? memberContextRows[0] : null;
+  const recurringEvents = parseRecurringOutreachEvents(
+    (memberContext as { recurring_outreach_events?: unknown } | null)?.recurring_outreach_events
+  );
   const customFieldDefinitions = (customFieldDefs ?? []).map((d) => ({
     id: d.id,
     key: d.key ?? "",
@@ -100,6 +105,10 @@ export default async function VAMemberContextPage({
       <p className="form-note" style={{ marginBottom: "var(--space-md)" }}>
         Profile, quiz results, and survey responses (email not shown).
       </p>
+
+      {ticket.member_id && (
+        <RecurringOutreachTeamLog memberId={ticket.member_id} ticketId={id} initialEvents={recurringEvents} />
+      )}
 
       {!hasAny && (
         <p className="form-note">No member context available for this task.</p>

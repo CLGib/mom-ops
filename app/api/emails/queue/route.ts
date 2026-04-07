@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { queueEmail } from "@/lib/email/queue";
+import { notifyVaMemberReplied } from "@/lib/email/notify-va-member-replied";
 
 function getServiceSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -15,6 +16,7 @@ const ALLOWED_TEMPLATES = [
   "task_submitted_v1",
   "new_message_v1",
   "va_claimed_v1",
+  "va_member_replied_v1",
 ] as const;
 
 export async function POST(request: NextRequest) {
@@ -144,6 +146,43 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    return NextResponse.json({ ok: true });
+  }
+
+  if (template === "va_member_replied_v1") {
+    const messageId = payload.message_id;
+    const ticketId = payload.ticket_id;
+    if (typeof messageId !== "string" || typeof ticketId !== "string") {
+      return NextResponse.json(
+        { error: "message_id and ticket_id required" },
+        { status: 400 }
+      );
+    }
+    const { data: ticket } = await service
+      .from("tickets")
+      .select("member_id")
+      .eq("id", ticketId)
+      .single();
+    if (!ticket || ticket.member_id !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    const { data: msg } = await service
+      .from("ticket_messages")
+      .select("sender_id, internal, sender_role")
+      .eq("id", messageId)
+      .eq("ticket_id", ticketId)
+      .single();
+    if (!msg || msg.internal === true) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    if (msg.sender_id !== user.id || msg.sender_role !== "member") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    await notifyVaMemberReplied({
+      ticketId,
+      messageId,
+      messageBody: typeof payload.message_body === "string" ? payload.message_body : "",
+    });
     return NextResponse.json({ ok: true });
   }
 

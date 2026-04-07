@@ -107,6 +107,26 @@ export default function TicketThread({
       has_attachments: files.length > 0,
       attachment_count: files.length,
     });
+    if (
+      senderRole === "member" &&
+      inserted?.id &&
+      !(canSendInternalNote && internalNote)
+    ) {
+      fetch("/api/emails/queue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          template: "va_member_replied_v1",
+          payload: {
+            message_id: inserted.id,
+            ticket_id: ticketId,
+            message_body: text ? html : "",
+          },
+          dedupe_key: `va_member_replied:${inserted.id}`,
+        }),
+      }).catch(() => {});
+    }
     if (editorRef.current) editorRef.current.innerHTML = "";
     setFiles([]);
     setSubmitting(false);

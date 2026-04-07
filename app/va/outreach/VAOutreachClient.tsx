@@ -68,6 +68,13 @@ export default function VAOutreachClient({ staleRows, members, taskLibrary, load
                         Open last ticket
                       </Link>
                     )}
+                    <Link
+                      href={`/va/outreach/member/${row.member_id}`}
+                      className="btn btn-secondary"
+                      style={{ fontSize: "0.875rem" }}
+                    >
+                      View profile
+                    </Link>
                     <button
                       type="button"
                       className={expanded ? "btn btn-primary" : "btn btn-secondary"}
