@@ -25,7 +25,7 @@ const FAQ_ITEMS = [
       "Most members use them for one or two deeper projects, or several smaller tasks. Credits are based on complexity, not hours.",
   },
   {
-    question: "What happens if I am not sure what to hand over first?",
+    question: "What if I am not sure what to hand over first?",
     answer:
       "That is normal. Onboarding helps you find the highest-impact area so your first week creates real momentum.",
   },
@@ -75,17 +75,17 @@ export default async function PeakWelcomePage() {
     redirect("/member");
   }
 
-  const primaryHref = "/member/onboarding";
-  const primaryLabel = "Start onboarding";
-  const secondaryHref = "/member";
-  const secondaryLabel = "Go to My Ops Hub";
+  const primaryHref = user ? "/member/onboarding" : "/login?next=%2Fwelcome";
+  const primaryLabel = user ? "Start onboarding" : "Log in to get started";
+  const secondaryHref = user ? "/member" : "/signup?next=%2Fwelcome";
+  const secondaryLabel = user ? "Go to My Ops Hub" : "Create account";
 
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
         <div className={styles.lockup}>
           <span className={styles.lockupBrand}>Mom Ops</span>
-          <span className={styles.lockupX}>x</span>
+          <span className={styles.lockupX}>×</span>
           <span className={styles.lockupBrandPbi}>PBI Peak</span>
         </div>
 
@@ -143,7 +143,7 @@ export default async function PeakWelcomePage() {
           the capacity to actually live it.
         </blockquote>
         <p className={styles.statementAttribution}>
-          The Mom Ops x PBI Peak Partnership
+          The Mom Ops × PBI Peak Partnership
         </p>
       </section>
 
@@ -187,7 +187,7 @@ export default async function PeakWelcomePage() {
       <footer className={styles.footer}>
         <div className={styles.footerLockup}>
           <span>Mom Ops</span>
-          <span className={styles.footerLockupX}>x</span>
+          <span className={styles.footerLockupX}>×</span>
           <span>PBI Peak</span>
         </div>
         <p className={styles.footerNote}>

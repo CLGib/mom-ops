@@ -109,7 +109,9 @@ export async function POST(request: NextRequest) {
   const { data: linkData } = await serviceSupabase.auth.admin.generateLink({
     type: "magiclink",
     email,
-    options: { redirectTo: `${siteUrl}/welcome` },
+    options: {
+      redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent("/welcome")}`,
+    },
   });
   const magicLink = linkData?.properties?.action_link as string | undefined;
   if (!magicLink) {

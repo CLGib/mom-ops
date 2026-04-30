@@ -432,11 +432,13 @@ function getTemplate(
       return {
         subject: "Your invite to the Mom Ops + PBI partnership",
         html: `
-          <p>Your invite to the Mom Ops + PBI partnership is ready.</p>
-          <p>You&apos;ll start with ${credits} credits.</p>
-          <p><a href="${link}">Click here to activate</a></p>
-          <p>This link signs you in automatically and takes you to your welcome page.</p>
-          <p>We're on it.</p>
+          <p>Welcome to Mom Ops. Your Peak membership now includes ${credits} credits per month, starting today.</p>
+          <p>Here is what you need to do.</p>
+          <p>Start onboarding: <a href="${link}">/welcome</a></p>
+          <p>It takes about 10 minutes. We use it to learn where the mental load is heaviest right now so we can put your first credits where they create the most relief.</p>
+          <p>What happens after that - you start handing things off, and you feel it within the first day.</p>
+          <p>A few things to know upfront. Credits are based on complexity, not hours, so you can spend them on a deep multi-step project or a handful of smaller asks. Most members start with kids logistics, travel planning, or whatever research has been sitting half-finished for weeks. There is no wrong place to start.</p>
+          <p>If you want more support in a heavy month, you can buy additional credits any time.</p>
           <p>- Mom Ops</p>
         `.trim(),
       };

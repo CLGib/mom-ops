@@ -59,19 +59,16 @@ export async function GET(request: Request) {
   const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
   if (exchangeError) {
     console.warn("[auth/callback] exchangeCodeForSession:", exchangeError.message);
-    // Recovery flow: code exchange often fails when the link is opened in a different browser (no
-    // code_verifier). Supabase may still have sent tokens in the URL hash; serve a page that lets
-    // the client use the hash.
+    // Code exchange can fail when links are opened in a different browser (missing code_verifier).
+    // In that case, Supabase may still provide tokens in the URL hash; let the client recover.
     const isResetPassword = next === "/reset-password" || next === "/reset-password/";
-    if (isResetPassword) {
-      const recoveryUrl = "/auth/recovery?next=" + encodeURIComponent("/reset-password");
-      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Redirecting…</title></head><body><p>Redirecting…</p><script>window.location.replace("${recoveryUrl}" + window.location.hash);</script></body></html>`;
-      return new NextResponse(html, {
-        status: 200,
-        headers: { "Content-Type": "text/html; charset=utf-8" },
-      });
-    }
-    return NextResponse.redirect(new URL("/login?error=auth_failed", requestUrl.origin));
+    const recoveryNext = isResetPassword ? "/reset-password" : next;
+    const recoveryUrl = "/auth/recovery?next=" + encodeURIComponent(recoveryNext);
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Redirecting…</title></head><body><p>Redirecting…</p><script>window.location.replace("${recoveryUrl}" + window.location.hash);</script></body></html>`;
+    return new NextResponse(html, {
+      status: 200,
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
   }
 
   // Redirect to next only if it's a safe path: no protocol-relative (//), no backslash, no scheme (e.g. javascript:)
