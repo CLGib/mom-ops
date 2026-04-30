@@ -447,9 +447,9 @@ function getTemplate(
           <p>A few things to know upfront. Credits are based on complexity, not hours, so you can spend them on a deep multi-step project or a handful of smaller asks. Most members start with kids logistics, travel planning, or whatever research has been sitting half-finished for weeks. There is no wrong place to start.</p>
           <p style="margin-bottom: 8px;">What 35 credits can look like:</p>
           <ul style="margin-top: 0; padding-left: 18px; line-height: 1.6;">
-            <li><strong>Meal planning:</strong> A month of weekly plans with grocery coordination.</li>
-            <li><strong>Summer camp research:</strong> Vetted options with a clear recommendation.</li>
-            <li><strong>Vacation planning:</strong> Itinerary support, reservations, and packing lists.</li>
+            <li><strong>Meal planning (~15-30 credits/task):</strong> Weekly plans with grocery coordination.</li>
+            <li><strong>Summer camp research (~12-54 credits/task):</strong> Vetted options with a clear recommendation.</li>
+            <li><strong>Vacation planning (~24-30 credits/task):</strong> Itinerary support, reservations, and packing lists.</li>
           </ul>
           <p>If you want more support in a heavy month, you can buy additional credits any time.</p>
           <p>- Mom Ops</p>

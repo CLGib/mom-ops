@@ -19,11 +19,11 @@ const LOAD_AREAS = [
 ] as const;
 
 const CREDIT_EXAMPLES = [
-  "A month of weekly meal planning with grocery coordination.",
-  "Summer camp research with vetted options and a clear recommendation.",
-  "Travel planning for a family trip with bookings and logistics organized.",
-  "Vacation planning with itinerary support, reservations, and packing lists.",
-  "Gift and occasion planning handled ahead of deadlines.",
+  "A month of weekly meal planning with grocery coordination (~15-30 credits per task).",
+  "Summer camp research with vetted options and a clear recommendation (~12-54 credits per task).",
+  "Travel planning for a family trip with bookings and logistics organized (~24-30 credits per task).",
+  "Vacation planning with itinerary support, reservations, and packing lists (~24-30 credits per task).",
+  "Gift and occasion planning handled ahead of deadlines (~12-42 credits per task).",
 ] as const;
 
 const FAQ_ITEMS = [
