@@ -125,6 +125,25 @@
   color: var(--text-muted, #5c5955);
 }
 
+.creditExamples {
+  margin-bottom: 2.25rem;
+}
+
+.creditExamplesList {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.65rem;
+}
+
+.creditExampleItem {
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border, #e6e2da);
+  background: var(--color-bg, #fff);
+  color: var(--text-muted, #5c5955);
+}
+
 .lift {
   margin-bottom: 2.5rem;
 }

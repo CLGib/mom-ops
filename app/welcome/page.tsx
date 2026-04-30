@@ -18,6 +18,14 @@ const LOAD_AREAS = [
   { title: "Research", body: "Decisions made faster with clear, trusted recommendations." },
 ] as const;
 
+const CREDIT_EXAMPLES = [
+  "A month of weekly meal planning with grocery coordination.",
+  "Summer camp research with vetted options and a clear recommendation.",
+  "Travel planning for a family trip with bookings and logistics organized.",
+  "Vacation planning with itinerary support, reservations, and packing lists.",
+  "Gift and occasion planning handled ahead of deadlines.",
+] as const;
+
 const FAQ_ITEMS = [
   {
     question: "What can I actually use 35 credits for?",
@@ -120,6 +128,17 @@ export default async function PeakWelcomePage() {
             Yours to spend on planning, research, scheduling, and coordination.
             Real human support, context-driven, designed to close open loops.
           </p>
+        </div>
+      </section>
+
+      <section className={styles.creditExamples}>
+        <p className={styles.sectionEyebrow}>What 35 credits can look like</p>
+        <div className={styles.creditExamplesList}>
+          {CREDIT_EXAMPLES.map((example) => (
+            <p key={example} className={styles.creditExampleItem}>
+              {example}
+            </p>
+          ))}
         </div>
       </section>
 

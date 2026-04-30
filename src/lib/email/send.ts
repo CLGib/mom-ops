@@ -434,10 +434,23 @@ function getTemplate(
         html: `
           <p>Welcome to Mom Ops. Your Peak membership now includes ${credits} credits per month, starting today.</p>
           <p>Here is what you need to do.</p>
-          <p>Start onboarding: <a href="${link}">/welcome</a></p>
+          <p style="margin: 16px 0;">
+            <a
+              href="${link}"
+              style="display: inline-block; background: #111111; color: #ffffff; text-decoration: none; padding: 10px 16px; border-radius: 8px; font-weight: 600;"
+            >
+              Start onboarding
+            </a>
+          </p>
           <p>It takes about 10 minutes. We use it to learn where the mental load is heaviest right now so we can put your first credits where they create the most relief.</p>
           <p>What happens after that - you start handing things off, and you feel it within the first day.</p>
           <p>A few things to know upfront. Credits are based on complexity, not hours, so you can spend them on a deep multi-step project or a handful of smaller asks. Most members start with kids logistics, travel planning, or whatever research has been sitting half-finished for weeks. There is no wrong place to start.</p>
+          <p style="margin-bottom: 8px;">What 35 credits can look like:</p>
+          <ul style="margin-top: 0; padding-left: 18px; line-height: 1.6;">
+            <li><strong>Meal planning:</strong> A month of weekly plans with grocery coordination.</li>
+            <li><strong>Summer camp research:</strong> Vetted options with a clear recommendation.</li>
+            <li><strong>Vacation planning:</strong> Itinerary support, reservations, and packing lists.</li>
+          </ul>
           <p>If you want more support in a heavy month, you can buy additional credits any time.</p>
           <p>- Mom Ops</p>
         `.trim(),
