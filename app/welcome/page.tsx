@@ -102,11 +102,6 @@ export default async function PeakWelcomePage() {
           <em className={styles.heroTitleEm}> lifted.</em>
         </h1>
 
-        <p className={styles.heroSub}>
-          A partnership built for Peak members, because the bottleneck is
-          almost never strategy. It is capacity.
-        </p>
-
         <div className={styles.heroFlourish} aria-hidden="true">
           <span className={styles.heroFlourishLine} />
           <span className={styles.heroFlourishDot} />
@@ -154,16 +149,6 @@ export default async function PeakWelcomePage() {
             </article>
           ))}
         </div>
-      </section>
-
-      <section className={styles.statement}>
-        <blockquote className={styles.statementQuote}>
-          PBI gives you the strategy to grow your business. Mom Ops gives you
-          the capacity to actually live it.
-        </blockquote>
-        <p className={styles.statementAttribution}>
-          The Mom Ops × PBI Peak Partnership
-        </p>
       </section>
 
       <section className={styles.faq}>
