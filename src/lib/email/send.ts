@@ -430,10 +430,12 @@ function getTemplate(
       const link = typeof payload.magic_link === "string" ? payload.magic_link : memberDashboard;
       const credits = typeof payload.credits === "number" ? payload.credits : 35;
       return {
-        subject: "You're invited to Mom Ops",
+        subject: "Your invite to the Mom Ops + PBI partnership",
         html: `
-          <p>You've been invited to Mom Ops. You'll start with ${credits} task credits.</p>
-          <p><a href="${link}">Access your dashboard</a></p>
+          <p>Your invite to the Mom Ops + PBI partnership is ready.</p>
+          <p>You&apos;ll start with ${credits} credits.</p>
+          <p><a href="${link}">Click here to activate</a></p>
+          <p>This link signs you in automatically and takes you to your welcome page.</p>
           <p>We're on it.</p>
           <p>- Mom Ops</p>
         `.trim(),

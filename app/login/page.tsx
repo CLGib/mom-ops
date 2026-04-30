@@ -15,6 +15,7 @@ function dashboardForRole(role: Role): string {
 }
 
 function roleCanAccessPath(role: Role, path: string): boolean {
+  if (path.startsWith("/welcome")) return true;
   if (path.startsWith("/member")) return role === "member" || role === "admin";
   if (path.startsWith("/va")) return role === "va" || role === "admin";
   if (path.startsWith("/admin")) return role === "admin" || role === "director";

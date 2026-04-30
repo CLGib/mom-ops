@@ -58,7 +58,7 @@ export default function OnboardingBanner() {
       }}
     >
       <p style={{ marginBottom: "var(--space-sm)", fontWeight: 500 }}>
-        Want us to work faster for you? Take a 60-second setup survey (optional).
+        Help us use your 35 monthly credits where they create the most clarity. Take a 60-second setup survey (optional).
       </p>
       <div style={{ display: "flex", gap: "var(--space-sm)", flexWrap: "wrap" }}>
         <a

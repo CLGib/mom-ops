@@ -5,7 +5,8 @@ import { cookies } from "next/headers";
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const next = requestUrl.searchParams.get("next") ?? "/";
+  const rawNext = (requestUrl.searchParams.get("next") ?? "/").trim();
+  const next = rawNext.startsWith("/") ? rawNext : `/${rawNext}`;
   const errorCode = requestUrl.searchParams.get("error_code");
   const error = requestUrl.searchParams.get("error");
 
@@ -23,7 +24,7 @@ export async function GET(request: Request) {
   // No code: Supabase may have sent tokens in the URL hash (magic link / recovery). Hash is only
   // visible client-side, so serve a page that reads the hash, completes auth, and redirects to next.
   if (!code) {
-    const nextPath = requestUrl.searchParams.get("next") ?? "/";
+    const nextPath = (requestUrl.searchParams.get("next") ?? "/").trim();
     const safeNext = nextPath.startsWith("/") ? nextPath : `/${nextPath}`;
     const allowedNext = "/reset-password";
     const isResetPassword = nextPath === allowedNext || nextPath === `${allowedNext}/`;

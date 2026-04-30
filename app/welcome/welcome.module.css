@@ -1,0 +1,312 @@
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 3rem 1.25rem 4rem;
+  color: var(--color-text, #1f1f1f);
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted, #6a6864);
+  margin-bottom: 1.25rem;
+}
+
+.lockupBrand {
+  font-weight: 700;
+}
+
+.lockupX {
+  opacity: 0.7;
+}
+
+.lockupBrandPbi {
+  font-weight: 700;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.1;
+}
+
+.heroTitleEm {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--accent, #b8860b);
+}
+
+.heroSub {
+  max-width: 680px;
+  margin: 1rem auto 0;
+  color: var(--text-muted, #5c5955);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.heroFlourish {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.heroFlourishLine {
+  width: 48px;
+  height: 1px;
+  background: var(--color-border, #dbd7d0);
+}
+
+.heroFlourishDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent, #b8860b);
+}
+
+.creditFeature {
+  margin-bottom: 2.25rem;
+}
+
+.creditCard {
+  border: 1px solid var(--color-border, #e6e2da);
+  border-radius: 14px;
+  padding: 1.25rem;
+  background: var(--accent-soft-bg, #f8f5ed);
+}
+
+.creditEyebrow {
+  margin: 0;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #5c5955);
+}
+
+.creditNumberRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.creditNumber {
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  line-height: 1;
+  font-weight: 700;
+  color: var(--accent, #b8860b);
+}
+
+.creditDetail {
+  display: grid;
+  gap: 0.05rem;
+}
+
+.creditDetailTop {
+  font-weight: 600;
+}
+
+.creditDetailBottom {
+  color: var(--text-muted, #5c5955);
+}
+
+.creditNote {
+  margin: 0.75rem 0 0;
+  line-height: 1.6;
+  color: var(--text-muted, #5c5955);
+}
+
+.lift {
+  margin-bottom: 2.5rem;
+}
+
+.sectionEyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.8rem;
+  color: var(--text-muted, #5c5955);
+}
+
+.sectionTitle {
+  margin: 0.4rem 0 1rem;
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  line-height: 1.25;
+}
+
+.liftGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.liftItem {
+  border: 1px solid var(--color-border, #e6e2da);
+  border-radius: 10px;
+  padding: 1rem;
+  background: var(--color-bg, #fff);
+}
+
+.liftIndex {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: var(--accent, #b8860b);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4rem;
+}
+
+.liftItemTitle {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.liftItemBody {
+  margin: 0.45rem 0 0;
+  color: var(--text-muted, #5c5955);
+  line-height: 1.55;
+}
+
+.statement {
+  margin-bottom: 2.5rem;
+  padding: 1.25rem;
+  border-left: 3px solid var(--accent, #b8860b);
+  background: var(--accent-soft-bg, #f8f5ed);
+  border-radius: 8px;
+}
+
+.statementQuote {
+  margin: 0;
+  font-size: 1.2rem;
+  line-height: 1.45;
+}
+
+.statementAttribution {
+  margin: 0.65rem 0 0;
+  color: var(--text-muted, #5c5955);
+  font-size: 0.9rem;
+}
+
+.faq {
+  margin-bottom: 2.5rem;
+}
+
+.faqList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.faqItem {
+  border: 1px solid var(--color-border, #e6e2da);
+  border-radius: 10px;
+  padding: 0.8rem 0.95rem;
+  background: var(--color-bg, #fff);
+}
+
+.faqQuestion {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.faqAnswer {
+  margin: 0.55rem 0 0;
+  color: var(--text-muted, #5c5955);
+  line-height: 1.55;
+}
+
+.cta {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  padding: 1.5rem 1rem;
+  border: 1px solid var(--color-border, #e6e2da);
+  border-radius: 12px;
+}
+
+.ctaTitle {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.ctaSub {
+  margin: 0.65rem auto 0;
+  max-width: 650px;
+  color: var(--text-muted, #5c5955);
+}
+
+.ctaButtons {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.btnPrimary,
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 0.6rem 0.95rem;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.btnPrimary {
+  background: var(--accent, #b8860b);
+  color: #fff;
+}
+
+.btnSecondary {
+  border: 1px solid var(--color-border, #d8d3ca);
+  color: inherit;
+}
+
+.ctaLink {
+  margin-top: 0.9rem;
+  display: inline-block;
+  color: var(--accent, #b8860b);
+  text-decoration: none;
+}
+
+.footer {
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--color-border, #e6e2da);
+  text-align: center;
+}
+
+.footerLockup {
+  display: inline-flex;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.footerLockupX {
+  opacity: 0.7;
+}
+
+.footerNote {
+  margin: 0.6rem 0 0;
+  color: var(--text-muted, #5c5955);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding-top: 2rem;
+  }
+
+  .liftGrid {
+    grid-template-columns: 1fr;
+  }
+}

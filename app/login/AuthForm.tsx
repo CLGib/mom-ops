@@ -28,6 +28,7 @@ export default function AuthForm({ defaultMode, signupCopy = false }: AuthFormPr
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/";
   const isCheckoutIntent = next.includes("checkout=1");
+  const isWelcomeInviteFlow = next === "/welcome";
   const roleNotSet = searchParams.get("error") === "role_not_set";
   const otpExpired = searchParams.get("error") === "otp_expired";
 
@@ -190,6 +191,12 @@ export default function AuthForm({ defaultMode, signupCopy = false }: AuthFormPr
           {signupCopy
             ? "We'll send you a link to create your account. No password needed."
             : "No account? We'll send you a link to sign in or create one."}
+        </p>
+      )}
+
+      {isWelcomeInviteFlow && (
+        <p className="form-note" role="status" style={{ marginBottom: "var(--space-sm)" }}>
+          This partnership welcome page is invite-only. Use your activation email to continue.
         </p>
       )}
 

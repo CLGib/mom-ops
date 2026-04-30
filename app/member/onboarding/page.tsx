@@ -34,9 +34,9 @@ export default async function MemberOnboardingPage() {
 
   return (
     <main className="app-shell">
-      <h1 className="page-title">Quick setup (optional)</h1>
+      <h1 className="page-title">Peak + Mom Ops setup (optional)</h1>
       <p className="form-note" style={{ marginBottom: "var(--space-lg)" }}>
-        <Link href="/member" className="link">Skip for now</Link>. You can always complete this later from your profile.
+        <Link href="/member" className="link">Skip for now</Link>. This helps us close the highest-impact open loops first.
       </p>
       <div className="card">
         <OnboardingSurvey

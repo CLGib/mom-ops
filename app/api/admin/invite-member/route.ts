@@ -88,6 +88,16 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
+  try {
+    await serviceSupabase.auth.admin.updateUserById(newUser.user.id, {
+      app_metadata: {
+        ...(newUser.user.app_metadata ?? {}),
+        pbi_peak_invited: true,
+      },
+    });
+  } catch (metaErr) {
+    console.warn("[invite-member] failed to set pbi_peak_invited app metadata", metaErr);
+  }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   if (!siteUrl) {
@@ -99,7 +109,7 @@ export async function POST(request: NextRequest) {
   const { data: linkData } = await serviceSupabase.auth.admin.generateLink({
     type: "magiclink",
     email,
-    options: { redirectTo: `${siteUrl}/member` },
+    options: { redirectTo: `${siteUrl}/welcome` },
   });
   const magicLink = linkData?.properties?.action_link as string | undefined;
   if (!magicLink) {
@@ -150,7 +160,7 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    message: "Invite sent. They will receive an email with a link to access their dashboard. Once they sign in, they will have the seeded credits (no subscription required).",
+    message: "Invite sent. They will receive an activation email that signs them in and sends them to the partnership welcome page.",
     userId: newUser.user.id,
   });
 }
