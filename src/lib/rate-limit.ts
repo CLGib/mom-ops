@@ -247,6 +247,8 @@ export const RATE_LIMITS = {
   vaTemplateGenerator: { limit: 10, windowSeconds: 60 },
   /** VA mock-up generator (OpenAI image API) */
   vaMockupGenerator: { limit: 10, windowSeconds: 60 },
+  /** VA book illustration generator */
+  vaBookIllustrationGenerator: { limit: 10, windowSeconds: 60 },
   /** VA toolbox AI branding assistant (docx/sheet branding) */
   vaBrandingAssistant: { limit: 10, windowSeconds: 60 },
   /** VA application quiz submission (public, unauthenticated) */

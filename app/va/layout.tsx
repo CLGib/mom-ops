@@ -16,6 +16,7 @@ function getVaNavLinks(inboxBadgeCount: number) {
     { group: "Resources" as const, href: "/toolbox/templates", label: "Template Generator" },
     { group: "Resources" as const, href: "/toolbox/branding", label: "Branding Assistant" },
     { group: "Resources" as const, href: "/toolbox/mockup", label: "Mock-Up Generator" },
+    { group: "Resources" as const, href: "/toolbox/book-illustration", label: "Book Illustration Generator" },
     { group: "Resources" as const, href: "/toolbox#how-to-videos", label: "How to videos" },
     { group: "Resources" as const, href: "/va/onboarding", label: "Onboarding" },
     { group: "Resources" as const, href: "/va/training", label: "Training" },
