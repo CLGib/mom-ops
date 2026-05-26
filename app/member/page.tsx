@@ -4,17 +4,15 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getTaskByFromTaskParam, getTaskLibrary } from "@/lib/task-library";
-import { fillTaskTemplate } from "@/lib/fill-task-template";
 import { getSuggestedTasks } from "@/lib/suggested-tasks";
 import { getStatusLabel } from "@/lib/ticket-status";
 import Link from "next/link";
-import CreateTicketForm from "./CreateTicketForm";
 import ReactivateButton from "./ReactivateButton";
 import OnboardingBanner from "./OnboardingBanner";
-import ExploreTasksLibrary from "../components/ExploreTasksLibrary";
 import ReferralSection from "./ReferralSection";
 import ClearReferralCookieOnSuccess from "./ClearReferralCookieOnSuccess";
 import CheckoutButton from "../(marketing)/components/CheckoutButton";
+import HomeHelperGrid from "./HomeHelperGrid";
 import { createTicket } from "./actions";
 import { getPostHogClient, shutdownPostHog } from "@/lib/posthog-server";
 
@@ -23,7 +21,17 @@ export const dynamic = "force-dynamic";
 export default async function MemberPage({
   searchParams,
 }: {
-  searchParams: Promise<{ checkout?: string; subject?: string; requested_va_id?: string; from_review_id?: string; category?: string; from_specialist?: string; from_task?: string; freetask_draft?: string; freetask_failed?: string }>;
+  searchParams: Promise<{
+    checkout?: string;
+    subject?: string;
+    requested_va_id?: string;
+    from_review_id?: string;
+    category?: string;
+    from_specialist?: string;
+    from_task?: string;
+    freetask_draft?: string;
+    freetask_failed?: string;
+  }>;
 }) {
   unstable_noStore();
   const supabase = await createClient();
@@ -33,15 +41,11 @@ export default async function MemberPage({
   const params = await searchParams;
   const checkoutSuccess = params.checkout === "success";
   const creditsSuccess = params.checkout === "credits_success";
-  const fromReviewSubject = params.subject ?? undefined;
-  const fromReviewVaId = params.requested_va_id ?? undefined;
-  const fromReviewId = params.from_review_id ?? undefined;
-  const fromReviewCategory = params.category ?? undefined;
-  const fromSpecialistProfile = params.from_specialist === "1";
-  const fromTask = params.from_task != null ? await getTaskByFromTaskParam(params.from_task) : null;
 
   if (!user) redirect("/login?next=" + encodeURIComponent("/member"));
 
+  // ── Back-compat: freetask-draft → ticket on signup return ────────────
+  // Preserved exactly. Lands users from the /freetask funnel.
   const freetaskDraftId = params.freetask_draft?.trim();
   if (freetaskDraftId) {
     const service = createServiceClient();
@@ -55,20 +59,7 @@ export default async function MemberPage({
     const userEmail = user.email?.trim().toLowerCase();
     const emailMatch = Boolean(draft && userEmail && draftEmail === userEmail);
 
-    if (draftErr || !draft) {
-      console.warn("[member] freetask_draft: draft not found or error", {
-        draftId: freetaskDraftId,
-        error: draftErr?.message,
-      });
-      redirect("/member?freetask_failed=1");
-    }
-
-    if (!emailMatch) {
-      console.warn("[member] freetask_draft: email mismatch", {
-        draftId: freetaskDraftId,
-        draftEmail: draftEmail ?? "(empty)",
-        userEmail: userEmail ?? "(empty)",
-      });
+    if (draftErr || !draft || !emailMatch) {
       redirect("/member?freetask_failed=1");
     }
 
@@ -84,14 +75,10 @@ export default async function MemberPage({
       undefined,
       false,
       undefined,
-      false
+      false,
     );
 
     if (result.error) {
-      console.warn("[member] freetask_draft: createTicket failed", {
-        draftId: freetaskDraftId,
-        error: result.error,
-      });
       redirect("/member?freetask_failed=1");
     }
 
@@ -113,16 +100,25 @@ export default async function MemberPage({
     redirect("/member");
   }
 
+  // ── Back-compat: legacy ?from_task=… deep link ───────────────────────
+  // Old library links would arrive here. Route them straight to the
+  // one-click helper flow on /member/helpers instead of falling through
+  // to a ticket-creation form (which no longer lives on this page).
+  const fromTaskParam = params.from_task?.trim();
+  if (fromTaskParam) {
+    const helper = await getTaskByFromTaskParam(fromTaskParam);
+    if (helper) {
+      redirect(`/member/helpers?helper=${encodeURIComponent(helper.id)}`);
+    }
+  }
+
   const { data: profile } = await supabase
     .from("profiles")
-    .select("subscription_status, onboarding_completed_at, preferred_name, full_name, city, state, timezone, partner_name, kids_count, kids_ages, household_members, diet_notes, custom_field_values, is_founding_member, is_free_trial")
+    .select(
+      "subscription_status, onboarding_completed_at, preferred_name, full_name, city, state, timezone, partner_name, kids_count, kids_ages, household_members, diet_notes, custom_field_values, is_founding_member, is_free_trial",
+    )
     .eq("id", user.id)
     .single();
-
-  const initialDescription =
-    fromTask?.template && profile
-      ? fillTaskTemplate(fromTask.template, profile)
-      : fromTask?.template;
 
   const { data: balance } = await supabase.rpc("get_member_balance", {
     p_member_id: user.id,
@@ -130,187 +126,184 @@ export default async function MemberPage({
 
   const { data: memberTickets } = await supabase
     .from("tickets")
-    .select("id, subject, status, created_at")
+    .select("id, subject, status, created_at, helper_id, completed_at, category")
     .eq("member_id", user.id)
     .order("created_at", { ascending: false });
 
   const { data: pastTicketsWithSubject } = await supabase
     .from("tickets")
-    .select("assigned_va_id, subject, completed_at, category")
+    .select("subject, completed_at, category")
     .eq("member_id", user.id)
-    .not("assigned_va_id", "is", null)
     .in("status", ["completed", "closed"])
     .order("completed_at", { ascending: false });
-  const pastVaIdsOrdered = (pastTicketsWithSubject ?? [])
-    .map((t) => t.assigned_va_id!)
-    .filter(Boolean);
-  const pastVaIds = [...new Set(pastVaIdsOrdered)];
-  const subjectByVaId = new Map<string, string>();
-  for (const t of pastTicketsWithSubject ?? []) {
-    if (t.assigned_va_id && !subjectByVaId.has(t.assigned_va_id)) {
-      subjectByVaId.set(t.assigned_va_id, (t.subject && String(t.subject).trim()) || "previous task");
-    }
-  }
-  const pastVas: { id: string; label: string; imageUrl?: string | null }[] = pastVaIds.map((vaId) => ({
-    id: vaId,
-    label: `Same specialist as "${subjectByVaId.get(vaId) ?? "previous task"}"`,
-    imageUrl: null,
-  }));
 
   const taskLibrary = await getTaskLibrary();
-  const categories = [...new Set(taskLibrary.map((t) => t.category))].sort();
   const pastTicketsForSuggestions = (pastTicketsWithSubject ?? []).map((t) => ({
     category: t.category ?? null,
     subject: t.subject ?? null,
   }));
-  const suggestedTasks = getSuggestedTasks(profile ?? null, pastTicketsForSuggestions, taskLibrary, { limit: 8 });
-
-  let fromReviewVaName: string | null = null;
-  let requestedVaUnavailable = false;
-  if (fromReviewVaId?.trim()) {
-    const { data: vaProfile } = await supabase
-      .from("va_profiles")
-      .select("display_name, onboarding_complete")
-      .eq("user_id", fromReviewVaId.trim())
-      .single();
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("preferred_name, full_name")
-      .eq("id", fromReviewVaId.trim())
-      .single();
-    fromReviewVaName =
-      (vaProfile?.display_name ?? profile?.preferred_name ?? profile?.full_name)?.trim() ?? null;
-    requestedVaUnavailable = vaProfile?.onboarding_complete === false;
-  }
+  const suggestedHelpers = getSuggestedTasks(
+    profile ?? null,
+    pastTicketsForSuggestions,
+    taskLibrary,
+    { limit: 6 },
+  );
 
   const isActive =
     profile?.subscription_status === "active" || (balance != null && (balance as number) > 0);
 
   const showOnboardingBanner = profile?.onboarding_completed_at == null;
 
+  const memberFirst = profile?.preferred_name?.trim() || profile?.full_name?.trim()?.split(" ")[0] || null;
+  const greetingName = memberFirst ?? "there";
+
+  // Partition tickets into active vs. recently completed.
+  const HIDDEN_STATUSES = new Set([
+    "cancelled_by_va",
+    "cancelled_by_admin",
+  ]);
+  const ACTIVE_STATUSES = new Set([
+    "new",
+    "assigned",
+    "in_progress",
+    "awaiting_member_approval",
+    "waiting_on_member",
+    "reopened",
+  ]);
+  const COMPLETED_STATUSES = new Set(["completed", "closed"]);
+  const allTickets = (memberTickets ?? []).filter(
+    (t) => !HIDDEN_STATUSES.has(t.status),
+  );
+  const activeHelpers = allTickets.filter((t) => ACTIVE_STATUSES.has(t.status));
+  const recentlyCompleted = allTickets
+    .filter((t) => COMPLETED_STATUSES.has(t.status))
+    .slice(0, 3);
+
+  function displayHelperName(subject: string | null): string {
+    const s = (subject ?? "").trim();
+    if (!s) return "Helper";
+    if (s.toLowerCase().startsWith("helper:")) return s.replace(/^helper:\s*/i, "").trim() || "Helper";
+    return s;
+  }
+
   return (
     <main className="app-shell">
       <Suspense fallback={null}>
         <ClearReferralCookieOnSuccess />
       </Suspense>
-      <h1 className="page-title">My Ops Hub</h1>
+
+      <h1 className="page-title">Welcome back, {greetingName}.</h1>
 
       {showOnboardingBanner && <OnboardingBanner />}
 
       {checkoutSuccess && isActive && (
-        <p className="auth-success-message" role="status" style={{ marginBottom: "var(--space-md)" }}>
-          Thanks for subscribing. You have 35 Task Credits for this month.
+        <p
+          className="auth-success-message"
+          role="status"
+          style={{ marginBottom: "var(--space-md)" }}
+        >
+          Thanks for subscribing. You have unlimited Mom Ops access.
         </p>
       )}
 
       {creditsSuccess && (
-        <p className="auth-success-message" role="status" style={{ marginBottom: "var(--space-md)" }}>
+        <p
+          className="auth-success-message"
+          role="status"
+          style={{ marginBottom: "var(--space-md)" }}
+        >
           Your credits have been added to your balance.
         </p>
       )}
 
       {params.freetask_failed === "1" && (
-        <p className="form-note" role="alert" style={{ marginBottom: "var(--space-md)", padding: "var(--space-sm) var(--space-md)", background: "var(--accent-soft-bg, #f8f5ed)", borderRadius: 6, borderLeft: "3px solid var(--accent, #b8860b)" }}>
-          We couldn&apos;t create your task from your signup link. Please submit it below.
-        </p>
-      )}
-
-      {checkoutSuccess === false && params.checkout === "cancel" && (
-        <p className="form-note" style={{ marginBottom: "var(--space-md)" }}>
-          Checkout was canceled. You can reactivate anytime from this dashboard.
+        <p
+          className="form-note"
+          role="alert"
+          style={{
+            marginBottom: "var(--space-md)",
+            padding: "var(--space-sm) var(--space-md)",
+            background: "var(--accent-soft-bg, #f8f5ed)",
+            borderRadius: 6,
+            borderLeft: "3px solid var(--accent, #b8860b)",
+          }}
+        >
+          We couldn&apos;t bring in your helper from your signup link. Browse
+          the library below to try again.
         </p>
       )}
 
       {profile?.is_free_trial && isActive && (
         <p className="form-note" style={{ marginBottom: "var(--space-md)" }}>
-          You&apos;re on a free trial — your first task is free.
+          You&apos;re on a free trial — bring in your first helper on us.
         </p>
       )}
 
       {profile?.is_free_trial &&
         profile?.subscription_status !== "active" &&
-        ((balance != null && (balance as number) < 10) || (memberTickets && memberTickets.length >= 1)) && (
-        <div className="card" style={{ marginBottom: "var(--space-lg)", borderColor: "var(--accent)" }}>
-          <p className="section-lead" style={{ marginBottom: "var(--space-sm)" }}>
-            You&apos;ve used most of your free trial credits. Subscribe for $29.95/month to get 35 Task Credits every month and keep going.
-          </p>
-          <CheckoutButton className="btn btn-primary">
-            Subscribe — $29.95/month
-          </CheckoutButton>
-        </div>
-      )}
+        ((balance != null && (balance as number) < 10) ||
+          (memberTickets && memberTickets.length >= 1)) && (
+          <div
+            className="card"
+            style={{
+              marginBottom: "var(--space-lg)",
+              borderColor: "var(--accent)",
+            }}
+          >
+            <p
+              className="section-lead"
+              style={{ marginBottom: "var(--space-sm)" }}
+            >
+              You&apos;ve used your free trial. Subscribe for $29.95/month to
+              keep bringing in helpers — unlimited access, cancel anytime.
+            </p>
+            <CheckoutButton className="btn btn-primary">
+              Subscribe — $29.95/month
+            </CheckoutButton>
+          </div>
+        )}
 
       {!isActive && (
-        <div className="card" style={{ marginBottom: "var(--space-lg)", borderColor: "var(--color-border)" }}>
+        <div
+          className="card"
+          style={{
+            marginBottom: "var(--space-lg)",
+            borderColor: "var(--color-border)",
+          }}
+        >
           <p className="section-lead" style={{ marginBottom: "var(--space-sm)" }}>
             {profile?.is_founding_member
-              ? "Your subscription is not active. Reactivate at your founder price ($15.95/month) to submit tasks and use your credits."
-              : "Your subscription is not active. Reactivate to submit tasks and use your credits."}
+              ? "Your subscription is not active. Reactivate at your founder price ($15.95/month) to bring in helpers."
+              : "Your subscription is not active. Reactivate to bring in helpers."}
           </p>
-          <ReactivateButton isFoundingMember={profile?.is_founding_member === true} />
+          <ReactivateButton
+            isFoundingMember={profile?.is_founding_member === true}
+          />
         </div>
       )}
 
-      <p className="member-credits-line" title={isActive ? `Credit Balance: ${balance ?? 0} · Purchase more credits` : undefined}>
-        Credit Balance: <strong>{balance ?? 0}</strong>
-        {isActive && (
-          <>
-            {" · "}
-            <a href="/member/credits" className="link">Purchase more credits</a>
-          </>
-        )}
-      </p>
-
-      <section id="your-tasks" style={{ marginBottom: "var(--space-2xl)" }}>
-        <h2 className="section-heading" style={{ marginBottom: "var(--space-sm)" }}>Your tasks</h2>
-        <MemberTasksPreview tickets={memberTickets ?? []} />
-      </section>
-
-      <section id="submit" style={{ marginBottom: "var(--space-2xl)" }}>
-        <h2 className="section-heading" style={{ marginBottom: "var(--space-sm)" }}>Submit a task</h2>
-        <div className="card member-submit-card">
-          {isActive ? (
-            <>
-              <CreateTicketForm
-                memberId={user.id}
-                aiEnabled={!!process.env.ANTHROPIC_API_KEY}
-                pastVas={pastVas}
-                initialSubject={fromTask?.task ?? fromReviewSubject}
-                initialDescription={initialDescription}
-                initialRequestedVaId={fromReviewVaId}
-                initialCategory={fromTask?.category ?? fromReviewCategory}
-                fromReviewId={fromReviewId}
-                fromReviewVaName={fromReviewVaName}
-                fromSpecialistProfile={fromSpecialistProfile}
-                requestedVaUnavailable={requestedVaUnavailable}
-              />
-              {(process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL || true) && (
-                <p className="form-note" style={{ marginTop: "var(--space-md)" }}>
-                  You can also email your task to{" "}
-                  <a
-                    href={`mailto:${process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL || "task@in.themomops.com"}`}
-                    className="link"
-                    style={{ fontWeight: 500 }}
-                  >
-                    {process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL || "task@in.themomops.com"}
-                  </a>{" "}
-                  (or forward an email to that address). Maybe add this email to your contacts too.
-                </p>
-              )}
-            </>
-          ) : (
-            <p className="form-note">
-              Reactivate your subscription above to submit tasks.
-            </p>
-          )}
-        </div>
-      </section>
-
-      {isActive && suggestedTasks.length > 0 && (
-        <section id="suggested-for-you" style={{ marginBottom: "var(--space-2xl)" }}>
-          <h2 className="section-heading" style={{ marginBottom: "var(--space-sm)" }}>Suggested for you</h2>
-          <ul style={{ listStyle: "none", padding: 0, margin: 0, maxWidth: 720 }}>
-            {suggestedTasks.map((t) => (
+      {/* ── Active helpers ──────────────────────────────────────────── */}
+      <section
+        id="active-helpers"
+        style={{ marginBottom: "var(--space-2xl)" }}
+      >
+        <h2
+          className="section-heading"
+          style={{ marginBottom: "var(--space-sm)" }}
+        >
+          Your active helpers
+        </h2>
+        {activeHelpers.length === 0 ? (
+          <p className="form-note">
+            Nothing in motion right now.{" "}
+            <Link href="/member/helpers" className="link">
+              Browse helpers
+            </Link>{" "}
+            and bring one in.
+          </p>
+        ) : (
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {activeHelpers.slice(0, 5).map((t) => (
               <li
                 key={t.id}
                 style={{
@@ -321,57 +314,195 @@ export default async function MemberPage({
                   backgroundColor: "var(--color-bg, #fff)",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "var(--space-md)", flexWrap: "wrap" }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "var(--space-md)",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div>
                     <span
                       style={{
                         fontSize: "0.75rem",
                         color: "var(--text-muted, #5c5955)",
-                        display: "block",
-                        marginBottom: "var(--space-2xs)",
+                        marginRight: "var(--space-sm)",
                       }}
                     >
-                      {t.category}
+                      {getStatusLabel(t.status)}
                     </span>
-                    <strong style={{ fontSize: "1rem" }}>{t.task}</strong>
+                    <strong>{displayHelperName(t.subject)}</strong>
+                  </div>
+                  <Link href={`/member/${t.id}`} className="btn btn-primary">
+                    View
+                  </Link>
+                </div>
+              </li>
+            ))}
+            {activeHelpers.length > 5 && (
+              <p style={{ marginTop: "var(--space-sm)", marginBottom: 0 }}>
+                <Link href="/member/pending" className="link">
+                  View all {activeHelpers.length} active
+                </Link>
+              </p>
+            )}
+          </ul>
+        )}
+      </section>
+
+      {/* ── Recently completed ──────────────────────────────────────── */}
+      {recentlyCompleted.length > 0 && (
+        <section
+          id="recently-completed"
+          style={{ marginBottom: "var(--space-2xl)" }}
+        >
+          <h2
+            className="section-heading"
+            style={{ marginBottom: "var(--space-sm)" }}
+          >
+            Recently completed
+          </h2>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {recentlyCompleted.map((t) => (
+              <li
+                key={t.id}
+                style={{
+                  padding: "var(--space-md)",
+                  marginBottom: "var(--space-sm)",
+                  border: "1px solid var(--color-border, #e5e5e5)",
+                  borderRadius: "var(--radius, 6px)",
+                  backgroundColor: "var(--color-bg, #fff)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "var(--space-md)",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div>
                     <span
                       style={{
-                        marginLeft: "var(--space-sm)",
-                        fontSize: "0.875rem",
-                        color: "var(--accent, #b8860b)",
-                        fontWeight: 600,
+                        fontSize: "0.75rem",
+                        color: "var(--text-muted, #5c5955)",
+                        marginRight: "var(--space-sm)",
                       }}
                     >
-                      ~{t.credits} credit{t.credits !== 1 ? "s" : ""}
+                      Done
                     </span>
+                    <strong>{displayHelperName(t.subject)}</strong>
                   </div>
-                  <Link
-                    href={`/member?from_task=${t.id}#submit`}
-                    className="btn btn-primary"
-                    style={{ flexShrink: 0 }}
-                  >
-                    Create task
+                  <Link href={`/member/${t.id}`} className="btn btn-secondary">
+                    View
                   </Link>
                 </div>
               </li>
             ))}
           </ul>
+          <p style={{ marginTop: "var(--space-sm)", marginBottom: 0 }}>
+            <Link href="/member/completed" className="link">
+              See all completed
+            </Link>
+          </p>
         </section>
       )}
 
+      {/* ── Suggested helpers (one-click) ───────────────────────────── */}
+      {isActive && suggestedHelpers.length > 0 && (
+        <section
+          id="suggested-helpers"
+          style={{ marginBottom: "var(--space-2xl)" }}
+        >
+          <h2
+            className="section-heading"
+            style={{ marginBottom: "var(--space-sm)" }}
+          >
+            Suggested helpers
+          </h2>
+          <p
+            className="form-note"
+            style={{ marginBottom: "var(--space-md)" }}
+          >
+            One click brings them in. We&apos;ll email you back within 24
+            hours.
+          </p>
+          <HomeHelperGrid helpers={suggestedHelpers} />
+        </section>
+      )}
+
+      {/* ── Browse all helpers CTA ──────────────────────────────────── */}
       {isActive && (
-        <section id="explore-tasks" style={{ marginBottom: "var(--space-2xl)" }}>
-          <h2 className="section-heading" style={{ marginBottom: "var(--space-sm)" }}>Explore tasks</h2>
-          <ExploreTasksLibrary tasks={taskLibrary} categories={categories} mode="member" />
+        <section
+          id="browse-all"
+          style={{ marginBottom: "var(--space-2xl)" }}
+        >
+          <Link
+            href="/member/helpers"
+            className="card"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "var(--space-md)",
+              padding: "var(--space-lg) var(--space-xl)",
+              textDecoration: "none",
+              color: "inherit",
+              background: "var(--accent-soft-bg, #f8f5ed)",
+              border: "1px solid var(--color-border, #e5e5e5)",
+            }}
+          >
+            <div>
+              <h3 style={{ margin: 0, fontSize: "1.125rem", fontWeight: 600 }}>
+                Browse all helpers →
+              </h3>
+              <p
+                className="form-note"
+                style={{ marginTop: "var(--space-2xs)", marginBottom: 0 }}
+              >
+                A library of household helpers, searchable. Bring one in
+                whenever you need it.
+              </p>
+            </div>
+          </Link>
         </section>
       )}
 
+      {/* ── Need something custom? (deemphasized) ───────────────────── */}
+      {isActive && (
+        <section
+          id="custom-request"
+          style={{ marginBottom: "var(--space-2xl)" }}
+        >
+          <p className="form-note">
+            Need something not in the library?{" "}
+            <Link href="/member/custom" className="link" style={{ fontWeight: 500 }}>
+              Send a custom request
+            </Link>
+            {" — or email "}
+            <a
+              href={`mailto:${process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL || "task@in.themomops.com"}`}
+              className="link"
+            >
+              {process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL || "task@in.themomops.com"}
+            </a>
+            .
+          </p>
+        </section>
+      )}
+
+      {/* ── Referral ────────────────────────────────────────────────── */}
       {isActive && (
         <ReferralSection
           referralLink={`${process.env.NEXT_PUBLIC_SITE_URL || "https://themomops.com"}/?ref=${user.id}`}
         />
       )}
 
+      {/* ── Cancel ──────────────────────────────────────────────────── */}
       <section>
         <p className="form-note">
           <a
@@ -389,66 +520,13 @@ export default async function MemberPage({
   );
 }
 
-const HIDDEN_STATUSES = ["closed", "cancelled_by_va", "cancelled_by_admin"] as const;
-
-function MemberTasksPreview({
-  tickets,
-}: {
-  tickets: { id: string; subject: string; status: string; created_at: string }[];
-}) {
-  const visible = tickets.filter((t) => !HIDDEN_STATUSES.includes(t.status as (typeof HIDDEN_STATUSES)[number]));
-  const preview = visible.slice(0, 5);
-  if (tickets.length === 0) {
-    return (
-      <p className="form-note">
-        No tasks yet.{" "}
-        <Link href="/member#submit" className="link">Submit a task</Link> below when your subscription is active.
-      </p>
-    );
-  }
-  return (
-    <div>
-      <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-        {preview.map((t) => (
-          <li
-            key={t.id}
-            style={{
-              padding: "var(--space-md)",
-              marginBottom: "var(--space-sm)",
-              border: "1px solid var(--color-border, #e5e5e5)",
-              borderRadius: "var(--radius, 6px)",
-              backgroundColor: "var(--color-bg, #fff)",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "var(--space-md)", flexWrap: "wrap" }}>
-              <div>
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted, #5c5955)", marginRight: "var(--space-sm)" }}>
-                  {getStatusLabel(t.status)}
-                </span>
-                <strong>{t.subject || "Task"}</strong>
-              </div>
-              <Link href={`/member/${t.id}`} className="btn btn-primary">
-                View
-              </Link>
-            </div>
-          </li>
-        ))}
-      </ul>
-      <p style={{ marginTop: "var(--space-sm)", marginBottom: 0 }}>
-        <Link href="/member/pending" className="link">View all tasks</Link>
-        {visible.length > 5 && ` (${visible.length} open)`}
-      </p>
-    </div>
-  );
-}
-
 function getCancelMailto(email: string): string {
   const to =
     process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@momops.com";
   const subject = encodeURIComponent("Cancel my Mom Ops subscription");
   const body = encodeURIComponent(
     "I would like to cancel my Mom Ops subscription.\n\nMy email: " +
-      (email || "(please add your email)")
+      (email || "(please add your email)"),
   );
   return `mailto:${to}?subject=${subject}&body=${body}`;
 }
