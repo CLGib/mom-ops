@@ -6,8 +6,8 @@ export default function ValueMath() {
           $29.95/month. The family-ready system, already built.
         </h2>
         <p className="section-lead">
-          Membership includes 35 playbook credits each month. Roll over up to
-          three. Add more anytime. Cancel anytime.
+          Use the system as much as you want. No credit counting, no usage
+          anxiety. Cancel anytime.
         </p>
         <p
           className="section-body"
@@ -53,11 +53,13 @@ export default function ValueMath() {
                 marginBottom: "var(--space-xs)",
               }}
             >
-              Included
+              Access
             </h4>
-            <p style={{ fontSize: "2rem", fontWeight: 700, margin: 0 }}>35</p>
+            <p style={{ fontSize: "2rem", fontWeight: 700, margin: 0 }}>
+              Unlimited
+            </p>
             <p style={{ color: "var(--text-muted)", margin: 0 }}>
-              playbook credits / month
+              use as much as you want
             </p>
           </div>
           <div className="card" style={{ textAlign: "center" }}>
@@ -80,17 +82,6 @@ export default function ValueMath() {
             </p>
           </div>
         </div>
-        <p
-          className="section-body section-body--tight"
-          style={{
-            marginTop: "var(--space-lg)",
-            textAlign: "center",
-            color: "var(--text-muted)",
-          }}
-        >
-          Need more in a heavy month? Add credit packs (10 / 30 / 50) in your
-          member portal &mdash; purchased credits never expire.
-        </p>
       </div>
     </section>
   );

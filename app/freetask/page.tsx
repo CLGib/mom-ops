@@ -94,17 +94,6 @@ export default async function FreetaskPage() {
         <ValueMath />
         <LandingReviewsSection />
         <WhoItsFor />
-        <section id="cta" className="section cta-section">
-          <div className="container">
-            <p className="section-lead">
-              Need more credits?{" "}
-              <Link href="/member/credits" className="link" style={{ fontWeight: 600 }}>
-                Purchase more in your dashboard
-              </Link>{" "}
-              after you sign in.
-            </p>
-          </div>
-        </section>
         <FAQ />
       </main>
       <Footer />

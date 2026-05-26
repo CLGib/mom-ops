@@ -10,14 +10,14 @@ const FAQ_ITEMS = [
       "No. The AI is infrastructure — you never see it unless you want to. You pick a playbook and get a result. If you're curious, the vocabulary is three words: a prompt is the instructions that guide the AI, a playbook is a repeatable system for a family task, an agent is a specialized helper focused on one area.",
   },
   {
-    question: "What kind of help is included?",
+    question: "What's included in the membership?",
     answer:
-      "Membership includes 35 playbook credits each month — enough to run several playbooks or one or two deeper projects. Things like weekly meal planning, summer camp research, birthday party planning, teacher gifts, travel packing, school emails, family calendar coordination, and recurring household systems.",
+      "Unlimited use. $29.95/month. No credit counting, no caps you have to plan around, no usage anxiety. We monitor usage quietly in the background to prevent abuse, but you'll never see a meter.",
   },
   {
-    question: "How do playbook credits work?",
+    question: "What kind of help is included?",
     answer:
-      "Your $29.95/month membership includes 35 playbook credits. Unused monthly credits roll over up to 3 months. You can add more (10, 30, or 50 credits) in the member portal — credits you purchase never expire. Each playbook uses a set number of credits based on scope; you'll see how many before we begin. No hourly billing.",
+      "Things like weekly meal planning, summer camp research, birthday party planning, teacher gifts, travel packing, school emails, family calendar coordination, and recurring household systems. Run as many as you need.",
   },
   {
     question: "Is it AI or a real person doing the work?",
@@ -42,7 +42,7 @@ const FAQ_ITEMS = [
   {
     question: "Is there a long-term commitment?",
     answer:
-      "No. Your membership is month-to-month. You can cancel anytime. Monthly playbook credits roll over up to 3 months. Credits you purchase never expire.",
+      "No. Your membership is month-to-month. You can cancel anytime.",
   },
   {
     question: "What's out of scope?",
@@ -52,7 +52,7 @@ const FAQ_ITEMS = [
   {
     question: "How do I actually start a playbook?",
     answer:
-      "Email us what you need — no dashboard required. We'll match it to the right playbook (or build the right one), confirm the credit cost, and get to work. If we need access to something, we'll send a secure share link.",
+      "Email us what you need — no dashboard required. We'll match it to the right playbook (or build the right one) and get to work. If we need access to something, we'll send a secure share link.",
   },
 ];
 
