@@ -1,7 +1,7 @@
 const STEPS = [
   {
     num: "01",
-    title: "Pick a playbook",
+    title: "Pick a helper",
     body: "Choose what you want handled this week — meal planning, a school email, a birthday party, a research project.",
   },
   {
@@ -11,7 +11,7 @@ const STEPS = [
   },
   {
     num: "03",
-    title: "The system runs it",
+    title: "We bring the helper in",
     body: "AI handles the planning, drafting, and follow-through. Optional human support polishes when you want it.",
   },
   {

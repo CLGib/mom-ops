@@ -19,11 +19,11 @@ const LOAD_AREAS = [
 ] as const;
 
 const CREDIT_EXAMPLES = [
-  "Run the Weekly Meal Plan playbook every week, with grocery coordination.",
-  "Run the Summer Camp Research playbook for vetted options and a clear recommendation.",
-  "Run the Travel Planning playbook for a family trip — bookings and logistics organized.",
-  "Run the Vacation Planning playbook with itinerary support, reservations, and packing lists.",
-  "Run the Occasions playbook for gifts and events handled ahead of deadlines.",
+  "Bring in the Meal Plan Helper every week, with grocery coordination.",
+  "Bring in the Summer Camp Research Helper for vetted options and a clear recommendation.",
+  "Bring in the Travel Helper for a family trip — bookings and logistics organized.",
+  "Bring in the Vacation Helper with itinerary support, reservations, and packing lists.",
+  "Bring in the Occasions Helper for gifts and events handled ahead of deadlines.",
 ] as const;
 
 const FAQ_ITEMS = [
@@ -35,7 +35,7 @@ const FAQ_ITEMS = [
   {
     question: "What if I am not sure what to hand over first?",
     answer:
-      "That is normal. Onboarding helps you pick the highest-impact playbook so your first week creates real momentum.",
+      "That is normal. Onboarding helps you pick the highest-impact helper so your first week creates real momentum.",
   },
   {
     question: "Will I run out in a heavy month?",

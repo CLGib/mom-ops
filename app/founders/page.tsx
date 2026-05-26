@@ -10,7 +10,7 @@ import Problem from "../(marketing)/components/Problem";
 import ProductPillars from "../(marketing)/components/ProductPillars";
 import AIExplained from "../(marketing)/components/AIExplained";
 import WhyMomOpsVsChatGPT from "../(marketing)/components/WhyMomOpsVsChatGPT";
-import PlaybookLibraryMockup from "../(marketing)/components/PlaybookLibraryMockup";
+import HelperLibraryMockup from "../(marketing)/components/HelperLibraryMockup";
 import HowItWorks from "../(marketing)/components/HowItWorks";
 import HybridModel from "../(marketing)/components/HybridModel";
 import ValueMath from "../(marketing)/components/ValueMath";
@@ -22,7 +22,7 @@ import Footer from "../(marketing)/components/Footer";
 export const metadata: Metadata = {
   title: "Founding Members — Mom Ops | Lock in $15.95/month (First 50)",
   description:
-    "Be a founding member of the family operating system. Unlimited Mom Ops access at $15.95/month locked in for life. First 50 only. Early access to new playbooks and household agents as we roll them out.",
+    "Be a founding member of the family operating system. Unlimited Mom Ops access at $15.95/month locked in for life. First 50 only. Early access to new helpers as we roll them out.",
 };
 
 export const dynamic = "force-dynamic";
@@ -43,7 +43,7 @@ export default async function FoundersPage() {
           <ProductPillars />
           <AIExplained />
           <WhyMomOpsVsChatGPT />
-          <PlaybookLibraryMockup />
+          <HelperLibraryMockup />
           <HowItWorks />
           <HybridModel />
           <ValueMath />

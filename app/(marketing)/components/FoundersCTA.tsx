@@ -4,7 +4,7 @@ import CheckoutButton from "./CheckoutButton";
 import { useFoundersCount } from "./FoundersCountContext";
 
 const benefits = [
-  "Early access to new playbooks and household agents",
+  "Early access to new helpers as we add them to the library",
   "Input on what we build next (we want your feedback)",
   "Locked-in $15.95/month for as long as you stay subscribed",
 ];

@@ -5,26 +5,32 @@ import Link from "next/link";
 import type { TaskLibraryItem } from "@/lib/task-library";
 
 type Props = {
-  playbooks: TaskLibraryItem[];
+  helpers: TaskLibraryItem[];
   categories: string[];
 };
 
-export default function PlaybookLibrary({ playbooks, categories }: Props) {
+function helperName(taskName: string): string {
+  // If the task name already ends in "Helper", leave it alone.
+  if (/helper$/i.test(taskName.trim())) return taskName;
+  return `${taskName} Helper`;
+}
+
+export default function HelperLibrary({ helpers, categories }: Props) {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("");
 
   const filtered = useMemo(() => {
-    let list = [...playbooks];
+    let list = [...helpers];
     const q = search.trim().toLowerCase();
     if (q) {
       list = list.filter(
-        (p) =>
-          p.task.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q),
+        (h) =>
+          h.task.toLowerCase().includes(q) ||
+          h.category.toLowerCase().includes(q),
       );
     }
     if (categoryFilter) {
-      list = list.filter((p) => p.category === categoryFilter);
+      list = list.filter((h) => h.category === categoryFilter);
     }
     list.sort((a, b) => {
       const rankA = a.rank ?? 999;
@@ -35,7 +41,7 @@ export default function PlaybookLibrary({ playbooks, categories }: Props) {
       return a.task.localeCompare(b.task);
     });
     return list;
-  }, [playbooks, search, categoryFilter]);
+  }, [helpers, search, categoryFilter]);
 
   return (
     <div>
@@ -43,22 +49,22 @@ export default function PlaybookLibrary({ playbooks, categories }: Props) {
       <form
         onSubmit={(e) => e.preventDefault()}
         role="search"
-        aria-label="Search playbooks"
+        aria-label="Search helpers"
         style={{ marginBottom: "var(--space-xl)" }}
       >
         <label
-          htmlFor="playbook-search"
+          htmlFor="helper-search"
           className="form-note"
           style={{ display: "block", marginBottom: "var(--space-xs)" }}
         >
           Search
         </label>
         <input
-          id="playbook-search"
+          id="helper-search"
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Try 'meal planning', 'birthday', 'summer camp'..."
+          placeholder="Try 'meal plan', 'birthday', 'summer camp'..."
           className="input"
           style={{
             width: "100%",
@@ -79,14 +85,14 @@ export default function PlaybookLibrary({ playbooks, categories }: Props) {
           }}
         >
           <label
-            htmlFor="playbook-category"
+            htmlFor="helper-category"
             className="form-note"
             style={{ margin: 0 }}
           >
             Category:
           </label>
           <select
-            id="playbook-category"
+            id="helper-category"
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             className="input"
@@ -103,12 +109,12 @@ export default function PlaybookLibrary({ playbooks, categories }: Props) {
             className="form-note"
             style={{ marginLeft: "auto", marginBottom: 0 }}
           >
-            {filtered.length} playbook{filtered.length !== 1 ? "s" : ""}
+            {filtered.length} helper{filtered.length !== 1 ? "s" : ""}
           </p>
         </div>
       </form>
 
-      {/* Playbook card grid */}
+      {/* Helper card grid */}
       {filtered.length > 0 ? (
         <div
           style={{
@@ -117,9 +123,9 @@ export default function PlaybookLibrary({ playbooks, categories }: Props) {
             gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
           }}
         >
-          {filtered.map((p) => (
+          {filtered.map((h) => (
             <article
-              key={p.id}
+              key={h.id}
               className="card"
               style={{
                 display: "flex",
@@ -136,7 +142,7 @@ export default function PlaybookLibrary({ playbooks, categories }: Props) {
                   fontWeight: 600,
                 }}
               >
-                {p.category}
+                {h.category}
               </span>
               <h3
                 style={{
@@ -147,10 +153,10 @@ export default function PlaybookLibrary({ playbooks, categories }: Props) {
                   flex: 1,
                 }}
               >
-                {p.task}
+                {helperName(h.task)}
               </h3>
               <Link
-                href={`/member?from_task=${p.id}#submit`}
+                href={`/member?from_task=${h.id}#submit`}
                 className="btn btn-primary"
                 style={{
                   marginTop: "var(--space-xs)",
@@ -158,7 +164,7 @@ export default function PlaybookLibrary({ playbooks, categories }: Props) {
                   display: "inline-block",
                 }}
               >
-                Start playbook
+                Bring this helper in
               </Link>
             </article>
           ))}
@@ -168,7 +174,7 @@ export default function PlaybookLibrary({ playbooks, categories }: Props) {
           className="form-note"
           style={{ marginTop: "var(--space-lg)", textAlign: "center" }}
         >
-          No playbooks match your search. Try a different term or category.
+          No helpers match your search. Try a different term or category.
         </p>
       )}
     </div>

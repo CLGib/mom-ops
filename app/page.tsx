@@ -10,7 +10,7 @@ import Problem from "./(marketing)/components/Problem";
 import ProductPillars from "./(marketing)/components/ProductPillars";
 import AIExplained from "./(marketing)/components/AIExplained";
 import WhyMomOpsVsChatGPT from "./(marketing)/components/WhyMomOpsVsChatGPT";
-import PlaybookLibraryMockup from "./(marketing)/components/PlaybookLibraryMockup";
+import HelperLibraryMockup from "./(marketing)/components/HelperLibraryMockup";
 import HowItWorks from "./(marketing)/components/HowItWorks";
 import HybridModel from "./(marketing)/components/HybridModel";
 import ExploreRealExamples from "./(marketing)/components/ExploreRealExamples";
@@ -25,7 +25,7 @@ import Footer from "./(marketing)/components/Footer";
 export const metadata: Metadata = {
   title: "Mom Ops — The Operating System for Modern Family Life",
   description:
-    "AI-powered playbooks, household agents, and optional human support — built so busy families can finally close the mental tabs they never close.",
+    "A library of AI-powered helpers and optional human support — built so busy families can finally close the mental tabs they never close.",
 };
 
 export default async function HomePage() {
@@ -67,7 +67,7 @@ export default async function HomePage() {
         <ProductPillars />
         <AIExplained />
         <WhyMomOpsVsChatGPT />
-        <PlaybookLibraryMockup />
+        <HelperLibraryMockup />
         <HowItWorks />
         <HybridModel />
         <ExploreRealExamples examples={examples} />

@@ -9,7 +9,7 @@ import Problem from "../(marketing)/components/Problem";
 import ProductPillars from "../(marketing)/components/ProductPillars";
 import AIExplained from "../(marketing)/components/AIExplained";
 import WhyMomOpsVsChatGPT from "../(marketing)/components/WhyMomOpsVsChatGPT";
-import PlaybookLibraryMockup from "../(marketing)/components/PlaybookLibraryMockup";
+import HelperLibraryMockup from "../(marketing)/components/HelperLibraryMockup";
 import HowItWorks from "../(marketing)/components/HowItWorks";
 import HybridModel from "../(marketing)/components/HybridModel";
 import ExploreRealExamples from "../(marketing)/components/ExploreRealExamples";
@@ -24,7 +24,7 @@ import Footer from "../(marketing)/components/Footer";
 export const metadata: Metadata = {
   title: "Mom Ops — Try the Family Operating System Free",
   description:
-    "AI-powered playbooks and household agents, with optional human support. Sign up free, run your first playbook on us. No credit card required.",
+    "A library of AI-powered helpers, with optional human support. Sign up free, bring in your first helper on us. No credit card required.",
 };
 
 export default async function FreePage() {
@@ -65,7 +65,7 @@ export default async function FreePage() {
         <ProductPillars />
         <AIExplained />
         <WhyMomOpsVsChatGPT />
-        <PlaybookLibraryMockup />
+        <HelperLibraryMockup />
         <HowItWorks />
         <HybridModel />
         <ExploreRealExamples examples={examples} />

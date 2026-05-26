@@ -10,7 +10,7 @@ const DIY_STACK = [
 
 const MOMOPS_STACK = [
   "One membership",
-  "Family-ready playbooks, already written",
+  "A library of family-ready helpers, already built",
   "Household memory built in",
   "Optional human support when you want it",
   "Nothing to set up",

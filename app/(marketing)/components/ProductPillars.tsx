@@ -1,11 +1,11 @@
 const PILLARS = [
   {
-    title: "Playbooks",
-    body: "Step-by-step systems for the family work that repeats: meal planning, school emails, birthday parties, summer camp research, travel logistics.",
+    title: "Helpers",
+    body: "A library of specialized helpers, each focused on one kind of family work: meal planning, school emails, birthday parties, summer camp research, travel logistics.",
   },
   {
-    title: "Household Agents",
-    body: "Specialized helpers focused on one area of family life. Pick the one you need. The system handles the structure, memory, and follow-through.",
+    title: "Household Memory",
+    body: "Tell us about your family once. Kids' ages, dietary notes, the basics. Every helper you bring in already knows, so you don't repeat yourself.",
   },
   {
     title: "Human Support (optional)",

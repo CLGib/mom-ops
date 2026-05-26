@@ -4,9 +4,9 @@ export default function CTAFreeTrial() {
   return (
     <section id="cta" className="section cta-section">
       <div className="container">
-        <h2 className="section-title">Start with one playbook.</h2>
+        <h2 className="section-title">Bring in your first helper.</h2>
         <p className="section-lead">
-          Try a playbook on us. No credit card required.
+          Try a helper on us. No credit card required.
         </p>
         <Link href="/signup?next=/member&offer=free_trial" className="btn btn-primary btn-large">
           Sign up free
@@ -17,10 +17,10 @@ export default function CTAFreeTrial() {
         <p className="cta-guarantee">
           <a href="/terms#money-back-guarantee">
             Money-back guarantee: Sign up and don&apos;t love your first
-            playbook? Request a refund.
+            helper? Request a refund.
           </a>
         </p>
-        <p className="cta-note">No commitment. Try one playbook free.</p>
+        <p className="cta-note">No commitment. Try one helper free.</p>
       </div>
     </section>
   );
