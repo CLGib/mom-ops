@@ -1,58 +1,58 @@
 const FAQ_ITEMS = [
   {
-    question: "Is this a real human or AI?",
+    question: "Is this just ChatGPT with extra steps?",
     answer:
-      "You get a 100% real human virtual assistant.\n\nWe use AI the same way you might use Google - as a tool to work smarter and faster. But you won't get generic, copy-pasted AI responses.\n\nThe difference? Real relationships.\n\nOver time, your virtual assistant learns how you think, what you prefer, and how you work. And your real human virtual assistant makes sure every final result actually reflects you.",
+      "No. ChatGPT is a chat box. Mom Ops is the system around the AI: ready-made playbooks for the family work you actually do, household memory so you don't repeat yourself, optional human support when a draft needs a real second pair of eyes, and a design tuned to how families actually run. The AI is the engine. Mom Ops is the car.",
+  },
+  {
+    question: "Do I need to know anything about AI to use this?",
+    answer:
+      "No. The AI is infrastructure — you never see it unless you want to. You pick a playbook and get a result. If you're curious, the vocabulary is three words: a prompt is the instructions that guide the AI, a playbook is a repeatable system for a family task, an agent is a specialized helper focused on one area.",
+  },
+  {
+    question: "What kind of help is included?",
+    answer:
+      "Membership includes 35 playbook credits each month — enough to run several playbooks or one or two deeper projects. Things like weekly meal planning, summer camp research, birthday party planning, teacher gifts, travel packing, school emails, family calendar coordination, and recurring household systems.",
+  },
+  {
+    question: "How do playbook credits work?",
+    answer:
+      "Your $29.95/month membership includes 35 playbook credits. Unused monthly credits roll over up to 3 months. You can add more (10, 30, or 50 credits) in the member portal — credits you purchase never expire. Each playbook uses a set number of credits based on scope; you'll see how many before we begin. No hourly billing.",
+  },
+  {
+    question: "Is it AI or a real person doing the work?",
+    answer:
+      "Both, by design. The AI handles planning, drafting, organizing, and follow-through. Human support handles refinement, coordination, accountability, and the parts that need a real person — especially when a draft needs polish or nuance. You don't have to choose; you get as much of either as you want.",
   },
   {
     question: "Do I have to be a mom to use Mom Ops?",
     answer:
-      "No. Everyone could use an extra mom in their corner. We were built by moms and specialize in the mental load they carry, but Mom Ops is for anyone who wants life to run smoother, with systems, support, and a little less chaos.",
+      "No. Mom Ops was built by moms because we understand the mental load — the invisible planning, remembering, coordinating, and anticipating that keeps a household running. But anyone carrying that load belongs here.",
   },
   {
-    question: "What is the turnaround time for tasks?",
+    question: "What's the turnaround?",
     answer:
-      "Standard turnaround is 1 business day. Some tasks may take longer depending on scope; we'll communicate clearly if that's the case.",
-  },
-  {
-    question: "How do Task Credits work?",
-    answer:
-      "Your $29.95/month membership includes 35 Task Credits. Unused monthly credits roll over up to 3 months. You can add more (10, 30, or 50 Task Credits) in the member portal - credits you purchase never expire. Each task uses a set number of credits based on scope; you'll see how many before we begin. No hourly billing.",
-  },
-  {
-    question: "Who actually does my tasks?",
-    answer:
-      "Every task is completed by a real person - a specialist who is also a mom and understands household and family context. We're not a texting service or an on-demand concierge; we're structured virtual assistant support.",
-  },
-  {
-    question: "Can I request the same specialist?",
-    answer:
-      "Yes. After your first task, you can request the same specialist for future work when they're available. We do our best to honor that preference.",
-  },
-  {
-    question: "What is the coffee contribution?",
-    answer:
-      "When your task is complete, you'll have the option to add a $1 contribution. Tips go directly to the mom who handled your work. It's completely optional - just a simple way to say thanks and support another mom providing for her family.",
+      "AI-only playbooks come back fast. Anything that involves human support has a standard 1 business day turnaround. Larger projects may take longer; we'll communicate clearly when that's the case.",
   },
   {
     question: "What is your refund policy?",
     answer:
-      "Money-back guarantee: If you sign up and don't love your first task, request a refund. No hassle.",
+      "Money-back guarantee: If you sign up and don't love your first playbook, request a refund. No hassle.",
   },
   {
     question: "Is there a long-term commitment?",
     answer:
-      "No. Your membership is month-to-month. You can cancel anytime. Monthly Task Credits roll over up to 3 months. Credits you purchase never expire.",
+      "No. Your membership is month-to-month. You can cancel anytime. Monthly playbook credits roll over up to 3 months. Credits you purchase never expire.",
   },
   {
-    question: "What if my task is out of scope?",
+    question: "What's out of scope?",
     answer:
-      "We'll let you know and suggest alternatives when possible. Our scope is household and family administrative support - research, coordination, design, planning - not legal, medical, or financial advice, or emotional coaching.",
+      "We handle structured household and family operations support — research, coordination, planning, drafting, design, recurring systems. We don't provide legal, medical, or financial advice, or emotional coaching, or urgent same-day services.",
   },
   {
-    question: "How do I submit a task?",
+    question: "How do I actually start a playbook?",
     answer:
-      "Simply email your task to our team. No dashboard or app - just send us what you need, attach any files, and we'll take it from there. If we need access to something (like Canva), we'll send you a secure share link.",
+      "Email us what you need — no dashboard required. We'll match it to the right playbook (or build the right one), confirm the credit cost, and get to work. If we need access to something, we'll send a secure share link.",
   },
 ];
 

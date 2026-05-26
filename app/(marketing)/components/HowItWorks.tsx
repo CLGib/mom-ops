@@ -1,23 +1,23 @@
 const STEPS = [
   {
     num: "01",
-    title: "Join + Get Task Credits",
-    body: "Sign up for $29.95/month.\nYou'll receive 35 Task Credits to get started.\nNo hourly billing. No surprise invoices.",
+    title: "Pick a playbook",
+    body: "Choose what you want handled this week — meal planning, a school email, a birthday party, a research project.",
   },
   {
     num: "02",
-    title: "Email Your Task",
-    body: "No dashboard required.\nSimply email your request.\nAttach files. If we need access, we'll send a secure link.\nDelegation should be easy, even on the go.",
+    title: "Tell us about your family once",
+    body: "Kids' ages, dietary notes, the basics. The system remembers, so you don't repeat yourself next time.",
   },
   {
     num: "03",
-    title: "We Assign a Mom Virtual Assistant",
-    body: "A real mom virtual assistant takes your task.\nStandard turnaround: 1 business day.\nYou can request the same virtual assistant when available.",
+    title: "The system runs it",
+    body: "AI handles the planning, drafting, and follow-through. Optional human support polishes when you want it.",
   },
   {
     num: "04",
-    title: "Review + Refine",
-    body: "Receive your completed work by email.\nNeed an edit? You can request revisions within scope.",
+    title: "Get the deliverable",
+    body: "A clean output by email — a plan, a draft, a list, a design. Request revisions within scope.",
   },
 ];
 

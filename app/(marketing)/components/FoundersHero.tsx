@@ -12,19 +12,16 @@ export default function FoundersHero() {
     <section className="hero founders-hero">
       <div className="container">
         <h1 className="hero-headline">
-          Your Personal Household Virtual Assistant, without Hiring
-          Full-Time
+          Founding members of the family operating system.
         </h1>
         <p className="hero-subhead">
-          Household admin, handled by a real mom virtual assistant.
+          AI-powered playbooks, household agents, and optional human support.
           <br />
-          Clear timelines.
-          <br />
-          No hourly billing. No guesswork.
+          Early access as we roll new playbooks out, all month.
         </p>
         <p className="hero-price">
-          $29.95/month includes 35 Task Credits. Roll over up to 3 months. Add
-          more anytime.
+          $29.95/month includes 35 playbook credits. Roll over up to 3 months.
+          Add more anytime.
         </p>
         <p className="founders-first50">First 50 only</p>
         <FoundersCounter claimed={claimed} />

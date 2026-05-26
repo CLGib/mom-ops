@@ -6,27 +6,26 @@ import ReferralCookieSetter from "./(marketing)/components/ReferralCookieSetter"
 import AuthErrorBanner from "./(marketing)/components/AuthErrorBanner";
 import Header from "./(marketing)/components/Header";
 import Hero from "./(marketing)/components/Hero";
-import RealHumanSection from "./(marketing)/components/RealHumanSection";
-import LandingReviewsSection from "./(marketing)/components/LandingReviewsSection";
 import Problem from "./(marketing)/components/Problem";
-import Solution from "./(marketing)/components/Solution";
+import ProductPillars from "./(marketing)/components/ProductPillars";
+import AIExplained from "./(marketing)/components/AIExplained";
+import WhyMomOpsVsChatGPT from "./(marketing)/components/WhyMomOpsVsChatGPT";
+import PlaybookLibraryMockup from "./(marketing)/components/PlaybookLibraryMockup";
 import HowItWorks from "./(marketing)/components/HowItWorks";
-import Credits from "./(marketing)/components/Credits";
+import HybridModel from "./(marketing)/components/HybridModel";
 import ExploreRealExamples from "./(marketing)/components/ExploreRealExamples";
 import type { RealExample } from "./(marketing)/components/ExploreRealExamples";
-import Affordable from "./(marketing)/components/Affordable";
-import Specialist from "./(marketing)/components/Specialist";
-import Coffee from "./(marketing)/components/Coffee";
+import ValueMath from "./(marketing)/components/ValueMath";
+import LandingReviewsSection from "./(marketing)/components/LandingReviewsSection";
 import WhoItsFor from "./(marketing)/components/WhoItsFor";
-import Efficiency from "./(marketing)/components/Efficiency";
 import CTA from "./(marketing)/components/CTA";
 import FAQ from "./(marketing)/components/FAQ";
 import Footer from "./(marketing)/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Mom Ops - A Virtual Assistant for Your To-Do List",
+  title: "Mom Ops — The Operating System for Modern Family Life",
   description:
-    "Mom Ops helps busy moms offload everyday tasks like planning birthday parties, researching summer camps, grocery planning, and more. Try your first task free.",
+    "AI-powered playbooks, household agents, and optional human support — built so busy families can finally close the mental tabs they never close.",
 };
 
 export default async function HomePage() {
@@ -65,17 +64,16 @@ export default async function HomePage() {
       <main>
         <Hero />
         <Problem />
-        <Solution />
-        <ExploreRealExamples examples={examples} />
+        <ProductPillars />
+        <AIExplained />
+        <WhyMomOpsVsChatGPT />
+        <PlaybookLibraryMockup />
         <HowItWorks />
-        <Credits />
-        <RealHumanSection />
+        <HybridModel />
+        <ExploreRealExamples examples={examples} />
+        <ValueMath />
         <LandingReviewsSection />
-        <Affordable />
-        <Specialist />
-        <Coffee />
         <WhoItsFor />
-        <Efficiency />
         <CTA />
         <FAQ />
       </main>

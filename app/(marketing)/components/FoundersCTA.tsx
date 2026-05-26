@@ -4,9 +4,9 @@ import CheckoutButton from "./CheckoutButton";
 import { useFoundersCount } from "./FoundersCountContext";
 
 const benefits = [
-  "Early access to new features",
-  "Input on development (we want your feedback)",
-  { text: "Opportunities to earn extra credits ", link: { href: "/#credits", label: "in the member portal" } },
+  "Early access to new playbooks and household agents",
+  "Input on what we build next (we want your feedback)",
+  { text: "Opportunities to earn extra credits ", link: { href: "/#playbooks", label: "as the library grows" } },
 ];
 
 export default function FoundersCTA() {
@@ -34,7 +34,7 @@ export default function FoundersCTA() {
             ))}
           </ul>
           <p className="founders-cta-price">
-            Same 35 Task Credits per month, same support, just{" "}
+            Same 35 playbook credits per month, same support, just{" "}
             <strong>$15.95/month</strong> locked in for life.
           </p>
           <div className="founders-cta-actions">
