@@ -22,7 +22,7 @@ import Footer from "../(marketing)/components/Footer";
 export const metadata: Metadata = {
   title: "Founding Members — Mom Ops | Lock in $15.95/month (First 50)",
   description:
-    "Be a founding member of the family operating system. $15.95/month locked in for life. First 50 only. Early access to new playbooks and household agents as we roll them out.",
+    "Be a founding member of the family operating system. Unlimited Mom Ops access at $15.95/month locked in for life. First 50 only. Early access to new playbooks and household agents as we roll them out.",
 };
 
 export const dynamic = "force-dynamic";

@@ -19,18 +19,18 @@ const LOAD_AREAS = [
 ] as const;
 
 const CREDIT_EXAMPLES = [
-  "Run the Weekly Meal Plan playbook every week this month, with grocery coordination (~15-30 credits per run).",
-  "Run the Summer Camp Research playbook for vetted options and a clear recommendation (~12-54 credits).",
-  "Run the Travel Planning playbook for a family trip — bookings and logistics organized (~24-30 credits).",
-  "Run the Vacation Planning playbook with itinerary support, reservations, and packing lists (~24-30 credits).",
-  "Run the Occasions playbook for gifts and events handled ahead of deadlines (~12-42 credits).",
+  "Run the Weekly Meal Plan playbook every week, with grocery coordination.",
+  "Run the Summer Camp Research playbook for vetted options and a clear recommendation.",
+  "Run the Travel Planning playbook for a family trip — bookings and logistics organized.",
+  "Run the Vacation Planning playbook with itinerary support, reservations, and packing lists.",
+  "Run the Occasions playbook for gifts and events handled ahead of deadlines.",
 ] as const;
 
 const FAQ_ITEMS = [
   {
-    question: "What can I actually use 35 credits for?",
+    question: "What's actually included?",
     answer:
-      "Most members run a few playbooks across the month — one or two deeper projects, or several smaller ones. Credits are based on the scope of the playbook, not hours.",
+      "Unlimited Mom Ops access while you're a Peak member. Use it as much as you need; we handle the rest.",
   },
   {
     question: "What if I am not sure what to hand over first?",
@@ -38,9 +38,9 @@ const FAQ_ITEMS = [
       "That is normal. Onboarding helps you pick the highest-impact playbook so your first week creates real momentum.",
   },
   {
-    question: "Can I add more support when months get heavy?",
+    question: "Will I run out in a heavy month?",
     answer:
-      "Yes. Additional credits can be added any time, no commitment changes required.",
+      "No. Heavy months are exactly when this matters most — use it as much as you need.",
   },
 ] as const;
 
@@ -111,23 +111,23 @@ export default async function PeakWelcomePage() {
 
       <section className={styles.creditFeature}>
         <div className={styles.creditCard}>
-          <p className={styles.creditEyebrow}>Each month, included</p>
+          <p className={styles.creditEyebrow}>Included with your partnership</p>
           <div className={styles.creditNumberRow}>
-            <span className={styles.creditNumber}>35</span>
+            <span className={styles.creditNumber}>Unlimited</span>
             <div className={styles.creditDetail}>
               <span className={styles.creditDetailTop}>Mom Ops</span>
-              <span className={styles.creditDetailBottom}>credits</span>
+              <span className={styles.creditDetailBottom}>access</span>
             </div>
           </div>
           <p className={styles.creditNote}>
-            Yours to spend running playbooks across your family operations.
-            AI-powered, human-supported, designed to close open loops.
+            Use it as much as you need. AI-powered, human-supported,
+            designed to close open loops.
           </p>
         </div>
       </section>
 
       <section className={styles.creditExamples}>
-        <p className={styles.sectionEyebrow}>What 35 credits can run</p>
+        <p className={styles.sectionEyebrow}>What you can have us run</p>
         <div className={styles.creditExamplesList}>
           {CREDIT_EXAMPLES.map((example) => (
             <p key={example} className={styles.creditExampleItem}>

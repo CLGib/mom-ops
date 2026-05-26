@@ -14,7 +14,7 @@ export default function HeroFreeTrial() {
           AI-powered. Human support included.
         </p>
         <p className="hero-price">
-          Free to sign up. Your first playbook is free — 35 credits to try us.
+          Try a playbook on us. No credit card required.
         </p>
         <Link
           href="/signup?next=/member&offer=free_trial"

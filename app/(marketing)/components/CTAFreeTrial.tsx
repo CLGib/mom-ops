@@ -6,8 +6,7 @@ export default function CTAFreeTrial() {
       <div className="container">
         <h2 className="section-title">Start with one playbook.</h2>
         <p className="section-lead">
-          Free to sign up. Your first playbook is free — 35 credits to try us.
-          No credit card required.
+          Try a playbook on us. No credit card required.
         </p>
         <Link href="/signup?next=/member&offer=free_trial" className="btn btn-primary btn-large">
           Sign up free

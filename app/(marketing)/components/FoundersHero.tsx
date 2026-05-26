@@ -20,8 +20,7 @@ export default function FoundersHero() {
           Early access as we roll new playbooks out, all month.
         </p>
         <p className="hero-price">
-          $29.95/month includes 35 playbook credits. Roll over up to 3 months.
-          Add more anytime.
+          Unlimited Mom Ops access. $29.95/month standard.
         </p>
         <p className="founders-first50">First 50 only</p>
         <FoundersCounter claimed={claimed} />

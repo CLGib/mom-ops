@@ -24,7 +24,7 @@ import Footer from "../(marketing)/components/Footer";
 export const metadata: Metadata = {
   title: "Mom Ops — Try the Family Operating System Free",
   description:
-    "AI-powered playbooks and household agents, with optional human support. Sign up free, run your first playbook on us — 35 credits to try. No credit card required.",
+    "AI-powered playbooks and household agents, with optional human support. Sign up free, run your first playbook on us. No credit card required.",
 };
 
 export default async function FreePage() {
