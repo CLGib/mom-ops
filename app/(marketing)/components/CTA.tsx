@@ -4,23 +4,24 @@ export default function CTA() {
   return (
     <section id="cta" className="section cta-section">
       <div className="container">
-        <h2 className="section-title">Get started</h2>
+        <h2 className="section-title">Start with one playbook.</h2>
         <p className="section-lead">
-          Try your first task free. No credit card required to sign up.
+          See what it feels like to close one mental tab without doing the work
+          yourself.
         </p>
         <Link
           href="/signup?next=/member&offer=free_trial"
           className="btn btn-primary btn-large"
         >
-          Try Your First Task Free
+          Start free
         </Link>
         <p className="cta-guarantee">
           <a href="/terms#money-back-guarantee">
-            Money-back guarantee: Sign up and don&apos;t love your first task?
-            Request a refund.
+            Money-back guarantee: Sign up and don&apos;t love your first
+            playbook? Request a refund.
           </a>
         </p>
-        <p className="cta-note">No commitment. Try one task free.</p>
+        <p className="cta-note">No commitment. No credit card to start.</p>
       </div>
     </section>
   );

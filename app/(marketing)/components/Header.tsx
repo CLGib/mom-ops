@@ -10,7 +10,8 @@ export default function Header() {
         </a>
         <nav className="nav" aria-label="Main">
           <a href="#how-it-works">How It Works</a>
-          <a href="#credits">Task Credits</a>
+          <a href="#playbooks">Playbooks</a>
+          <a href="#pricing">Pricing</a>
           <a href="#faq">FAQ</a>
           <CheckoutButton className="nav-cta nav-cta-button">
             Get Started

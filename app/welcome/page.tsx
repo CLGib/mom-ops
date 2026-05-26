@@ -19,23 +19,23 @@ const LOAD_AREAS = [
 ] as const;
 
 const CREDIT_EXAMPLES = [
-  "A month of weekly meal planning with grocery coordination (~15-30 credits per task).",
-  "Summer camp research with vetted options and a clear recommendation (~12-54 credits per task).",
-  "Travel planning for a family trip with bookings and logistics organized (~24-30 credits per task).",
-  "Vacation planning with itinerary support, reservations, and packing lists (~24-30 credits per task).",
-  "Gift and occasion planning handled ahead of deadlines (~12-42 credits per task).",
+  "Run the Weekly Meal Plan playbook every week this month, with grocery coordination (~15-30 credits per run).",
+  "Run the Summer Camp Research playbook for vetted options and a clear recommendation (~12-54 credits).",
+  "Run the Travel Planning playbook for a family trip — bookings and logistics organized (~24-30 credits).",
+  "Run the Vacation Planning playbook with itinerary support, reservations, and packing lists (~24-30 credits).",
+  "Run the Occasions playbook for gifts and events handled ahead of deadlines (~12-42 credits).",
 ] as const;
 
 const FAQ_ITEMS = [
   {
     question: "What can I actually use 35 credits for?",
     answer:
-      "Most members use them for one or two deeper projects, or several smaller tasks. Credits are based on complexity, not hours.",
+      "Most members run a few playbooks across the month — one or two deeper projects, or several smaller ones. Credits are based on the scope of the playbook, not hours.",
   },
   {
     question: "What if I am not sure what to hand over first?",
     answer:
-      "That is normal. Onboarding helps you find the highest-impact area so your first week creates real momentum.",
+      "That is normal. Onboarding helps you pick the highest-impact playbook so your first week creates real momentum.",
   },
   {
     question: "Can I add more support when months get heavy?",
@@ -120,14 +120,14 @@ export default async function PeakWelcomePage() {
             </div>
           </div>
           <p className={styles.creditNote}>
-            Yours to spend on planning, research, scheduling, and coordination.
-            Real human support, context-driven, designed to close open loops.
+            Yours to spend running playbooks across your family operations.
+            AI-powered, human-supported, designed to close open loops.
           </p>
         </div>
       </section>
 
       <section className={styles.creditExamples}>
-        <p className={styles.sectionEyebrow}>What 35 credits can look like</p>
+        <p className={styles.sectionEyebrow}>What 35 credits can run</p>
         <div className={styles.creditExamplesList}>
           {CREDIT_EXAMPLES.map((example) => (
             <p key={example} className={styles.creditExampleItem}>

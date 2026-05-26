@@ -10,12 +10,13 @@ export default function Footer() {
               Mom Ops, LLC
             </a>
             <p className="footer-product">
-              Structured virtual assistant support by moms.
+              An operating system for modern family life. Built by moms.
             </p>
           </div>
           <div className="footer-links">
             <a href="#how-it-works">How It Works</a>
-            <a href="#credits">Task Credits</a>
+            <a href="#playbooks">Playbooks</a>
+            <a href="#pricing">Pricing</a>
             <a href="#faq">FAQ</a>
             <a href="mailto:support@themomops.com">Contact</a>
             <a href="/privacy">Privacy</a>

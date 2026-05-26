@@ -5,18 +5,32 @@ export default function Hero() {
     <section className="hero">
       <div className="container">
         <h1 className="hero-headline">
-          Finally, a Virtual Assistant for Your To-Do List
+          The operating system for modern family life.
         </h1>
         <p className="hero-subhead">
-          Mom Ops helps busy moms offload everyday tasks like planning birthday
-          parties, researching summer camps, grocery planning, and more.
+          Mom Ops gives busy households ready-made AI playbooks, household
+          agents, and optional human support &mdash; so the mental tabs you
+          never close finally have somewhere to live.
         </p>
-        <Link
-          href="/signup?next=/member&offer=free_trial"
-          className="btn btn-primary"
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: "var(--space-sm)",
+            marginTop: "var(--space-md)",
+          }}
         >
-          Try Your First Task Free
-        </Link>
+          <Link
+            href="/signup?next=/member&offer=free_trial"
+            className="btn btn-primary"
+          >
+            Start free
+          </Link>
+          <a href="#how-it-works" className="btn btn-secondary">
+            See how it works
+          </a>
+        </div>
       </div>
     </section>
   );
