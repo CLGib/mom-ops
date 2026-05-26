@@ -15,9 +15,9 @@ export default function FoundersHero() {
           Founding members of the family operating system.
         </h1>
         <p className="hero-subhead">
-          AI-powered playbooks, household agents, and optional human support.
+          A library of AI-powered helpers, with optional human support.
           <br />
-          Early access as we roll new playbooks out, all month.
+          Early access as we add new helpers, all month.
         </p>
         <p className="hero-price">
           Unlimited Mom Ops access. $29.95/month standard.

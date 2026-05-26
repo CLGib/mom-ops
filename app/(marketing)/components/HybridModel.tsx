@@ -16,10 +16,10 @@ export default function HybridModel() {
           }}
         >
           <article className="credits-card">
-            <h3 className="credits-card-title">What the system does</h3>
+            <h3 className="credits-card-title">What the helpers do</h3>
             <p className="credits-card-description">
-              Picks the right playbook. Pulls in what it already knows about
-              your family. Produces a draft, plan, or recommendation. Stays
+              Pick the right approach. Pull in what we already know about your
+              family. Produce a draft, plan, or recommendation. Stay
               consistent across requests.
             </p>
           </article>

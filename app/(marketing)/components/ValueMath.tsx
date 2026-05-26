@@ -6,7 +6,7 @@ export default function ValueMath() {
           $29.95/month. The family-ready system, already built.
         </h2>
         <p className="section-lead">
-          Use the system as much as you want. No credit counting, no usage
+          Bring in as many helpers as you want. No credit counting, no usage
           anxiety. Cancel anytime.
         </p>
         <p
@@ -59,7 +59,7 @@ export default function ValueMath() {
               Unlimited
             </p>
             <p style={{ color: "var(--text-muted)", margin: 0 }}>
-              use as much as you want
+              bring in as many as you want
             </p>
           </div>
           <div className="card" style={{ textAlign: "center" }}>

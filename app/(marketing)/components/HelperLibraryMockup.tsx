@@ -1,87 +1,88 @@
-type Playbook = {
+type Helper = {
   name: string;
   category: string;
   description: string;
   humanPolish?: boolean;
 };
 
-const PLAYBOOKS: Playbook[] = [
+const HELPERS: Helper[] = [
   {
-    name: "Weekly Meal Plan",
+    name: "Meal Plan Helper",
     category: "Meals",
     description:
       "Pick a week. Get a plan tuned to your family, with a sorted grocery list and prep notes.",
     humanPolish: true,
   },
   {
-    name: "Summer Camp Research",
+    name: "Summer Camp Research Helper",
     category: "Kids",
     description:
       "Vetted camp options for your kids' ages, with comparison and a clear recommendation.",
     humanPolish: true,
   },
   {
-    name: "Birthday Party Plan",
+    name: "Birthday Party Helper",
     category: "Occasions",
     description:
       "Theme, timeline, vendor list, invitation copy, and a packing checklist for party day.",
     humanPolish: true,
   },
   {
-    name: "Teacher Gifts",
+    name: "Teacher Gift Helper",
     category: "Occasions",
     description:
       "Curated gift options for end of year, holidays, or appreciation week. Shoppable list included.",
   },
   {
-    name: "Travel Packing List",
+    name: "Travel Packing Helper",
     category: "Travel",
     description:
       "A packing list shaped by destination, weather, kids' ages, and trip type. Nothing forgotten.",
   },
   {
-    name: "School Email Drafter",
+    name: "School Email Helper",
     category: "School",
     description:
       "Tell us what you need to say. Get a drafted, kind, professional email back in your voice.",
   },
   {
-    name: "Pediatric Question Research",
+    name: "Pediatric Question Helper",
     category: "Health",
     description:
       "A clear write-up of what current guidance says, with sources, before your next appointment.",
   },
   {
-    name: "Family Calendar Coordination",
+    name: "Family Calendar Helper",
     category: "Admin",
     description:
       "A single coordinated view of school, sports, work, and personal across everyone in the household.",
     humanPolish: true,
   },
   {
-    name: "Event Invitations",
+    name: "Event Invitation Helper",
     category: "Occasions",
     description:
       "Designed invitations and matching RSVP copy. Ready to send by text, email, or print.",
     humanPolish: true,
   },
   {
-    name: "Recurring Family Systems",
+    name: "Routine Setup Helper",
     category: "Admin",
     description:
       "Set up a weekly or monthly routine that runs on its own — Sunday reset, school lunches, bill checks.",
   },
 ];
 
-export default function PlaybookLibraryMockup() {
+export default function HelperLibraryMockup() {
   return (
-    <section id="playbooks" className="section section-alt">
+    <section id="helpers" className="section section-alt">
       <div className="container container--wide">
         <h2 className="section-title">
-          A library of household agents and playbooks.
+          A library of household helpers.
         </h2>
         <p className="section-lead">
-          Start with one. The system handles the rest.
+          Each helper handles one kind of family work. Bring one in whenever
+          you need it.
         </p>
         <div
           style={{
@@ -91,8 +92,8 @@ export default function PlaybookLibraryMockup() {
             marginTop: "var(--space-lg)",
           }}
         >
-          {PLAYBOOKS.map((p) => (
-            <article key={p.name} className="card">
+          {HELPERS.map((h) => (
+            <article key={h.name} className="card">
               <div
                 style={{
                   display: "flex",
@@ -111,9 +112,9 @@ export default function PlaybookLibraryMockup() {
                     fontWeight: 600,
                   }}
                 >
-                  {p.category}
+                  {h.category}
                 </span>
-                {p.humanPolish && (
+                {h.humanPolish && (
                   <span
                     style={{
                       fontSize: "0.6875rem",
@@ -132,9 +133,9 @@ export default function PlaybookLibraryMockup() {
                 className="credits-card-title"
                 style={{ marginBottom: "var(--space-xs)" }}
               >
-                {p.name}
+                {h.name}
               </h3>
-              <p className="credits-card-description">{p.description}</p>
+              <p className="credits-card-description">{h.description}</p>
             </article>
           ))}
         </div>
@@ -146,8 +147,8 @@ export default function PlaybookLibraryMockup() {
             color: "var(--text-muted)",
           }}
         >
-          More playbooks are rolling out as the library grows. Members get
-          first access.
+          More helpers are joining the library every week. Members get first
+          access.
         </p>
       </div>
     </section>

@@ -4,7 +4,7 @@ export default function CTA() {
   return (
     <section id="cta" className="section cta-section">
       <div className="container">
-        <h2 className="section-title">Start with one playbook.</h2>
+        <h2 className="section-title">Bring in your first helper.</h2>
         <p className="section-lead">
           See what it feels like to close one mental tab without doing the work
           yourself.
@@ -18,7 +18,7 @@ export default function CTA() {
         <p className="cta-guarantee">
           <a href="/terms#money-back-guarantee">
             Money-back guarantee: Sign up and don&apos;t love your first
-            playbook? Request a refund.
+            helper? Request a refund.
           </a>
         </p>
         <p className="cta-note">No commitment. No credit card to start.</p>

@@ -3,6 +3,6 @@ import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 // Legacy route — the library lives at /member/helpers.
-export default function ExploreTasksRedirect() {
+export default function PlaybooksRedirect() {
   redirect("/member/helpers");
 }

@@ -15,7 +15,7 @@ export default function Footer() {
           </div>
           <div className="footer-links">
             <a href="#how-it-works">How It Works</a>
-            <a href="#playbooks">Playbooks</a>
+            <a href="#helpers">Helpers</a>
             <a href="#pricing">Pricing</a>
             <a href="#faq">FAQ</a>
             <a href="mailto:support@themomops.com">Contact</a>

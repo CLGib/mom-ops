@@ -15,7 +15,7 @@ export default function Terms() {
       </p>
 
       <p className="mb-4">
-        Membership is billed monthly at $29.95 and includes unlimited use of Mom Ops playbooks, subject to fair-use limits to prevent abuse. Mom Ops reserves the right to rate-limit accounts whose usage significantly exceeds typical household patterns. Existing credit balances purchased under the previous credit model remain redeemable and do not expire.
+        Membership is billed monthly at $29.95 and includes unlimited use of Mom Ops helpers, subject to fair-use limits to prevent abuse. Mom Ops reserves the right to rate-limit accounts whose usage significantly exceeds typical household patterns. Existing credit balances purchased under the previous credit model remain redeemable and do not expire.
       </p>
 
       <p className="mb-4">

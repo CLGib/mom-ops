@@ -8,13 +8,13 @@ export default function HeroFreeTrial() {
           Try the family operating system free.
         </h1>
         <p className="hero-subhead">
-          Start with one playbook on us. See what it feels like to close one
+          Bring in one helper on us. See what it feels like to close one
           mental tab without doing the work yourself.
           <br />
           AI-powered. Human support included.
         </p>
         <p className="hero-price">
-          Try a playbook on us. No credit card required.
+          Try a helper on us. No credit card required.
         </p>
         <Link
           href="/signup?next=/member&offer=free_trial"

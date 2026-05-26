@@ -8,9 +8,9 @@ export default function Hero() {
           The operating system for modern family life.
         </h1>
         <p className="hero-subhead">
-          Mom Ops gives busy households ready-made AI playbooks, household
-          agents, and optional human support &mdash; so the mental tabs you
-          never close finally have somewhere to live.
+          Mom Ops gives busy households a library of helpers, household memory,
+          and optional human support &mdash; so the mental tabs you never close
+          finally have somewhere to live.
         </p>
         <div
           style={{

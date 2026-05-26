@@ -45,7 +45,7 @@ export default async function MemberLayout({
       { href: "/member/pending", label: "Tasks" },
       { href: "/member/completed", label: "Completed Tasks" },
       { href: "/member/recurring", label: "Recurring tasks" },
-      { href: "/member/explore-tasks", label: "Explore tasks" },
+      { href: "/member/helpers", label: "Helpers" },
       { href: "/member/reviews", label: "Reviews" },
       { href: "/member/discovery", label: "Just for Fun" },
       { href: "/member/profile", label: profile?.profile_completion != null && profile.profile_completion < 100 ? `Profile (${profile.profile_completion}%)` : "Profile" },

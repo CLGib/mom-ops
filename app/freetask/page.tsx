@@ -10,7 +10,7 @@ import Problem from "../(marketing)/components/Problem";
 import ProductPillars from "../(marketing)/components/ProductPillars";
 import AIExplained from "../(marketing)/components/AIExplained";
 import WhyMomOpsVsChatGPT from "../(marketing)/components/WhyMomOpsVsChatGPT";
-import PlaybookLibraryMockup from "../(marketing)/components/PlaybookLibraryMockup";
+import HelperLibraryMockup from "../(marketing)/components/HelperLibraryMockup";
 import HowItWorks from "../(marketing)/components/HowItWorks";
 import HybridModel from "../(marketing)/components/HybridModel";
 import ExploreRealExamples from "../(marketing)/components/ExploreRealExamples";
@@ -23,9 +23,9 @@ import Footer from "../(marketing)/components/Footer";
 import FreetaskSubmitForm from "./FreetaskSubmitForm";
 
 export const metadata: Metadata = {
-  title: "Mom Ops — Run Your First Playbook Free",
+  title: "Mom Ops — Bring In Your First Helper Free",
   description:
-    "Send us your first open loop — we'll run a playbook on it. AI-powered, human support included. We'll create your account and get started. No credit card required.",
+    "Send us your first open loop — we'll bring in the right helper. AI-powered, human support included. We'll create your account and get started. No credit card required.",
 };
 
 export default async function FreetaskPage() {
@@ -68,9 +68,9 @@ export default async function FreetaskPage() {
               Send us your first open loop
             </h2>
             <p className="form-note" style={{ marginBottom: "var(--space-md)" }}>
-              Tell us what&apos;s on your mind — we&apos;ll run a playbook on
-              it, create your account, and send back the result. Your first
-              playbook is free.
+              Tell us what&apos;s on your mind — we&apos;ll bring in the right
+              helper, create your account, and send back the result. Your first
+              helper is on us.
             </p>
             <div className="card member-submit-card" style={{ maxWidth: 560 }}>
               <FreetaskSubmitForm />
@@ -87,7 +87,7 @@ export default async function FreetaskPage() {
         <ProductPillars />
         <AIExplained />
         <WhyMomOpsVsChatGPT />
-        <PlaybookLibraryMockup />
+        <HelperLibraryMockup />
         <HowItWorks />
         <HybridModel />
         <ExploreRealExamples examples={examples} />
