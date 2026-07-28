@@ -6,17 +6,17 @@ export default function ValueMath() {
           $29.95/month. The family-ready system, already built.
         </h2>
         <p className="section-lead">
-          Bring in as many helpers as you want. No credit counting, no usage
-          anxiety. Cancel anytime.
+          Unlimited AI helpers. No credit counting, no usage anxiety. Cancel
+          anytime &mdash; and your first helper is free, no credit card to start.
         </p>
         <p
           className="section-body"
           style={{ marginTop: "var(--space-md)" }}
         >
-          You&apos;re not paying for full-time staff, idle hours, or agency
-          overhead. You&apos;re paying for the system that turns one membership
-          into the work of a small team &mdash; with optional human support
-          when you want it.
+          AI helpers are unlimited and included in your membership. Need a real
+          person to make the calls, handle a booking, or take on a bigger
+          project? Human concierge support is available as a paid add-on &mdash;
+          so you only pay for it when you actually want it.
         </p>
         <div
           style={{
@@ -53,13 +53,13 @@ export default function ValueMath() {
                 marginBottom: "var(--space-xs)",
               }}
             >
-              Access
+              AI helpers
             </h4>
             <p style={{ fontSize: "2rem", fontWeight: 700, margin: 0 }}>
               Unlimited
             </p>
             <p style={{ color: "var(--text-muted)", margin: 0 }}>
-              bring in as many as you want
+              included &middot; no counting
             </p>
           </div>
           <div className="card" style={{ textAlign: "center" }}>
@@ -72,13 +72,13 @@ export default function ValueMath() {
                 marginBottom: "var(--space-xs)",
               }}
             >
-              Commitment
+              Human concierge
             </h4>
             <p style={{ fontSize: "2rem", fontWeight: 700, margin: 0 }}>
-              None
+              Add-on
             </p>
             <p style={{ color: "var(--text-muted)", margin: 0 }}>
-              cancel anytime
+              paid, when you want it
             </p>
           </div>
         </div>

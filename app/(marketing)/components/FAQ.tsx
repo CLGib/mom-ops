@@ -10,9 +10,14 @@ const FAQ_ITEMS = [
       "No. The AI is infrastructure — you never see it unless you want to. You bring in a helper and get a result. If you're curious, the whole vocabulary is two words: a prompt is the instructions that guide the AI, a helper is a specialized assistant focused on one kind of family work.",
   },
   {
+    question: "Is it really free to start?",
+    answer:
+      "Yes. Your first helper is completely free — no credit card required. After that, membership is $29.95/month for unlimited AI helpers, and you can cancel anytime.",
+  },
+  {
     question: "What's included in the membership?",
     answer:
-      "Unlimited use. $29.95/month. No credit counting, no caps you have to plan around, no usage anxiety. We monitor usage quietly in the background to prevent abuse, but you'll never see a meter.",
+      "Unlimited AI helpers for $29.95/month — no credit counting, no caps to plan around. Human concierge support (calls, bookings, bigger projects) is available as a paid add-on you request only when you want it. We monitor usage quietly to prevent abuse, but you'll never see a meter.",
   },
   {
     question: "What kind of helpers are there?",
@@ -22,7 +27,7 @@ const FAQ_ITEMS = [
   {
     question: "Is it AI or a real person doing the work?",
     answer:
-      "Both, by design. The AI handles planning, drafting, organizing, and follow-through. Human support handles refinement, coordination, accountability, and the parts that need a real person — especially when a draft needs polish or nuance. You don't have to choose; you get as much of either as you want.",
+      "Your AI assistant does the work — planning, drafting, organizing, research — instantly, and it's unlimited and included. For the parts that need a real person (the calls, the bookings, a bigger project), our human concierge is available as a paid add-on you can request anytime.",
   },
   {
     question: "Do I have to be a mom to use Mom Ops?",
@@ -32,7 +37,7 @@ const FAQ_ITEMS = [
   {
     question: "What's the turnaround?",
     answer:
-      "AI-only work comes back fast. Anything that involves human support has a standard 1 business day turnaround. Larger projects may take longer; we'll communicate clearly when that's the case.",
+      "AI helpers usually come back in about a minute — a finished deliverable, right on your dashboard. Human concierge requests are delivered within one business day. Larger projects may take longer; we'll always communicate clearly.",
   },
   {
     question: "What is your refund policy?",
@@ -52,7 +57,7 @@ const FAQ_ITEMS = [
   {
     question: "How do I actually bring in a helper?",
     answer:
-      "Email us what you need — no dashboard required. We'll match it to the right helper (or build the right one) and get to work. If we need access to something, we'll send a secure share link.",
+      "Right from your dashboard: pick a helper or describe what you need in a sentence, and you'll have a finished result in about a minute. Prefer email? You can send us your task instead. If we ever need access to something, we'll send a secure share link.",
   },
 ];
 

@@ -13,7 +13,7 @@ export default function CTA() {
           href="/signup?next=/member&offer=free_trial"
           className="btn btn-primary btn-large"
         >
-          Start free
+          Try your first helper free
         </Link>
         <p className="cta-guarantee">
           <a href="/terms#money-back-guarantee">
@@ -21,7 +21,7 @@ export default function CTA() {
             helper? Request a refund.
           </a>
         </p>
-        <p className="cta-note">No commitment. No credit card to start.</p>
+        <p className="cta-note">Your first helper is free. No credit card. Cancel anytime.</p>
       </div>
     </section>
   );

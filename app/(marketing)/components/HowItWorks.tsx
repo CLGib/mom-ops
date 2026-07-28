@@ -1,23 +1,23 @@
 const STEPS = [
   {
     num: "01",
-    title: "Pick a helper",
-    body: "Choose what you want handled this week — meal planning, a school email, a birthday party, a research project.",
+    title: "Pick a helper — or just say what you need",
+    body: "Choose from the library (meal planning, a school email, a birthday party, camp research) or describe your task in a sentence.",
   },
   {
     num: "02",
-    title: "Tell us about your family once",
-    body: "Kids' ages, dietary notes, the basics. The system remembers, so you don't repeat yourself next time.",
+    title: "We already know your family",
+    body: "Kids' ages, dietary notes, the basics — filled in from your profile, so you never repeat yourself.",
   },
   {
     num: "03",
-    title: "We bring the helper in",
-    body: "AI handles the planning, drafting, and follow-through. Optional human support polishes when you want it.",
+    title: "Get a finished deliverable in about a minute",
+    body: "Your assistant does the research, drafting, and planning and hands back something you can use right away — a plan, a draft, a list, a design.",
   },
   {
     num: "04",
-    title: "Get the deliverable",
-    body: "A clean output by email — a plan, a draft, a list, a design. Request revisions within scope.",
+    title: "Want a human? Just ask",
+    body: "Hand any task to our concierge team for the calls, bookings, and personal touch — a paid add-on, delivered within one business day.",
   },
 ];
 

@@ -8,9 +8,10 @@ export default function Hero() {
           The operating system for modern family life.
         </h1>
         <p className="hero-subhead">
-          Mom Ops gives busy households a library of helpers, household memory,
-          and optional human support &mdash; so the mental tabs you never close
-          finally have somewhere to live.
+          Tell Mom Ops a family task &mdash; plan the week&apos;s dinners,
+          research summer camps, draft the school email &mdash; and get it back
+          done in about a minute. Powered by AI, with real people when you want a
+          human touch.
         </p>
         <div
           style={{
@@ -25,12 +26,18 @@ export default function Hero() {
             href="/signup?next=/member&offer=free_trial"
             className="btn btn-primary"
           >
-            Start free
+            Try your first helper free
           </Link>
           <a href="#how-it-works" className="btn btn-secondary">
             See how it works
           </a>
         </div>
+        <p
+          className="form-note"
+          style={{ marginTop: "var(--space-sm)", color: "var(--text-muted)" }}
+        >
+          Your first helper is free. No credit card.
+        </p>
       </div>
     </section>
   );

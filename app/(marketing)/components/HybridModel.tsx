@@ -26,9 +26,9 @@ export default function HybridModel() {
           <article className="credits-card">
             <h3 className="credits-card-title">Where a human steps in</h3>
             <p className="credits-card-description">
-              Refinement, coordination, accountability, emotional nuance,
-              edge cases. White-glove support when a draft needs a real
-              second pair of eyes.
+              The calls, the bookings, coordination, and the parts that need a
+              real person &mdash; available as a paid concierge add-on when you
+              want white-glove help.
             </p>
           </article>
         </div>
@@ -41,7 +41,8 @@ export default function HybridModel() {
             fontStyle: "italic",
           }}
         >
-          You never have to choose. Use as much of either as you need.
+          AI helpers are unlimited and included. A real person is there when you
+          want one, as a paid add-on.
         </p>
       </div>
     </section>
