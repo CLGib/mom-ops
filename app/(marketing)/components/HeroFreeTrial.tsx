@@ -5,17 +5,17 @@ export default function HeroFreeTrial() {
     <section className="hero">
       <div className="container">
         <h1 className="hero-headline">
-          Finally, a Virtual Assistant for Your To-Do List
+          Finally, your to-do list handles itself.
         </h1>
         <p className="hero-subhead">
-          Household admin, handled by a real mom virtual assistant.
+          Tell us what&apos;s on your plate and get it back done in seconds.
           <br />
-          Clear timelines.
+          Built by moms. Backed by real humans when a task needs one.
           <br />
           No hourly billing. No guesswork.
         </p>
         <p className="hero-price">
-          Free to sign up. Your first task is free — 35 credits to try us.
+          Free to sign up. Your first task is free.
         </p>
         <Link
           href="/signup?next=/member&offer=free_trial"

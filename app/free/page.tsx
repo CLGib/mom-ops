@@ -15,7 +15,6 @@ import ExploreRealExamples from "../(marketing)/components/ExploreRealExamples";
 import type { RealExample } from "../(marketing)/components/ExploreRealExamples";
 import Affordable from "../(marketing)/components/Affordable";
 import Specialist from "../(marketing)/components/Specialist";
-import Coffee from "../(marketing)/components/Coffee";
 import WhoItsFor from "../(marketing)/components/WhoItsFor";
 import Efficiency from "../(marketing)/components/Efficiency";
 import CTAFreeTrial from "../(marketing)/components/CTAFreeTrial";
@@ -25,7 +24,7 @@ import Footer from "../(marketing)/components/Footer";
 export const metadata: Metadata = {
   title: "Mom Ops - Try Your First Task Free",
   description:
-    "Real virtual assistant support for moms. Sign up free and get your first task free — 35 credits to try us. No credit card required.",
+    "Instant help for moms, built by moms. Sign up free and get your first task free. No credit card required.",
 };
 
 export default async function FreePage() {
@@ -71,7 +70,6 @@ export default async function FreePage() {
         <LandingReviewsSection />
         <Affordable />
         <Specialist />
-        <Coffee />
         <WhoItsFor />
         <Efficiency />
         <CTAFreeTrial />

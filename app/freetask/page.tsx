@@ -16,7 +16,6 @@ import ExploreRealExamples from "../(marketing)/components/ExploreRealExamples";
 import type { RealExample } from "../(marketing)/components/ExploreRealExamples";
 import Affordable from "../(marketing)/components/Affordable";
 import Specialist from "../(marketing)/components/Specialist";
-import Coffee from "../(marketing)/components/Coffee";
 import WhoItsFor from "../(marketing)/components/WhoItsFor";
 import Efficiency from "../(marketing)/components/Efficiency";
 import FAQ from "../(marketing)/components/FAQ";
@@ -26,7 +25,7 @@ import FreetaskSubmitForm from "./FreetaskSubmitForm";
 export const metadata: Metadata = {
   title: "Mom Ops - Submit Your First Task Free",
   description:
-    "Try the experience. Submit a task now — we'll create your account and get started. Real virtual assistant support for moms. No credit card required.",
+    "Try the experience. Submit a task now — we'll create your account and get started. Instant help for moms, built by moms. No credit card required.",
 };
 
 export default async function FreetaskPage() {
@@ -91,17 +90,13 @@ export default async function FreetaskPage() {
         <LandingReviewsSection />
         <Affordable />
         <Specialist />
-        <Coffee />
         <WhoItsFor />
         <Efficiency />
         <section id="cta" className="section cta-section">
           <div className="container">
             <p className="section-lead">
-              Need more credits?{" "}
-              <Link href="/member/credits" className="link" style={{ fontWeight: 600 }}>
-                Purchase more in your dashboard
-              </Link>{" "}
-              after you sign in.
+              Your first task is free. After that, everyday tasks are included in
+              your monthly plan — nothing to count.
             </p>
           </div>
         </section>

@@ -6,8 +6,7 @@ export default function CTAFreeTrial() {
       <div className="container">
         <h2 className="section-title">Get started</h2>
         <p className="section-lead">
-          Free to sign up. Your first task is free — 35 Task Credits to try us.
-          No credit card required.
+          Free to sign up. Your first task is free. No credit card required.
         </p>
         <Link href="/signup?next=/member&offer=free_trial" className="btn btn-primary btn-large">
           Sign up free

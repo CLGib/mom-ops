@@ -13,7 +13,6 @@ import Credits from "../(marketing)/components/Credits";
 import LandingReviewsSection from "../(marketing)/components/LandingReviewsSection";
 import Affordable from "../(marketing)/components/Affordable";
 import Specialist from "../(marketing)/components/Specialist";
-import Coffee from "../(marketing)/components/Coffee";
 import WhoItsFor from "../(marketing)/components/WhoItsFor";
 import Efficiency from "../(marketing)/components/Efficiency";
 import FAQ from "../(marketing)/components/FAQ";
@@ -22,7 +21,7 @@ import Footer from "../(marketing)/components/Footer";
 export const metadata: Metadata = {
   title: "Founding Members - Mom Ops | Lock in $15.95/month (First 50)",
   description:
-    "Join as a Founding Member: same membership at $15.95/month, locked in for life. First 50 only. Early access, input on development, opportunities to earn extra credits.",
+    "Join as a Founding Member: same membership at $15.95/month, locked in for life. First 50 only. Early access, input on development, and priority support as we grow.",
 };
 
 export const dynamic = "force-dynamic";
@@ -60,7 +59,6 @@ export default async function FoundersPage() {
           <LandingReviewsSection />
           <Affordable />
           <Specialist />
-          <Coffee />
           <WhoItsFor />
           <Efficiency />
           <FoundersCTA />
