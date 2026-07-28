@@ -4,6 +4,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { getTaskByFromTaskParam } from "@/lib/task-library";
 import { fillTaskTemplate } from "@/lib/fill-task-template";
+import { fulfillTicket } from "@/lib/fulfill-ticket";
 import { createTicket } from "../actions";
 
 /**
@@ -19,7 +20,7 @@ import { createTicket } from "../actions";
  */
 export async function bringInHelper(
   helperId: string,
-): Promise<{ ticketId?: string; helperName?: string; error?: string }> {
+): Promise<{ ticketId?: string; helperName?: string; error?: string; fulfilled?: boolean }> {
   try {
     if (!helperId || typeof helperId !== "string") {
       return { error: "No helper specified." };
@@ -87,7 +88,18 @@ export async function bringInHelper(
       console.warn("[bringInHelper] failed to tag helper_id", err);
     }
 
-    return { ticketId: result.ticketId, helperName: helper.task };
+    // Fulfill it now with AI. Best-effort: if this fails, the ticket stays
+    // open, the admin is notified inside fulfillTicket, and the confirmation
+    // screen falls back to "we'll follow up" messaging.
+    let fulfilled = false;
+    try {
+      const fulfill = await fulfillTicket(result.ticketId, user.id);
+      fulfilled = fulfill.ok;
+    } catch (err) {
+      console.warn("[bringInHelper] fulfillTicket threw", err);
+    }
+
+    return { ticketId: result.ticketId, helperName: helper.task, fulfilled };
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Something went wrong.";

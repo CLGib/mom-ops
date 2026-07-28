@@ -17,6 +17,8 @@ import { createTicket } from "./actions";
 import { getPostHogClient, shutdownPostHog } from "@/lib/posthog-server";
 
 export const dynamic = "force-dynamic";
+// HomeHelperGrid's bringInHelper runs AI fulfillment inline (~20-30s).
+export const maxDuration = 60;
 
 export default async function MemberPage({
   searchParams,

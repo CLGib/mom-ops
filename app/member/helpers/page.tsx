@@ -9,6 +9,8 @@ import { getSuggestedTasks } from "@/lib/suggested-tasks";
 import HelperLibrary from "../../components/HelperLibrary";
 
 export const dynamic = "force-dynamic";
+// bringInHelper runs AI fulfillment inline (~20-30s); give the server action room.
+export const maxDuration = 60;
 
 export default async function MemberHelpersPage() {
   const supabase = await createClient();
@@ -64,8 +66,8 @@ export default async function MemberHelpersPage() {
         }}
       >
         Each helper handles one kind of family work. Search for what you need,
-        then click <strong>Bring this helper in</strong> — we&apos;ll email you
-        back within 24 hours.
+        then click <strong>Bring this helper in</strong> — you&apos;ll have a
+        finished result in about a minute.
       </p>
       <HelperLibrary
         helpers={helpers}

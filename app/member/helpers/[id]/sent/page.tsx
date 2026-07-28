@@ -28,7 +28,7 @@ export default async function HelperSentPage({
 
   const { data: ticket } = await supabase
     .from("tickets")
-    .select("id, member_id, subject, helper_id")
+    .select("id, member_id, subject, helper_id, status, ai_generated")
     .eq("id", ticketId)
     .maybeSingle();
 
@@ -42,6 +42,10 @@ export default async function HelperSentPage({
   const displayName = /helper$/i.test(helperName.trim())
     ? helperName
     : `${helperName} Helper`;
+
+  // When the AI engine already fulfilled it (the common path), the deliverable
+  // is waiting — send the member straight to it instead of "check your email."
+  const isReady = ticket.ai_generated === true;
 
   return (
     <main className="app-shell" style={{ paddingTop: "var(--space-2xl)", paddingBottom: "var(--space-2xl)" }}>
@@ -87,28 +91,32 @@ export default async function HelperSentPage({
           className="page-title"
           style={{ marginBottom: "var(--space-sm)", fontSize: "1.75rem" }}
         >
-          Your {displayName} is on the way.
+          {isReady ? `Your ${displayName} is ready.` : `Your ${displayName} is on the way.`}
         </h1>
 
         <p
           className="section-lead"
           style={{ marginBottom: "var(--space-md)", color: "var(--text-muted)" }}
         >
-          Check your email in the next 24 hours.
+          {isReady
+            ? "Your assistant did the thinking — take a look."
+            : "Check your email in the next 24 hours."}
         </p>
 
-        <p
-          className="form-note"
-          style={{
-            marginBottom: "var(--space-2xl)",
-            maxWidth: 440,
-            marginLeft: "auto",
-            marginRight: "auto",
-          }}
-        >
-          If we need anything else from you, we&apos;ll reach out. Otherwise,
-          your deliverable will be in your inbox soon.
-        </p>
+        {!isReady && (
+          <p
+            className="form-note"
+            style={{
+              marginBottom: "var(--space-2xl)",
+              maxWidth: 440,
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            If we need anything else from you, we&apos;ll reach out. Otherwise,
+            your deliverable will be in your inbox soon.
+          </p>
+        )}
 
         <div
           style={{
@@ -116,18 +124,36 @@ export default async function HelperSentPage({
             flexWrap: "wrap",
             justifyContent: "center",
             gap: "var(--space-sm)",
+            marginTop: isReady ? "var(--space-xl)" : 0,
           }}
         >
-          <Link href="/member/helpers" className="btn btn-primary">
-            Browse more helpers
-          </Link>
-          <Link
-            href="/member"
-            className="btn btn-secondary"
-            style={{ borderColor: "var(--color-border)" }}
-          >
-            Back to Home
-          </Link>
+          {isReady ? (
+            <>
+              <Link href={`/member/${ticket.id}`} className="btn btn-primary">
+                View your deliverable
+              </Link>
+              <Link
+                href="/member/helpers"
+                className="btn btn-secondary"
+                style={{ borderColor: "var(--color-border)" }}
+              >
+                Browse more helpers
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link href="/member/helpers" className="btn btn-primary">
+                Browse more helpers
+              </Link>
+              <Link
+                href="/member"
+                className="btn btn-secondary"
+                style={{ borderColor: "var(--color-border)" }}
+              >
+                Back to Home
+              </Link>
+            </>
+          )}
         </div>
 
         <p
