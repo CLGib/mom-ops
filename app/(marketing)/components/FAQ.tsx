@@ -2,7 +2,7 @@ const FAQ_ITEMS = [
   {
     question: "Is this a real human or AI?",
     answer:
-      "You get a 100% real human virtual assistant.\n\nWe use AI the same way you might use Google - as a tool to work smarter and faster. But you won't get generic, copy-pasted AI responses.\n\nThe difference? Real relationships.\n\nOver time, your virtual assistant learns how you think, what you prefer, and how you work. And your real human virtual assistant makes sure every final result actually reflects you.",
+      "Both — and that's the point.\n\nYour assistant is AI, so it works instantly. But it's built by moms and loaded with your family's context, so you won't get generic, copy-pasted answers. It learns how you think, what you prefer, and how you like things done.\n\nAnd you're never on your own: a real human on our team steps in for anything that needs a phone call, a booking, or a personal touch.",
   },
   {
     question: "Do I have to be a mom to use Mom Ops?",
@@ -10,29 +10,29 @@ const FAQ_ITEMS = [
       "No. Everyone could use an extra mom in their corner. We were built by moms and specialize in the mental load they carry, but Mom Ops is for anyone who wants life to run smoother, with systems, support, and a little less chaos.",
   },
   {
-    question: "What is the turnaround time for tasks?",
+    question: "How fast do I get my task back?",
     answer:
-      "Standard turnaround is 1 business day. Some tasks may take longer depending on scope; we'll communicate clearly if that's the case.",
+      "Most everyday tasks come back in seconds — a finished result you can use right away. Anything that needs a real person, like a call or a booking, our concierge team handles and keeps you posted.",
   },
   {
-    question: "How do Task Credits work?",
+    question: "How does pricing work?",
     answer:
-      "Your $29.95/month membership includes 35 Task Credits. Unused monthly credits roll over up to 3 months. You can add more (10, 30, or 50 Task Credits) in the member portal - credits you purchase never expire. Each task uses a set number of credits based on scope; you'll see how many before we begin. No hourly billing.",
+      "One simple plan: $29.95/month, with unlimited everyday tasks included. No credits to count, no per-task fees, no hourly billing. Month-to-month — cancel anytime.",
   },
   {
-    question: "Who actually does my tasks?",
+    question: "Why not just use ChatGPT myself?",
     answer:
-      "Every task is completed by a real person - a specialist who is also a mom and understands household and family context. We're not a texting service or an on-demand concierge; we're structured virtual assistant support.",
+      "You could — if you want to sit down, write the prompt, refine it, and format the result yourself. Mom Ops already knows your family and hands back the finished thing, so you skip all of that. It's about execution, not another chat to manage.",
   },
   {
-    question: "Can I request the same specialist?",
+    question: "When does a real human get involved?",
     answer:
-      "Yes. After your first task, you can request the same specialist for future work when they're available. We do our best to honor that preference.",
+      "Whenever a task needs one. Your AI assistant handles the research, drafting, and planning instantly. For anything in the real world — a phone call, a reservation, a purchase, a personal touch — you can hand it to our concierge team.",
   },
   {
-    question: "What is the coffee contribution?",
+    question: "Does it remember me and my family?",
     answer:
-      "When your task is complete, you'll have the option to add a $1 contribution. Tips go directly to the mom who handled your work. It's completely optional - just a simple way to say thanks and support another mom providing for her family.",
+      "Yes. It's loaded with your profile and learns your preferences over time, so you never start from scratch. You can also set up recurring tasks — like the Sunday meal plan — so the things that repeat just show up done.",
   },
   {
     question: "What is your refund policy?",
@@ -42,7 +42,7 @@ const FAQ_ITEMS = [
   {
     question: "Is there a long-term commitment?",
     answer:
-      "No. Your membership is month-to-month. You can cancel anytime. Monthly Task Credits roll over up to 3 months. Credits you purchase never expire.",
+      "No. Your membership is month-to-month, and you can cancel anytime.",
   },
   {
     question: "What if my task is out of scope?",
@@ -52,7 +52,7 @@ const FAQ_ITEMS = [
   {
     question: "How do I submit a task?",
     answer:
-      "Simply email your task to our team. No dashboard or app - just send us what you need, attach any files, and we'll take it from there. If we need access to something (like Canva), we'll send you a secure share link.",
+      "Right from your dashboard — just type what's on your plate in a sentence. Prefer email? You can send your task to us instead. Attach any files that help, and your assistant takes it from there.",
   },
 ];
 

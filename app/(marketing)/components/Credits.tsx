@@ -90,12 +90,6 @@ const TASK_CATEGORIES = [
 /** On marketing we only show these categories in the task library to keep it simple and positive. */
 const MARKETING_TASK_LIBRARY_CATEGORIES = TASK_CATEGORIES.map((c) => c.title);
 
-const TOKEN_CARDS = [
-  { label: "10 Task Credits", price: "$15" },
-  { label: "30 Task Credits", price: "$39" },
-  { label: "50 Task Credits", price: "$59" },
-];
-
 type CreditsProps = {
   /** When provided, skip async fetch (for static pages like /founders). */
   tasks?: TaskLibraryItem[];
@@ -121,10 +115,10 @@ export default async function Credits(props: CreditsProps) {
   return (
     <section id="credits" className="section">
       <div className="container">
-        <h2 className="section-title">What Can You Send Us?</h2>
+        <h2 className="section-title">What can you hand off?</h2>
         <p className="section-lead credits-intro">
-          Common requests with standard Task Credit pricing. Not listed? Email
-          us; we&apos;ll confirm scope and credit amount before starting.
+          Just about anything on your mental load. Here are a few favorites — but
+          you never have to pick from a menu. Just ask in your own words.
         </p>
 
         <div className="credits-card-grid">
@@ -151,18 +145,9 @@ export default async function Credits(props: CreditsProps) {
         </p>
 
         <p className="credits-custom-note">
-          Custom requests welcome; we&apos;ll quote credits before we begin. More
-          Task Credits available in the member portal; purchased credits never
-          expire.
+          Custom requests welcome — just describe it. Everyday tasks are included
+          in your monthly plan, so there&apos;s nothing to count or calculate.
         </p>
-        <div className="token-cards">
-          {TOKEN_CARDS.map((card) => (
-            <div key={card.label} className="token-card">
-              <h4>{card.label}</h4>
-              <p>{card.price}</p>
-            </div>
-          ))}
-        </div>
 
         <div className="credits-scope-full">
           <p className="scope-guardrail">
@@ -171,8 +156,8 @@ export default async function Credits(props: CreditsProps) {
             services.
           </p>
           <p className="section-body section-body--tight scope-note">
-            Task Credits represent defined units of structured support, so
-            delegation feels effortless, not like another decision to calculate.
+            One plan covers your everyday tasks, so delegation feels effortless —
+            not like another decision to calculate.
           </p>
         </div>
       </div>

@@ -5,32 +5,23 @@ export default function Affordable() {
         <h2 className="section-title">How is this so affordable?</h2>
         <p className="section-lead">Great question.</p>
         <p className="section-body">
-          Mom Ops is built on an on-demand model. You&apos;re not paying for
-          full-time staff, idle hours, or traditional agency overhead. You only
-          pay for completed tasks.
-        </p>
-        <p className="section-body">
-          Our specialists work flexibly, choosing jobs that fit their schedule
-          and getting paid per task. Because we operate without layers of
-          management, office space, or retainers, we&apos;re able to keep
-          pricing sustainable for families.
+          Your assistant does the heavy lifting — the research, the drafting, the
+          planning — instantly. That means no hourly billing, no idle staff, no
+          agency overhead. So one flat monthly price covers as many everyday
+          tasks as you need.
         </p>
         <p className="section-body">
           It&apos;s simple:
           <br />
-          You pay for the work you need.
+          One plan, one price.
           <br />
-          Our team gets flexible, structured income.
+          Unlimited everyday tasks, done in seconds.
           <br />
-          No bloated overhead. No wasted time.
+          A real human on our team for anything that needs one.
         </p>
         <p className="section-body">
-          That efficiency is what makes Mom Ops accessible, without cutting
-          corners on quality.
-        </p>
-        <p className="section-body">
-          We believe in transparency, fair pay, and long-term partnerships.
-          That&apos;s how this works.
+          That efficiency is what makes Mom Ops accessible to real families —
+          without cutting corners on quality or care.
         </p>
       </div>
     </section>

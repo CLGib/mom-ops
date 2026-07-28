@@ -16,7 +16,6 @@ import ExploreRealExamples from "./(marketing)/components/ExploreRealExamples";
 import type { RealExample } from "./(marketing)/components/ExploreRealExamples";
 import Affordable from "./(marketing)/components/Affordable";
 import Specialist from "./(marketing)/components/Specialist";
-import Coffee from "./(marketing)/components/Coffee";
 import WhoItsFor from "./(marketing)/components/WhoItsFor";
 import Efficiency from "./(marketing)/components/Efficiency";
 import CTA from "./(marketing)/components/CTA";
@@ -24,9 +23,9 @@ import FAQ from "./(marketing)/components/FAQ";
 import Footer from "./(marketing)/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Mom Ops - A Virtual Assistant for Your To-Do List",
+  title: "Mom Ops — Your To-Do List, Handled in Seconds",
   description:
-    "Mom Ops helps busy moms offload everyday tasks like planning birthday parties, researching summer camps, grocery planning, and more. Try your first task free.",
+    "Tell Mom Ops what's on your plate — a birthday party, the week's dinners, camp research — and get it back done in seconds. Built by moms, powered by AI, backed by real humans. Try your first task free.",
 };
 
 export default async function HomePage() {
@@ -73,7 +72,6 @@ export default async function HomePage() {
         <LandingReviewsSection />
         <Affordable />
         <Specialist />
-        <Coffee />
         <WhoItsFor />
         <Efficiency />
         <CTA />
