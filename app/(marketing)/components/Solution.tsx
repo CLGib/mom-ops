@@ -3,19 +3,21 @@ export default function Solution() {
     <section id="solution" className="section">
       <div className="container">
         <h2 className="section-title">
-          Virtual assistant support, built for how you actually work.
+          Help that&apos;s actually instant.
         </h2>
         <p className="section-lead">
-          Every task is handled by a real person, a mom who gets the context and
-          executes with care. Email your task to our team, we assign a
-          specialist, and you get a clear turnaround: 1 business day.
+          Tell us what you need in your own words. Your assistant does the
+          thinking — the research, the drafts, the plans — and hands back
+          something you can use right away. Built by moms, so it gets the
+          context. And a real human on our team is ready whenever a task needs a
+          phone call, a booking, or a personal touch.
         </p>
         <ul className="solution-list">
-          <li>Structured submission so we know exactly what you need</li>
-          <li>Clear expectations and timelines, no chasing or wondering</li>
+          <li>Just say it plainly — no forms, no figuring out how to ask</li>
+          <li>A finished deliverable in seconds, not a status update in a day</li>
           <li>
-            Calm, reliable execution from people who understand household and
-            family logistics
+            Personalized to you and your family, with a real human for anything
+            that needs one
           </li>
         </ul>
       </div>

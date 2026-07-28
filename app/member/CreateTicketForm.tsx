@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useState, useRef, useEffect } from "react";
-import confetti from "canvas-confetti";
 import { createTicket } from "./actions";
 import SpecialistRequestSelect from "../components/SpecialistRequestSelect";
 import EmojiPicker from "../components/EmojiPicker";
@@ -61,6 +60,7 @@ export default function CreateTicketForm({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [fulfilling, setFulfilling] = useState(false);
   const [expanding, setExpanding] = useState(false);
   const [recording, setRecording] = useState(false);
   const [noRush, setNoRush] = useState(false);
@@ -259,16 +259,30 @@ export default function CreateTicketForm({
         }
       }
 
-      fetch("/api/emails/queue", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          template: "task_submitted_v1",
-          payload: { ticket_id: ticketId, subject },
-          dedupe_key: `task_submitted:${ticketId}`,
-        }),
-      }).catch(() => {});
+      // AI-first: generate the finished deliverable now, then take her straight to it.
+      setFulfilling(true);
+      try {
+        const fulfillRes = await fetch("/api/tasks/fulfill", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ ticketId }),
+        });
+        const fulfillData = await fulfillRes.json().catch(() => ({}));
+        if (!fulfillRes.ok) {
+          setError(
+            fulfillData.error ??
+              "Your assistant hit a snag finishing this. We've flagged it and will follow up."
+          );
+          router.refresh();
+          return;
+        }
+      } catch {
+        setError("Network error while your assistant was working. Please try again.");
+        return;
+      } finally {
+        setFulfilling(false);
+      }
 
       setSubject("");
       setDescription("");
@@ -277,18 +291,7 @@ export default function CreateTicketForm({
       setNoRush(false);
       setTemplateId("other");
       if (fileInputRef.current) fileInputRef.current.value = "";
-      setSuccess(true);
-      const count = 200;
-      const defaults = { origin: { y: 0.7 }, zIndex: 9999 };
-      function fire(particleRatio: number, opts: confetti.Options) {
-        confetti({ ...defaults, ...opts, particleCount: Math.floor(count * particleRatio) });
-      }
-      fire(0.25, { spread: 26, startVelocity: 55 });
-      fire(0.2, { spread: 60 });
-      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
-      fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
-      fire(0.1, { spread: 120, startVelocity: 45 });
-      router.refresh();
+      router.push(`/member/${ticketId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
@@ -521,8 +524,19 @@ export default function CreateTicketForm({
         disabled={submitting || !sessionLoaded || !accessToken}
         style={{ marginTop: "var(--space-lg)" }}
       >
-        {!sessionLoaded ? "Loading…" : submitting ? "Submitting…" : "Submit task"}
+        {!sessionLoaded
+          ? "Loading…"
+          : fulfilling
+            ? "Your assistant is working…"
+            : submitting
+              ? "Submitting…"
+              : "Submit task"}
       </button>
+      {fulfilling && (
+        <p className="form-note" style={{ marginTop: "var(--space-sm)" }} role="status">
+          Your Mom Ops assistant is putting this together — usually under a minute.
+        </p>
+      )}
     </form>
   );
 }

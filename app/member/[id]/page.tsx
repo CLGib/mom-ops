@@ -9,6 +9,7 @@ import MessageBody from "../../components/MessageBody";
 import VAProfileCard from "../../components/VAProfileCard";
 import TicketReviewSurvey from "../TicketReviewSurvey";
 import ApproveTaskButton from "../ApproveTaskButton";
+import ConciergeUpsell from "../ConciergeUpsell";
 import ScrollToRate from "../ScrollToRate";
 import TipCard from "../TipCard";
 import RealtimeTicketMessages from "../../components/RealtimeTicketMessages";
@@ -32,7 +33,7 @@ export default async function MemberTicketPage({
 
     const { data: ticket, error: ticketError } = await supabase
     .from("tickets")
-    .select("id, subject, status, description, created_at, requested_va_id, assigned_va_id, rating, feedback")
+    .select("id, subject, status, description, created_at, requested_va_id, assigned_va_id, rating, feedback, ai_generated, concierge_requested")
     .eq("id", id)
     .eq("member_id", user.id)
     .single();
@@ -124,6 +125,12 @@ export default async function MemberTicketPage({
       {ticket.status === "awaiting_member_approval" && (
         <ApproveTaskButton ticketId={id} />
       )}
+      {ticket.ai_generated && (
+        <ConciergeUpsell
+          ticketId={id}
+          alreadyRequested={ticket.concierge_requested === true}
+        />
+      )}
       {ticket.requested_va_id && (
         <p className="form-note" style={{ marginBottom: "var(--space-sm)" }}>
           Requested: {requestedVaName ?? "specialist"} (we&apos;ll do our best to match you)
@@ -160,7 +167,7 @@ export default async function MemberTicketPage({
           <p className="form-note" style={{ margin: 0 }}>No files attached to this task.</p>
         )}
       </section>
-      {(ticket.status === "completed" || ticket.status === "closed") && (
+      {(ticket.status === "completed" || ticket.status === "closed") && !ticket.ai_generated && (
         <>
           {ticket.rating == null ? (
             <TicketReviewSurvey ticketId={id} />
@@ -215,7 +222,7 @@ export default async function MemberTicketPage({
         <ul className="thread-list">
             {(messages ?? []).map((m) => {
             const msgAttachments = (attachments ?? []).filter((a) => a.message_id === m.id && a.file_path);
-            const senderName = m.sender_role === "va" ? (vaProfile?.display_name?.trim() ?? "Your specialist") : m.sender_role === "member" ? "You" : (m.sender_role ?? "-");
+            const senderName = m.sender_role === "va" ? (vaProfile?.display_name?.trim() ?? "Your specialist") : m.sender_role === "member" ? "You" : m.sender_role === "assistant" ? "Your Mom Ops assistant" : (m.sender_role ?? "-");
             return (
               <li key={m.id} className="thread-message">
                 <p className="thread-message-meta">
