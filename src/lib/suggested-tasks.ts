@@ -11,6 +11,11 @@ const WEIGHT_PAST = 1;
 const WEIGHT_PROFILE = 1;
 const DEFAULT_LIMIT = 8;
 
+function isSadTask(task: TaskLibraryItem): boolean {
+  const label = `${task.category ?? ""} ${task.task ?? ""}`.toLowerCase();
+  return label.includes("sad");
+}
+
 /** Normalize for keyword match: lowercase, split on non-alphanumeric, drop short tokens */
 function tokenize(text: string): Set<string> {
   if (!text?.trim()) return new Set();
@@ -152,11 +157,12 @@ export function getSuggestedTasks(
   options?: { limit?: number }
 ): TaskLibraryItem[] {
   const limit = options?.limit ?? DEFAULT_LIMIT;
-  if (!allTasks.length) return [];
+  const candidateTasks = allTasks.filter((task) => !isSadTask(task));
+  if (!candidateTasks.length) return [];
 
   const noHistory = pastTickets.length === 0;
 
-  const scored = allTasks.map((task) => {
+  const scored = candidateTasks.map((task) => {
     const past = pastBehaviorScore(task, pastTickets);
     const prof = profileFitScore(task, profile);
     let combined = WEIGHT_PAST * past + WEIGHT_PROFILE * prof;

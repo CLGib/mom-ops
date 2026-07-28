@@ -6,6 +6,7 @@ import {
   getWeekKeyInTz,
   type RecurringTaskRow,
 } from "@/lib/recurring-task-to-ticket";
+import { getMemberCreditCost } from "@/lib/member-credit-cost";
 import type { ProfileForTemplate } from "@/lib/fill-task-template";
 import { notifyVAsNewTask } from "@/lib/email/notify-vas-new-task";
 
@@ -109,7 +110,7 @@ export async function GET(request: NextRequest) {
     const { data: balance } = await supabase.rpc("get_member_balance", {
       p_member_id: rec.member_id,
     });
-    const creditsNeeded = rec.credit_cost ?? libraryTask?.credits ?? 0;
+    const creditsNeeded = getMemberCreditCost(rec.credit_cost ?? libraryTask?.credits ?? 0);
     if (typeof balance === "number" && balance < creditsNeeded) continue;
 
     const { subject, description, credit_cost } = buildTicketFromRecurringTask(

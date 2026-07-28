@@ -7,8 +7,10 @@ import { getTaskByFromTaskParam, getTaskLibrary } from "@/lib/task-library";
 import { fillTaskTemplate } from "@/lib/fill-task-template";
 import { getSuggestedTasks } from "@/lib/suggested-tasks";
 import { getStatusLabel } from "@/lib/ticket-status";
+import { getMemberCreditCost } from "@/lib/member-credit-cost";
 import Link from "next/link";
 import CreateTicketForm from "./CreateTicketForm";
+import QuickTaskBox from "./QuickTaskBox";
 import ReactivateButton from "./ReactivateButton";
 import OnboardingBanner from "./OnboardingBanner";
 import ExploreTasksLibrary from "../components/ExploreTasksLibrary";
@@ -267,23 +269,33 @@ export default async function MemberPage({
       </section>
 
       <section id="submit" style={{ marginBottom: "var(--space-2xl)" }}>
-        <h2 className="section-heading" style={{ marginBottom: "var(--space-sm)" }}>Submit a task</h2>
         <div className="card member-submit-card">
           {isActive ? (
             <>
-              <CreateTicketForm
-                memberId={user.id}
-                aiEnabled={!!process.env.ANTHROPIC_API_KEY}
-                pastVas={pastVas}
-                initialSubject={fromTask?.task ?? fromReviewSubject}
-                initialDescription={initialDescription}
-                initialRequestedVaId={fromReviewVaId}
-                initialCategory={fromTask?.category ?? fromReviewCategory}
-                fromReviewId={fromReviewId}
-                fromReviewVaName={fromReviewVaName}
-                fromSpecialistProfile={fromSpecialistProfile}
-                requestedVaUnavailable={requestedVaUnavailable}
-              />
+              <QuickTaskBox />
+              <details
+                open={!!(fromTask || fromReviewId || fromSpecialistProfile)}
+                style={{ marginTop: "var(--space-lg)", borderTop: "1px solid var(--color-border, #e5e5e5)", paddingTop: "var(--space-md)" }}
+              >
+                <summary style={{ cursor: "pointer", fontWeight: 500 }}>
+                  Add files or a voice note, or request a specific specialist
+                </summary>
+                <div style={{ marginTop: "var(--space-md)" }}>
+                  <CreateTicketForm
+                    memberId={user.id}
+                    aiEnabled={!!process.env.ANTHROPIC_API_KEY}
+                    pastVas={pastVas}
+                    initialSubject={fromTask?.task ?? fromReviewSubject}
+                    initialDescription={initialDescription}
+                    initialRequestedVaId={fromReviewVaId}
+                    initialCategory={fromTask?.category ?? fromReviewCategory}
+                    fromReviewId={fromReviewId}
+                    fromReviewVaName={fromReviewVaName}
+                    fromSpecialistProfile={fromSpecialistProfile}
+                    requestedVaUnavailable={requestedVaUnavailable}
+                  />
+                </div>
+              </details>
               {(process.env.NEXT_PUBLIC_INBOUND_TASK_EMAIL || true) && (
                 <p className="form-note" style={{ marginTop: "var(--space-md)" }}>
                   You can also email your task to{" "}
@@ -310,7 +322,9 @@ export default async function MemberPage({
         <section id="suggested-for-you" style={{ marginBottom: "var(--space-2xl)" }}>
           <h2 className="section-heading" style={{ marginBottom: "var(--space-sm)" }}>Suggested for you</h2>
           <ul style={{ listStyle: "none", padding: 0, margin: 0, maxWidth: 720 }}>
-            {suggestedTasks.map((t) => (
+            {suggestedTasks.map((t) => {
+              const memberCredits = getMemberCreditCost(t.credits);
+              return (
               <li
                 key={t.id}
                 style={{
@@ -342,7 +356,7 @@ export default async function MemberPage({
                         fontWeight: 600,
                       }}
                     >
-                      ~{t.credits} credit{t.credits !== 1 ? "s" : ""}
+                      ~{memberCredits} credit{memberCredits !== 1 ? "s" : ""}
                     </span>
                   </div>
                   <Link
@@ -354,7 +368,8 @@ export default async function MemberPage({
                   </Link>
                 </div>
               </li>
-            ))}
+              );
+            })}
           </ul>
         </section>
       )}

@@ -80,7 +80,12 @@ async function fileToBase64(file: File): Promise<{ imageBytes: string; mimeType:
   return { imageBytes: base64, mimeType };
 }
 
+const MAX_ERROR_DETAIL_CHARS = 500;
+
 function getErrorMessage(err: unknown): string {
+  if (typeof err === "string" && err.trim()) {
+    return err.length <= MAX_ERROR_DETAIL_CHARS ? err : `${err.slice(0, MAX_ERROR_DETAIL_CHARS)}…`;
+  }
   if (err && typeof err === "object") {
     const obj = err as Record<string, unknown>;
     const msg = typeof obj.message === "string" ? obj.message : null;
@@ -108,7 +113,7 @@ function getErrorMessage(err: unknown): string {
       if (lower.includes("content") && lower.includes("block")) {
         return "The prompt or image was blocked by safety filters. Try a different description or reference image.";
       }
-      if (msg.length < 200) return msg;
+      return msg.length <= MAX_ERROR_DETAIL_CHARS ? msg : `${msg.slice(0, MAX_ERROR_DETAIL_CHARS)}…`;
     }
     if (status === 401 || code === 401) return "Invalid API key. Check GEMINI_API_KEY.";
     if (status === 429 || code === 429) return "Too many requests. Try again later.";

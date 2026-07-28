@@ -5,7 +5,6 @@ import { createServiceClient } from "@/lib/supabase/service";
 import InviteVAForm from "../InviteVAForm";
 import BackfillVAWelcomeButton from "../BackfillVAWelcomeButton";
 import DeleteVAButton from "../DeleteVAButton";
-import VATrainingModeToggle from "../VATrainingModeToggle";
 import MarkVATrainingCompleteButton from "../MarkVATrainingCompleteButton";
 
 export default async function AdminSpecialistsPage() {
@@ -31,14 +30,12 @@ export default async function AdminSpecialistsPage() {
 
   const { data: vaProfileRows } = await supabase
     .from("va_profiles")
-    .select("user_id, display_name, work_requires_review, training_complete")
+    .select("user_id, display_name, training_complete")
     .in("user_id", vaProfiles.map((p) => p.id));
   const vaDisplayNames: Record<string, string> = {};
-  const vaWorkRequiresReview: Record<string, boolean> = {};
   const vaTrainingComplete: Record<string, boolean> = {};
   (vaProfileRows ?? []).forEach((r) => {
     vaDisplayNames[r.user_id] = r.display_name ?? r.user_id.slice(0, 8);
-    vaWorkRequiresReview[r.user_id] = r.work_requires_review === true;
     vaTrainingComplete[r.user_id] = r.training_complete === true;
   });
 
@@ -93,7 +90,6 @@ export default async function AdminSpecialistsPage() {
                   )}
                 </span>
                 <span style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", flexWrap: "wrap" }}>
-                  <VATrainingModeToggle vaId={p.id} workRequiresReview={vaWorkRequiresReview[p.id] ?? true} />
                   <MarkVATrainingCompleteButton
                     vaId={p.id}
                     trainingComplete={vaTrainingComplete[p.id] ?? false}

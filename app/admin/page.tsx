@@ -126,38 +126,9 @@ export default async function AdminPage() {
 
     const lowRatingCount = ticketList.filter((t) => t.rating != null && t.rating < 4).length;
 
-    // Tickets that have VA messages pending CEO review (training mode)
-    let ticketIdsNeedingReview: Set<string> = new Set();
-    try {
-      const { data: pendingMessages } = await supabase
-        .from("ticket_messages")
-        .select("ticket_id")
-        .eq("visible_to_member", false)
-        .eq("internal", false)
-        .eq("sender_role", "va");
-      if (pendingMessages?.length) {
-        pendingMessages.forEach((row) => {
-          if (row?.ticket_id) ticketIdsNeedingReview.add(row.ticket_id);
-        });
-      }
-    } catch {
-      // ignore; badge just won't show
-    }
-
     return (
       <>
         <h1 className="page-title">CEO Dashboard</h1>
-      {ticketIdsNeedingReview.size > 0 && (
-        <section className="card card--highlight" style={{ marginBottom: "var(--space-2xl)", borderColor: "var(--color-accent, #b8860b)" }}>
-          <h2 className="section-heading">Training VA messages need review</h2>
-          <p className="form-note" style={{ marginBottom: "var(--space-sm)" }}>
-            {ticketIdsNeedingReview.size} ticket{ticketIdsNeedingReview.size !== 1 ? "s" : ""} have specialist messages waiting for your approval before the member sees them.
-          </p>
-          <Link href="/admin?needsReview=1#admin-all-tickets" className="btn btn-primary">
-            Review tickets
-          </Link>
-        </section>
-      )}
       {lowRatingCount > 0 && (
         <section className="card card--highlight" style={{ marginBottom: "var(--space-2xl)", borderColor: "var(--color-accent, #b8860b)" }}>
           <h2 className="section-heading">Low ratings (below 4 stars)</h2>
@@ -212,7 +183,6 @@ export default async function AdminPage() {
           vaDisplayNames={vaDisplayNames}
           memberDisplayNames={memberDisplayNames}
           memberEmails={memberEmails}
-          ticketIdsNeedingReview={Array.from(ticketIdsNeedingReview)}
         />
       </section>
     </>

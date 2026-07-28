@@ -31,8 +31,6 @@ type Props = {
   ticketSubject?: string;
   senderId: string;
   senderRole: string;
-  /** When true, VA messages are hidden from member until approved; do not send "new message" email. */
-  workRequiresReview?: boolean;
   /** When true, show "Internal note" checkbox (VA/admin only). */
   canSendInternalNote?: boolean;
   /** When true, only internal notes allowed (no customer reply). Used for read-only tasks. */
@@ -73,7 +71,6 @@ export default function TicketThread({
   ticketSubject = "",
   senderId,
   senderRole,
-  workRequiresReview = false,
   canSendInternalNote = false,
   internalNotesOnly = false,
   memberDisplayName,
@@ -357,7 +354,6 @@ export default function TicketThread({
     if (
       senderRole === "va" &&
       inserted?.id &&
-      !workRequiresReview &&
       !internalNote &&
       !internalNotesOnly
     ) {
