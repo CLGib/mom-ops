@@ -1,58 +1,58 @@
 const FAQ_ITEMS = [
   {
-    question: "Is this a real human or AI?",
+    question: "Is this just ChatGPT with extra steps?",
     answer:
-      "Both — and that's the point.\n\nYour assistant is AI, so it works instantly. But it's built by moms and loaded with your family's context, so you won't get generic, copy-pasted answers. It learns how you think, what you prefer, and how you like things done.\n\nAnd you're never on your own: a real human on our team steps in for anything that needs a phone call, a booking, or a personal touch.",
+      "No. ChatGPT is a chat box. Mom Ops is the system around the AI: a library of ready-made helpers for the family work you actually do, household memory so you don't repeat yourself, optional human support when a draft needs a real second pair of eyes, and a design tuned to how families actually run. The AI is the engine. Mom Ops is the car.",
+  },
+  {
+    question: "Do I need to know anything about AI to use this?",
+    answer:
+      "No. The AI is infrastructure — you never see it unless you want to. You bring in a helper and get a result. If you're curious, the whole vocabulary is two words: a prompt is the instructions that guide the AI, a helper is a specialized assistant focused on one kind of family work.",
+  },
+  {
+    question: "What's included in the membership?",
+    answer:
+      "Unlimited use. $29.95/month. No credit counting, no caps you have to plan around, no usage anxiety. We monitor usage quietly in the background to prevent abuse, but you'll never see a meter.",
+  },
+  {
+    question: "What kind of helpers are there?",
+    answer:
+      "Things like a Meal Plan Helper, Summer Camp Research Helper, Birthday Party Helper, Teacher Gift Helper, Travel Packing Helper, School Email Helper, Family Calendar Helper, and a Routine Setup Helper. Bring in as many as you need.",
+  },
+  {
+    question: "Is it AI or a real person doing the work?",
+    answer:
+      "Both, by design. The AI handles planning, drafting, organizing, and follow-through. Human support handles refinement, coordination, accountability, and the parts that need a real person — especially when a draft needs polish or nuance. You don't have to choose; you get as much of either as you want.",
   },
   {
     question: "Do I have to be a mom to use Mom Ops?",
     answer:
-      "No. Everyone could use an extra mom in their corner. We were built by moms and specialize in the mental load they carry, but Mom Ops is for anyone who wants life to run smoother, with systems, support, and a little less chaos.",
+      "No. Mom Ops was built by moms because we understand the mental load — the invisible planning, remembering, coordinating, and anticipating that keeps a household running. But anyone carrying that load belongs here.",
   },
   {
-    question: "How fast do I get my task back?",
+    question: "What's the turnaround?",
     answer:
-      "Most everyday tasks come back in seconds — a finished result you can use right away. Anything that needs a real person, like a call or a booking, our concierge team handles and keeps you posted.",
-  },
-  {
-    question: "How does pricing work?",
-    answer:
-      "One simple plan: $29.95/month, with unlimited everyday tasks included. No credits to count, no per-task fees, no hourly billing. Month-to-month — cancel anytime.",
-  },
-  {
-    question: "Why not just use ChatGPT myself?",
-    answer:
-      "You could — if you want to sit down, write the prompt, refine it, and format the result yourself. Mom Ops already knows your family and hands back the finished thing, so you skip all of that. It's about execution, not another chat to manage.",
-  },
-  {
-    question: "When does a real human get involved?",
-    answer:
-      "Whenever a task needs one. Your AI assistant handles the research, drafting, and planning instantly. For anything in the real world — a phone call, a reservation, a purchase, a personal touch — you can hand it to our concierge team.",
-  },
-  {
-    question: "Does it remember me and my family?",
-    answer:
-      "Yes. It's loaded with your profile and learns your preferences over time, so you never start from scratch. You can also set up recurring tasks — like the Sunday meal plan — so the things that repeat just show up done.",
+      "AI-only work comes back fast. Anything that involves human support has a standard 1 business day turnaround. Larger projects may take longer; we'll communicate clearly when that's the case.",
   },
   {
     question: "What is your refund policy?",
     answer:
-      "Money-back guarantee: If you sign up and don't love your first task, request a refund. No hassle.",
+      "Money-back guarantee: If you sign up and don't love your first helper, request a refund. No hassle.",
   },
   {
     question: "Is there a long-term commitment?",
     answer:
-      "No. Your membership is month-to-month, and you can cancel anytime.",
+      "No. Your membership is month-to-month. You can cancel anytime.",
   },
   {
-    question: "What if my task is out of scope?",
+    question: "What's out of scope?",
     answer:
-      "We'll let you know and suggest alternatives when possible. Our scope is household and family administrative support - research, coordination, design, planning - not legal, medical, or financial advice, or emotional coaching.",
+      "We handle structured household and family operations support — research, coordination, planning, drafting, design, recurring systems. We don't provide legal, medical, or financial advice, or emotional coaching, or urgent same-day services.",
   },
   {
-    question: "How do I submit a task?",
+    question: "How do I actually bring in a helper?",
     answer:
-      "Right from your dashboard — just type what's on your plate in a sentence. Prefer email? You can send your task to us instead. Attach any files that help, and your assistant takes it from there.",
+      "Email us what you need — no dashboard required. We'll match it to the right helper (or build the right one) and get to work. If we need access to something, we'll send a secure share link.",
   },
 ];
 

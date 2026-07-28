@@ -12,18 +12,15 @@ export default function FoundersHero() {
     <section className="hero founders-hero">
       <div className="container">
         <h1 className="hero-headline">
-          Your Personal Household Assistant, Without Hiring
-          Full-Time
+          Founding members of the family operating system.
         </h1>
         <p className="hero-subhead">
-          Tell us what&apos;s on your plate and get it back done in seconds.
+          A library of AI-powered helpers, with optional human support.
           <br />
-          Built by moms. Backed by real humans when a task needs one.
-          <br />
-          No hourly billing. No guesswork.
+          Early access as we add new helpers, all month.
         </p>
         <p className="hero-price">
-          $29.95/month includes unlimited everyday tasks.
+          Unlimited Mom Ops access. $29.95/month standard.
         </p>
         <p className="founders-first50">First 50 only</p>
         <FoundersCounter claimed={claimed} />

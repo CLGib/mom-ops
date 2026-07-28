@@ -6,26 +6,26 @@ import ReferralCookieSetter from "./(marketing)/components/ReferralCookieSetter"
 import AuthErrorBanner from "./(marketing)/components/AuthErrorBanner";
 import Header from "./(marketing)/components/Header";
 import Hero from "./(marketing)/components/Hero";
-import RealHumanSection from "./(marketing)/components/RealHumanSection";
-import LandingReviewsSection from "./(marketing)/components/LandingReviewsSection";
 import Problem from "./(marketing)/components/Problem";
-import Solution from "./(marketing)/components/Solution";
+import ProductPillars from "./(marketing)/components/ProductPillars";
+import AIExplained from "./(marketing)/components/AIExplained";
+import WhyMomOpsVsChatGPT from "./(marketing)/components/WhyMomOpsVsChatGPT";
+import HelperLibraryMockup from "./(marketing)/components/HelperLibraryMockup";
 import HowItWorks from "./(marketing)/components/HowItWorks";
-import Credits from "./(marketing)/components/Credits";
+import HybridModel from "./(marketing)/components/HybridModel";
 import ExploreRealExamples from "./(marketing)/components/ExploreRealExamples";
 import type { RealExample } from "./(marketing)/components/ExploreRealExamples";
-import Affordable from "./(marketing)/components/Affordable";
-import Specialist from "./(marketing)/components/Specialist";
+import ValueMath from "./(marketing)/components/ValueMath";
+import LandingReviewsSection from "./(marketing)/components/LandingReviewsSection";
 import WhoItsFor from "./(marketing)/components/WhoItsFor";
-import Efficiency from "./(marketing)/components/Efficiency";
 import CTA from "./(marketing)/components/CTA";
 import FAQ from "./(marketing)/components/FAQ";
 import Footer from "./(marketing)/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Mom Ops — Your To-Do List, Handled in Seconds",
+  title: "Mom Ops — The Operating System for Modern Family Life",
   description:
-    "Tell Mom Ops what's on your plate — a birthday party, the week's dinners, camp research — and get it back done in seconds. Built by moms, powered by AI, backed by real humans. Try your first task free.",
+    "A library of AI-powered helpers and optional human support — built so busy families can finally close the mental tabs they never close.",
 };
 
 export default async function HomePage() {
@@ -64,16 +64,16 @@ export default async function HomePage() {
       <main>
         <Hero />
         <Problem />
-        <Solution />
-        <ExploreRealExamples examples={examples} />
+        <ProductPillars />
+        <AIExplained />
+        <WhyMomOpsVsChatGPT />
+        <HelperLibraryMockup />
         <HowItWorks />
-        <Credits />
-        <RealHumanSection />
+        <HybridModel />
+        <ExploreRealExamples examples={examples} />
+        <ValueMath />
         <LandingReviewsSection />
-        <Affordable />
-        <Specialist />
         <WhoItsFor />
-        <Efficiency />
         <CTA />
         <FAQ />
       </main>

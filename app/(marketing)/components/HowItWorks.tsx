@@ -1,23 +1,23 @@
 const STEPS = [
   {
     num: "01",
-    title: "Join one simple plan",
-    body: "Sign up for $29.95/month.\nUnlimited everyday tasks included.\nNo credits to count. No surprise invoices.",
+    title: "Pick a helper",
+    body: "Choose what you want handled this week — meal planning, a school email, a birthday party, a research project.",
   },
   {
     num: "02",
-    title: "Tell us what's on your plate",
-    body: "Type it in a sentence from your dashboard — or just email it.\nIn your own words. Attach files if it helps.\nNo forms, no figuring out how to ask.",
+    title: "Tell us about your family once",
+    body: "Kids' ages, dietary notes, the basics. The system remembers, so you don't repeat yourself next time.",
   },
   {
     num: "03",
-    title: "Get it back in seconds",
-    body: "Your assistant does the thinking and hands back a finished result.\nPersonalized to you and your family.\nUse it right away, or ask for tweaks.",
+    title: "We bring the helper in",
+    body: "AI handles the planning, drafting, and follow-through. Optional human support polishes when you want it.",
   },
   {
     num: "04",
-    title: "Want a human? Just say so",
-    body: "Some things need a real person — a phone call, a booking, a personal touch.\nHand any task to our concierge team and we'll take it the rest of the way.",
+    title: "Get the deliverable",
+    body: "A clean output by email — a plan, a draft, a list, a design. Request revisions within scope.",
   },
 ];
 

@@ -19,28 +19,28 @@ const LOAD_AREAS = [
 ] as const;
 
 const CREDIT_EXAMPLES = [
-  "A month of weekly meal planning with grocery coordination (~15-30 credits per task).",
-  "Summer camp research with vetted options and a clear recommendation (~12-54 credits per task).",
-  "Travel planning for a family trip with bookings and logistics organized (~24-30 credits per task).",
-  "Vacation planning with itinerary support, reservations, and packing lists (~24-30 credits per task).",
-  "Gift and occasion planning handled ahead of deadlines (~12-42 credits per task).",
+  "Bring in the Meal Plan Helper every week, with grocery coordination.",
+  "Bring in the Summer Camp Research Helper for vetted options and a clear recommendation.",
+  "Bring in the Travel Helper for a family trip — bookings and logistics organized.",
+  "Bring in the Vacation Helper with itinerary support, reservations, and packing lists.",
+  "Bring in the Occasions Helper for gifts and events handled ahead of deadlines.",
 ] as const;
 
 const FAQ_ITEMS = [
   {
-    question: "What can I actually use 35 credits for?",
+    question: "What's actually included?",
     answer:
-      "Most members use them for one or two deeper projects, or several smaller tasks. Credits are based on complexity, not hours.",
+      "Unlimited Mom Ops access while you're a Peak member. Use it as much as you need; we handle the rest.",
   },
   {
     question: "What if I am not sure what to hand over first?",
     answer:
-      "That is normal. Onboarding helps you find the highest-impact area so your first week creates real momentum.",
+      "That is normal. Onboarding helps you pick the highest-impact helper so your first week creates real momentum.",
   },
   {
-    question: "Can I add more support when months get heavy?",
+    question: "Will I run out in a heavy month?",
     answer:
-      "Yes. Additional credits can be added any time, no commitment changes required.",
+      "No. Heavy months are exactly when this matters most — use it as much as you need.",
   },
 ] as const;
 
@@ -111,23 +111,23 @@ export default async function PeakWelcomePage() {
 
       <section className={styles.creditFeature}>
         <div className={styles.creditCard}>
-          <p className={styles.creditEyebrow}>Each month, included</p>
+          <p className={styles.creditEyebrow}>Included with your partnership</p>
           <div className={styles.creditNumberRow}>
-            <span className={styles.creditNumber}>35</span>
+            <span className={styles.creditNumber}>Unlimited</span>
             <div className={styles.creditDetail}>
               <span className={styles.creditDetailTop}>Mom Ops</span>
-              <span className={styles.creditDetailBottom}>credits</span>
+              <span className={styles.creditDetailBottom}>access</span>
             </div>
           </div>
           <p className={styles.creditNote}>
-            Yours to spend on planning, research, scheduling, and coordination.
-            Real human support, context-driven, designed to close open loops.
+            Use it as much as you need. AI-powered, human-supported,
+            designed to close open loops.
           </p>
         </div>
       </section>
 
       <section className={styles.creditExamples}>
-        <p className={styles.sectionEyebrow}>What 35 credits can look like</p>
+        <p className={styles.sectionEyebrow}>What you can have us run</p>
         <div className={styles.creditExamplesList}>
           {CREDIT_EXAMPLES.map((example) => (
             <p key={example} className={styles.creditExampleItem}>

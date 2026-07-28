@@ -6,26 +6,26 @@ import OfferCookieSetter from "../(marketing)/components/OfferCookieSetter";
 import AuthErrorBanner from "../(marketing)/components/AuthErrorBanner";
 import Header from "../(marketing)/components/Header";
 import HeroFreeTrial from "../(marketing)/components/HeroFreeTrial";
-import RealHumanSection from "../(marketing)/components/RealHumanSection";
-import LandingReviewsSection from "../(marketing)/components/LandingReviewsSection";
 import Problem from "../(marketing)/components/Problem";
-import Solution from "../(marketing)/components/Solution";
+import ProductPillars from "../(marketing)/components/ProductPillars";
+import AIExplained from "../(marketing)/components/AIExplained";
+import WhyMomOpsVsChatGPT from "../(marketing)/components/WhyMomOpsVsChatGPT";
+import HelperLibraryMockup from "../(marketing)/components/HelperLibraryMockup";
 import HowItWorks from "../(marketing)/components/HowItWorks";
-import Credits from "../(marketing)/components/Credits";
+import HybridModel from "../(marketing)/components/HybridModel";
 import ExploreRealExamples from "../(marketing)/components/ExploreRealExamples";
 import type { RealExample } from "../(marketing)/components/ExploreRealExamples";
-import Affordable from "../(marketing)/components/Affordable";
-import Specialist from "../(marketing)/components/Specialist";
+import ValueMath from "../(marketing)/components/ValueMath";
+import LandingReviewsSection from "../(marketing)/components/LandingReviewsSection";
 import WhoItsFor from "../(marketing)/components/WhoItsFor";
-import Efficiency from "../(marketing)/components/Efficiency";
 import FAQ from "../(marketing)/components/FAQ";
 import Footer from "../(marketing)/components/Footer";
 import FreetaskSubmitForm from "./FreetaskSubmitForm";
 
 export const metadata: Metadata = {
-  title: "Mom Ops - Submit Your First Task Free",
+  title: "Mom Ops — Bring In Your First Helper Free",
   description:
-    "Try the experience. Submit a task now — we'll create your account and get started. Instant help for moms, built by moms. No credit card required.",
+    "Send us your first open loop — we'll bring in the right helper. AI-powered, human support included. We'll create your account and get started. No credit card required.",
 };
 
 export default async function FreetaskPage() {
@@ -65,10 +65,12 @@ export default async function FreetaskPage() {
         <section id="submit-task" className="section">
           <div className="container">
             <h2 className="section-heading" style={{ marginBottom: "var(--space-sm)" }}>
-              Submit a task
+              Send us your first open loop
             </h2>
             <p className="form-note" style={{ marginBottom: "var(--space-md)" }}>
-              We&apos;ll create your account and submit this task. Your first task is free.
+              Tell us what&apos;s on your mind — we&apos;ll bring in the right
+              helper, create your account, and send back the result. Your first
+              helper is on us.
             </p>
             <div className="card member-submit-card" style={{ maxWidth: 560 }}>
               <FreetaskSubmitForm />
@@ -82,24 +84,16 @@ export default async function FreetaskPage() {
           </div>
         </section>
         <Problem />
-        <Solution />
-        <ExploreRealExamples examples={examples} />
+        <ProductPillars />
+        <AIExplained />
+        <WhyMomOpsVsChatGPT />
+        <HelperLibraryMockup />
         <HowItWorks />
-        <Credits />
-        <RealHumanSection />
+        <HybridModel />
+        <ExploreRealExamples examples={examples} />
+        <ValueMath />
         <LandingReviewsSection />
-        <Affordable />
-        <Specialist />
         <WhoItsFor />
-        <Efficiency />
-        <section id="cta" className="section cta-section">
-          <div className="container">
-            <p className="section-lead">
-              Your first task is free. After that, everyday tasks are included in
-              your monthly plan — nothing to count.
-            </p>
-          </div>
-        </section>
         <FAQ />
       </main>
       <Footer />

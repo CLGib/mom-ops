@@ -4,9 +4,9 @@ import CheckoutButton from "./CheckoutButton";
 import { useFoundersCount } from "./FoundersCountContext";
 
 const benefits = [
-  "Early access to new features",
-  "Input on development (we want your feedback)",
-  "Priority support as we grow",
+  "Early access to new helpers as we add them to the library",
+  "Input on what we build next (we want your feedback)",
+  "Locked-in $15.95/month for as long as you stay subscribed",
 ];
 
 export default function FoundersCTA() {
@@ -25,7 +25,7 @@ export default function FoundersCTA() {
             ))}
           </ul>
           <p className="founders-cta-price">
-            Same unlimited everyday tasks, same support, just{" "}
+            Same unlimited Mom Ops access, same support, just{" "}
             <strong>$15.95/month</strong> locked in for life.
           </p>
           <div className="founders-cta-actions">

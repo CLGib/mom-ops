@@ -5,17 +5,16 @@ export default function HeroFreeTrial() {
     <section className="hero">
       <div className="container">
         <h1 className="hero-headline">
-          Finally, your to-do list handles itself.
+          Try the family operating system free.
         </h1>
         <p className="hero-subhead">
-          Tell us what&apos;s on your plate and get it back done in seconds.
+          Bring in one helper on us. See what it feels like to close one
+          mental tab without doing the work yourself.
           <br />
-          Built by moms. Backed by real humans when a task needs one.
-          <br />
-          No hourly billing. No guesswork.
+          AI-powered. Human support included.
         </p>
         <p className="hero-price">
-          Free to sign up. Your first task is free.
+          Try a helper on us. No credit card required.
         </p>
         <Link
           href="/signup?next=/member&offer=free_trial"
