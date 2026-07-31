@@ -5,7 +5,6 @@ const EXPERIMENTS = [
   { title: "Helping companies rebuild their websites", cta: "Lessons learned", href: "#newsletter" },
   { title: "Learning content marketing", cta: "What's working", href: "#newsletter" },
   { title: "Building AI workflows", cta: "Steal my prompts", href: "#newsletter" },
-  { title: "Getting healthier", cta: "Honest updates", href: "#newsletter" },
 ];
 
 export default function Experiments() {
