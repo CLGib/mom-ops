@@ -289,6 +289,17 @@ function getTemplate(
         <p>- Mom Ops</p>
       `.trim(),
     }),
+    newsletter_welcome_v1: () => ({
+      subject: "You're on the list (notes from the workshop)",
+      html: `
+        <p>Hey — it's Chrissy.</p>
+        <p>You just signed up to watch me build things and steal whatever works. Thank you. That genuinely makes my day.</p>
+        <p>Here's the deal: once a week I send one email. One thing I'm building, one thing I learned, one AI trick, one mistake, one shortcut. No fluff, no gurus, no pretending I have it all figured out. Just notes from the workshop.</p>
+        <p>If something saves me ten hours, I'll show you. If something makes money, I'll explain exactly how. If something flops, you'll hear about that too.</p>
+        <p>Talk soon,<br/>Chrissy</p>
+        <p style="color:#8A8681;font-size:13px;">You're getting this because you subscribed at <a href="${SITE_URL}">themomops.com</a>. Reply "unsubscribe" anytime and I'll take you off.</p>
+      `.trim(),
+    }),
     task_submitted_v1: () => {
       const { shortLabel, subjectSuffix } = getTaskLabel(payload);
       return {
