@@ -139,6 +139,87 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
+    if (session.metadata?.mode === "kit_purchase") {
+      const kitId = session.metadata.kit_id as string | undefined;
+      if (!kitId) {
+        return NextResponse.json({ received: true, skipped: "no kit_id" });
+      }
+      const db = getSupabase();
+      const email =
+        session.customer_email ||
+        (session.customer_details?.email as string | undefined) ||
+        undefined;
+
+      // Resolve or create the buyer (mirrors the subscription guest flow).
+      let buyerId =
+        (session.client_reference_id as string) || (session.metadata?.member_id as string | undefined);
+      let createdGuest = false;
+      if (!buyerId && email) {
+        const {
+          data: { users },
+        } = await db.auth.admin.listUsers({ perPage: 1000 });
+        const match = users?.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+        if (match) {
+          buyerId = match.id;
+        } else {
+          const randomPassword = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, "");
+          const { data: newUser, error: createErr } = await db.auth.admin.createUser({
+            email,
+            password: randomPassword,
+            email_confirm: true,
+          });
+          if (createErr || !newUser?.user?.id) {
+            console.error("[webhook] createUser for kit guest failed", createErr);
+            return NextResponse.json({ received: true, skipped: "could not create user" });
+          }
+          buyerId = newUser.user.id;
+          createdGuest = true;
+        }
+      }
+      if (!buyerId) {
+        return NextResponse.json({ received: true, skipped: "no user for kit_purchase" });
+      }
+
+      const { error: ownErr } = await db.from("kit_purchases").insert({
+        member_id: buyerId,
+        kit_id: kitId,
+        stripe_session_id: session.id,
+      });
+      if (ownErr && ownErr.code !== "23505") {
+        console.error("[webhook] kit_purchases insert failed", ownErr);
+        return NextResponse.json({ received: true, error: "kit_purchases insert failed" });
+      }
+
+      const customerId = typeof session.customer === "string" ? session.customer : null;
+      if (customerId) {
+        await db.from("profiles").update({ stripe_customer_id: customerId }).eq("id", buyerId);
+      }
+
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://themomops.com";
+      if (createdGuest && email) {
+        try {
+          const { data: linkData } = await db.auth.admin.generateLink({
+            type: "magiclink",
+            email,
+            options: { redirectTo: `${siteUrl}/kits/${kitId}/customize` },
+          });
+          const magicLink = linkData?.properties?.action_link as string | undefined;
+          if (magicLink) {
+            await queueEmail({
+              to_email: email,
+              template: "account_ready_magic_link_v1",
+              payload: { member_id: buyerId, magic_link: magicLink },
+              dedupe_key: `kit_ready_magic:${session.id}`,
+            });
+          }
+        } catch (e) {
+          console.warn("[webhook] kit guest magic link failed", e);
+        }
+      }
+      console.log("[webhook] kit_purchase: granted kit", kitId, createdGuest ? "(guest)" : "");
+      return NextResponse.json({ received: true, handled: "kit_purchase" });
+    }
+
     let userId =
       (session.client_reference_id as string) || session.metadata?.user_id;
 

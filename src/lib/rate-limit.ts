@@ -243,6 +243,8 @@ export const RATE_LIMITS = {
   subscribe: { limit: 5, windowSeconds: 3600 },
   /** Stripe checkout (tip, credits) */
   stripeCheckout: { limit: 10, windowSeconds: 60 },
+  /** AI kit customization: expensive Anthropic calls that produce a deliverable */
+  kitGenerate: { limit: 15, windowSeconds: 3600 },
   /** VA assistant: draft + tips */
   vaAssistant: { limit: 20, windowSeconds: 3600 },
   /** VA template generator */
