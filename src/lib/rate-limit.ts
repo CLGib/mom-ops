@@ -239,10 +239,14 @@ export const RATE_LIMITS = {
   nps: { limit: 5, windowSeconds: 60 },
   /** Ticket creation */
   tickets: { limit: 20, windowSeconds: 60 },
+  /** Newsletter signup (public content site) */
+  subscribe: { limit: 5, windowSeconds: 3600 },
   /** AI task fulfillment: expensive Anthropic calls that produce a deliverable */
   taskFulfill: { limit: 15, windowSeconds: 3600 },
   /** Stripe checkout (tip, credits) */
   stripeCheckout: { limit: 10, windowSeconds: 60 },
+  /** AI kit customization: expensive Anthropic calls that produce a deliverable */
+  kitGenerate: { limit: 15, windowSeconds: 3600 },
   /** VA assistant: draft + tips */
   vaAssistant: { limit: 20, windowSeconds: 3600 },
   /** VA template generator */
