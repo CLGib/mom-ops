@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import SiteHeader from "./(marketing)/components/SiteHeader";
 import HeroContent from "./(marketing)/components/HeroContent";
 import WhatYoullFind from "./(marketing)/components/WhatYoullFind";
+import LatestNote from "./(marketing)/components/LatestNote";
 import HolyCow from "./(marketing)/components/HolyCow";
 import NoCatch from "./(marketing)/components/NoCatch";
 import Experiments from "./(marketing)/components/Experiments";
@@ -24,6 +25,7 @@ export default function HomePage() {
       <main>
         <HeroContent />
         <WhatYoullFind />
+        <LatestNote />
         <HolyCow />
         <NoCatch />
         <Experiments />
