@@ -38,15 +38,19 @@ export default async function KitThanksPage({
               <>
                 <p className="section-lead" style={{ marginLeft: "auto", marginRight: "auto" }}>
                   Ready to make it yours? Answer a few quick questions and your assistant
-                  will tailor the whole playbook to you.
+                  will tailor it to you.
                 </p>
                 <Link
                   href={`/kits/${kit.slug}/customize`}
                   className="btn btn-primary btn-large"
                   style={{ marginTop: "var(--space-md)" }}
                 >
-                  Customize my kit →
+                  Get started →
                 </Link>
+                <p className="form-note" style={{ marginTop: "var(--space-md)" }}>
+                  It also lives in your{" "}
+                  <Link href="/library" className="link">My Stuff</Link> library, ready anytime.
+                </p>
               </>
             ) : (
               <>

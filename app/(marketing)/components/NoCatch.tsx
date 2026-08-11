@@ -21,10 +21,12 @@ export default function NoCatch() {
           meaningful content, every single week.
         </p>
         <p className="section-body">
-          Yep, there will be micro-products. Small stuff, to fund my wild crazy
-          research, the content, and the tech stack that makes all of this go.
-          But if something I make is helpful to you, grab it. If not, just hang
-          out. Either way, I truly hope you gain something from what I build here.
+          Yep, there will be micro-products (the{" "}
+          <a href="/kits" className="link">first one is live</a>). Small stuff, to
+          fund my wild crazy research, the content, and the tech stack that makes all
+          of this go. But if something I make is helpful to you, grab it. If not,
+          just hang out. Either way, I truly hope you gain something from what I
+          build here.
         </p>
       </div>
     </section>

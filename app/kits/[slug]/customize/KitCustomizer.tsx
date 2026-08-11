@@ -1,22 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import type { KitInputField } from "@/lib/kits";
+import type { KitInputField, KitUploads } from "@/lib/kits";
 
 type Props = {
   slug: string;
   fields: KitInputField[];
   prefill: Record<string, string>;
+  allowUploads?: KitUploads;
+  submitLabel?: string;
 };
 
 type Result = { title: string; previewHtml: string; docxBase64: string; filename: string };
 
-export default function KitCustomizer({ slug, fields, prefill }: Props) {
+export default function KitCustomizer({ slug, fields, prefill, allowUploads, submitLabel }: Props) {
   const [values, setValues] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
     for (const f of fields) init[f.name] = prefill[f.name] ?? "";
     return init;
   });
+  const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
@@ -30,12 +33,24 @@ export default function KitCustomizer({ slug, fields, prefill }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/kits/${slug}/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ inputs: values }),
-      });
+      let res: Response;
+      if (allowUploads && files.length > 0) {
+        const fd = new FormData();
+        fd.append("inputs", JSON.stringify(values));
+        for (const f of files) fd.append("files", f);
+        res = await fetch(`/api/kits/${slug}/generate`, {
+          method: "POST",
+          credentials: "include",
+          body: fd,
+        });
+      } else {
+        res = await fetch(`/api/kits/${slug}/generate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ inputs: values }),
+        });
+      }
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.error ?? "Something went wrong. Please try again.");
@@ -123,6 +138,30 @@ export default function KitCustomizer({ slug, fields, prefill }: Props) {
           </div>
         ))}
 
+        {allowUploads && (
+          <div className="form-group">
+            <label htmlFor="kf-uploads">{allowUploads.label}</label>
+            <input
+              id="kf-uploads"
+              type="file"
+              multiple
+              accept={allowUploads.accept.join(",")}
+              className="input"
+              onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, 5))}
+            />
+            {allowUploads.help && (
+              <p className="form-note" style={{ marginTop: "var(--space-2xs)" }}>
+                {allowUploads.help}
+              </p>
+            )}
+            {files.length > 0 && (
+              <p className="form-note" style={{ marginTop: "var(--space-2xs)" }}>
+                {files.length} file{files.length !== 1 ? "s" : ""} attached: {files.map((f) => f.name).join(", ")}
+              </p>
+            )}
+          </div>
+        )}
+
         {error && (
           <p className="form-note" style={{ color: "var(--color-error, #b91c1c)" }} role="alert">
             {error}
@@ -130,7 +169,11 @@ export default function KitCustomizer({ slug, fields, prefill }: Props) {
         )}
 
         <button type="submit" className="btn btn-primary btn-large" disabled={loading}>
-          {loading ? "Your assistant is building it…" : result ? "Regenerate" : "Customize my kit →"}
+          {loading
+            ? "Your assistant is building it…"
+            : result
+              ? "Regenerate"
+              : submitLabel ?? "Generate my document →"}
         </button>
         {loading && (
           <p className="form-note" style={{ marginTop: "var(--space-sm)" }} role="status">

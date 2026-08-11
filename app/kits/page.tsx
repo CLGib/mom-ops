@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteHeader from "../(marketing)/components/SiteHeader";
 import SiteFooter from "../(marketing)/components/SiteFooter";
-import { getAllKits, formatKitPrice } from "@/lib/kits";
+import { getPublishedKits, formatKitPrice } from "@/lib/kits";
 
 export const metadata: Metadata = {
   title: "Kits · Mom Ops",
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default function KitsPage() {
-  const kits = getAllKits();
+  const kits = getPublishedKits();
   return (
     <>
       <SiteHeader />

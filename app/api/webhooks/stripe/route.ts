@@ -220,6 +220,92 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true, handled: "kit_purchase" });
     }
 
+    if (session.metadata?.mode === "supporter") {
+      const db = getSupabase();
+      const email =
+        session.customer_email ||
+        (session.customer_details?.email as string | undefined) ||
+        undefined;
+
+      // Resolve or create the supporter (mirrors the kit/guest flow).
+      let supporterId =
+        (session.client_reference_id as string) || (session.metadata?.user_id as string | undefined);
+      let createdGuest = false;
+      if (!supporterId && email) {
+        const {
+          data: { users },
+        } = await db.auth.admin.listUsers({ perPage: 1000 });
+        const match = users?.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+        if (match) {
+          supporterId = match.id;
+        } else {
+          const randomPassword = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, "");
+          const { data: newUser, error: createErr } = await db.auth.admin.createUser({
+            email,
+            password: randomPassword,
+            email_confirm: true,
+          });
+          if (createErr || !newUser?.user?.id) {
+            console.error("[webhook] createUser for supporter failed", createErr);
+            return NextResponse.json({ received: true, skipped: "could not create user" });
+          }
+          supporterId = newUser.user.id;
+          createdGuest = true;
+        }
+      }
+      if (!supporterId) {
+        return NextResponse.json({ received: true, skipped: "no user for supporter" });
+      }
+
+      const customerId = typeof session.customer === "string" ? session.customer : null;
+      const subId = typeof session.subscription === "string" ? session.subscription : null;
+      // Stamp user_id on the subscription so renewal/cancel events resolve the user.
+      if (subId) {
+        try {
+          await stripe.subscriptions.update(subId, { metadata: { mode: "supporter", user_id: supporterId } });
+        } catch (e) {
+          console.warn("[webhook] could not stamp supporter subscription metadata", e);
+        }
+      }
+      // Active membership. Note: no task credits are granted here (this is content access, not the task service).
+      const { error: profErr } = await db
+        .from("profiles")
+        .update({
+          subscription_status: "active",
+          ...(customerId ? { stripe_customer_id: customerId } : {}),
+          ...(subId ? { stripe_subscription_id: subId } : {}),
+        })
+        .eq("id", supporterId);
+      if (profErr) {
+        console.error("[webhook] supporter profiles update failed", profErr);
+        return NextResponse.json({ received: true, error: "supporter update failed" });
+      }
+
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://themomops.com";
+      if (createdGuest && email) {
+        try {
+          const { data: linkData } = await db.auth.admin.generateLink({
+            type: "magiclink",
+            email,
+            options: { redirectTo: `${siteUrl}/library` },
+          });
+          const magicLink = linkData?.properties?.action_link as string | undefined;
+          if (magicLink) {
+            await queueEmail({
+              to_email: email,
+              template: "account_ready_magic_link_v1",
+              payload: { member_id: supporterId, magic_link: magicLink },
+              dedupe_key: `supporter_ready_magic:${session.id}`,
+            });
+          }
+        } catch (e) {
+          console.warn("[webhook] supporter guest magic link failed", e);
+        }
+      }
+      console.log("[webhook] supporter: active", createdGuest ? "(guest)" : "");
+      return NextResponse.json({ received: true, handled: "supporter" });
+    }
+
     let userId =
       (session.client_reference_id as string) || session.metadata?.user_id;
 
