@@ -193,7 +193,7 @@ export async function middleware(req: NextRequest) {
 }
 
 /** API paths that do not require authentication (webhooks, public read-only, guest checkout, cron jobs, freetask draft, etc.) */
-const PUBLIC_API_PREFIXES = ["/api/webhooks/", "/api/founders/count", "/api/stripe/checkout", "/api/jobs/", "/api/va-apply", "/api/freetask-draft"];
+const PUBLIC_API_PREFIXES = ["/api/webhooks/", "/api/founders/count", "/api/stripe/checkout", "/api/jobs/", "/api/va-apply", "/api/freetask-draft", "/api/subscribe"];
 
 function isPublicApiPath(path: string): boolean {
   if (!path.startsWith("/api")) return false;
