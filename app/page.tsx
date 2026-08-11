@@ -3,6 +3,7 @@ import SiteHeader from "./(marketing)/components/SiteHeader";
 import HeroContent from "./(marketing)/components/HeroContent";
 import WhatYoullFind from "./(marketing)/components/WhatYoullFind";
 import LatestNote from "./(marketing)/components/LatestNote";
+import WeekTracker from "./(marketing)/components/WeekTracker";
 import HolyCow from "./(marketing)/components/HolyCow";
 import NoCatch from "./(marketing)/components/NoCatch";
 import Experiments from "./(marketing)/components/Experiments";
@@ -26,6 +27,7 @@ export default function HomePage() {
         <HeroContent />
         <WhatYoullFind />
         <LatestNote />
+        <WeekTracker />
         <HolyCow />
         <NoCatch />
         <Experiments />
