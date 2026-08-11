@@ -1,8 +1,7 @@
 // TODO: point each `href` at the real project/post once it exists.
 // For now they anchor to the newsletter so nothing dead-ends.
 const EXPERIMENTS = [
-  { title: "Building a children's memory company", cta: "Follow along", href: "#newsletter" },
-  { title: "Helping companies rebuild their websites", cta: "Lessons learned", href: "#newsletter" },
+  { title: "Helping companies rebuild their websites", cta: "See my work", href: "https://christinagibson.co/" },
   { title: "Learning content marketing", cta: "What's working", href: "#newsletter" },
   { title: "Building AI workflows", cta: "Steal my prompts", href: "#newsletter" },
 ];
@@ -23,7 +22,13 @@ export default function Experiments() {
                 <span className="experiment-dot" /> Live
               </span>
               <h3 className="experiment-title">{e.title}</h3>
-              <a href={e.href} className="experiment-cta">
+              <a
+                href={e.href}
+                className="experiment-cta"
+                {...(e.href.startsWith("http")
+                  ? { target: "_blank", rel: "noopener noreferrer" }
+                  : {})}
+              >
                 {e.cta} &rarr;
               </a>
             </article>
