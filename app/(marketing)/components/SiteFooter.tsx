@@ -15,12 +15,12 @@ export default function SiteFooter() {
             I build things. Then I tell you exactly how I built them.
           </p>
           <div className="footer-links">
-            <a href="#newsletter">Newsletter</a>
+            <a href="/#newsletter">Newsletter</a>
             <a href="mailto:chrissy@themomops.com">Say hi</a>
             <Link href="/login">Member login</Link>
           </div>
         </div>
-        <p className="footer-copy">© {2026} Mom Ops. Built with curiosity and duct tape.</p>
+        <p className="footer-copy">© {2026} Mom Ops LLC. Built with curiosity and duct tape.</p>
       </div>
     </footer>
   );

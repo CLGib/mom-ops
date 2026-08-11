@@ -29,7 +29,7 @@ export default function NewsletterCTA() {
           }}
         >
           {PROMISES.map((p) => (
-            <li key={p}>&mdash; {p}</li>
+            <li key={p}>· {p}</li>
           ))}
         </ul>
         <p className="section-body" style={{ marginBottom: "var(--space-lg)" }}>

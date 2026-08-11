@@ -34,7 +34,7 @@ const NEIGHBORHOOD_CAMP: Kit = {
   slug: "neighborhood-camp",
   title: "The Neighborhood Camp Op",
   blurb:
-    "Host an unforgettable backyard camp for the neighborhood kids — the whole playbook, schedule, and supply list, tailored to your street in about a minute.",
+    "Host an unforgettable backyard camp for the neighborhood kids. The whole playbook, schedule, and supply list, tailored to your street in minutes.",
   priceCents: 695,
   whatsIncluded: [
     "A day-by-day camp schedule you can actually run",
@@ -51,7 +51,7 @@ const NEIGHBORHOOD_CAMP: Kit = {
       placeholder: "e.g. our backyard in Mobile, AL",
       profileKey: "city",
       required: true,
-      help: "Neighborhood, city, or just 'our backyard' — helps tailor weather + supply sourcing.",
+      help: "Neighborhood, city, or just 'our backyard'. Helps tailor weather + supply sourcing.",
     },
     {
       name: "kidsAges",
@@ -85,7 +85,7 @@ const NEIGHBORHOOD_CAMP: Kit = {
       name: "theme",
       label: "Any theme or vibe?",
       type: "text",
-      placeholder: "e.g. mermaids, backyard olympics, nature explorers — or leave blank and I'll pick",
+      placeholder: "e.g. mermaids, backyard olympics, nature explorers, or leave blank and I'll pick",
       required: false,
     },
     {
@@ -103,13 +103,13 @@ const NEIGHBORHOOD_CAMP: Kit = {
       required: false,
     },
   ],
-  playbookTemplate: `# {{Camp name}} — Your Neighborhood Camp Playbook
+  playbookTemplate: `# {{Camp name}}: Your Neighborhood Camp Playbook
 
 ## The plan at a glance
 (1–2 warm sentences: the theme, the vibe, who it's for, how many days/hours.)
 
 ## Daily schedule
-(For EACH day, a time-blocked schedule from start to finish — arrival, 2–3 activities, snack, free play, wrap-up. Keep blocks realistic for the ages given.)
+(For EACH day, a time-blocked schedule from start to finish: arrival, 2-3 activities, snack, free play, wrap-up. Keep blocks realistic for the ages given.)
 
 ## Activities
 (For each activity: what it is, why kids this age love it, what you need, and a one-line how-to. Age-appropriate. Include a rainy-day backup.)
@@ -128,7 +128,7 @@ const NEIGHBORHOOD_CAMP: Kit = {
 
 ## Morning-of checklist
 (A tight checklist so the host feels ready.)`,
-  customizationPrompt: `This is a "Neighborhood Camp" kit. The buyer is a mom hosting a casual backyard/neighborhood day camp for local kids — this is NOT a commercial camp, so keep it scrappy, warm, and low-stress, not corporate. Scale everything to the number of kids, their ages, the number of days, and the hours given. Honor any allergy notes as hard constraints in the snacks and supply list. If no theme is given, pick a fun age-appropriate one. If a budget is given, keep the supply total under it and note swaps. Make the supply list genuinely shoppable (real item names, rough quantities). Everything should feel ready-to-run, like a friend who already did this handed over her exact plan.`,
+  customizationPrompt: `This is a "Neighborhood Camp" kit. The buyer is a mom hosting a casual backyard/neighborhood day camp for local kids. This is NOT a commercial camp, so keep it scrappy, warm, and low-stress, not corporate. Scale everything to the number of kids, their ages, the number of days, and the hours given. Honor any allergy notes as hard constraints in the snacks and supply list. If no theme is given, pick a fun age-appropriate one. If a budget is given, keep the supply total under it and note swaps. Make the supply list genuinely shoppable (real item names, rough quantities). Everything should feel ready-to-run, like a friend who already did this handed over her exact plan.`,
 };
 
 const KITS: Kit[] = [NEIGHBORHOOD_CAMP];

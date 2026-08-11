@@ -47,27 +47,23 @@ export default function Story() {
             </p>
             <p className="section-body">
               Today I use AI, curiosity, and a healthy amount of duct tape to
-              build businesses faster than I ever thought possible &mdash; and
-              now I&apos;m sharing everything I learn along the way.
+              build businesses faster than I ever thought possible. And now
+              I&apos;m sharing everything I learn along the way.
             </p>
           </div>
-          {/* TODO: replace with a real photo of Chrissy. */}
-          <div
-            aria-hidden
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/chrissy.jpg"
+            alt="Chrissy"
             style={{
+              width: "100%",
               borderRadius: "var(--radius-lg)",
-              background: "var(--accent-soft-bg)",
               border: "1px solid var(--border)",
-              minHeight: 320,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "var(--text-soft)",
-              fontSize: "0.875rem",
+              objectFit: "cover",
+              aspectRatio: "910 / 1024",
+              display: "block",
             }}
-          >
-            your photo here
-          </div>
+          />
         </div>
       </div>
     </section>

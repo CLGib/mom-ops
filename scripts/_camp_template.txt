@@ -1,0 +1,25 @@
+# {{Camp name}} — Your Neighborhood Camp Playbook
+
+## The plan at a glance
+(1–2 warm sentences: the theme, the vibe, who it's for, how many days/hours.)
+
+## Daily schedule
+(For EACH day, a time-blocked schedule from start to finish — arrival, 2–3 activities, snack, free play, wrap-up. Keep blocks realistic for the ages given.)
+
+## Activities
+(For each activity: what it is, why kids this age love it, what you need, and a one-line how-to. Age-appropriate. Include a rainy-day backup.)
+
+## Snacks
+(Simple, crowd-pleasing, allergy-aware snacks with quantities for the group size.)
+
+## Supply list & budget
+(A markdown table: Item | Qty | Where to get it | Est. cost. Then a total estimate. Respect the budget if given.)
+
+## Parent sign-up note
+(A short, friendly copy-paste message the host can text/email to parents.)
+
+## Permission & allergy form
+(A simple form parents fill out: child name, emergency contact, allergies/medical notes, photo OK y/n, pickup person.)
+
+## Morning-of checklist
+(A tight checklist so the host feels ready.)

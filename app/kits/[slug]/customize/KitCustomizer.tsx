@@ -134,7 +134,7 @@ export default function KitCustomizer({ slug, fields, prefill }: Props) {
         </button>
         {loading && (
           <p className="form-note" style={{ marginTop: "var(--space-sm)" }} role="status">
-            Tailoring the whole playbook to you — usually under a minute.
+            Tailoring the whole playbook to you. This usually takes a minute or two.
           </p>
         )}
       </form>

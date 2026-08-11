@@ -9,7 +9,7 @@ export default function KitsPromo() {
       <div className="container">
         <h2 className="section-title">Or skip the build. Grab the Op.</h2>
         <p className="section-lead">
-          Sometimes you don&apos;t want the tutorial &mdash; you just want the thing,
+          Sometimes you don&apos;t want the tutorial. You just want the thing,
           done. Kits are my done-for-you playbooks, customized to <em>you</em> by AI
           in about a minute. You could build it yourself for a $200/mo AI sub, a Canva
           plan, and a few hours of QA. Or grab it for the price of a latte.

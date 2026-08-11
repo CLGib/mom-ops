@@ -7,8 +7,8 @@ import { markdownToBrandedDocInput } from "@/lib/markdown-to-branded-blocks";
 import { buildBrandedDocx } from "@/lib/build-branded-docx";
 import { brandedBlocksToHtml } from "@/lib/branded-blocks-to-html";
 
-// Anthropic generation can take ~15-30s.
-export const maxDuration = 60;
+// Rich playbooks are token-heavy and can take ~60-100s. Vercel Pro honors up to 300s.
+export const maxDuration = 180;
 
 function systemPrompt(kitTitle: string, customization: string): string {
   return `You are the Mom Ops kit assistant. You take a done-for-you playbook and tailor it to one specific mom, producing a finished, ready-to-use document — not a draft, not a list of questions.
@@ -20,6 +20,7 @@ Rules:
 - Fill in every section of the template with real, specific, usable content based on the buyer's answers. Make reasonable assumptions rather than leaving blanks.
 - Warm, clear, scannable. Like a friend who already did this and handed over her exact plan.
 - Honor any allergy/safety notes as hard constraints.
+- Never use em dashes (—). Use commas, periods, colons, or parentheses instead.
 - Output ONLY GitHub-flavored markdown following the template's structure (use #, ##, ###, -, 1., > callouts, and | markdown tables |). Start with a single "# " title line. No commentary before or after, no code fences.`;
 }
 
@@ -105,7 +106,7 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ slug: 
       },
       body: JSON.stringify({
         model: process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4",
-        max_tokens: 3500,
+        max_tokens: 5000,
         system: systemPrompt(kit.title, kit.customizationPrompt),
         messages: [{ role: "user", content: buildUserPrompt(kit.playbookTemplate, inputs, profile ?? null) }],
       }),

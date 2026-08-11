@@ -10,9 +10,8 @@ export default function HeroContent() {
         <p className="hero-subhead" style={{ maxWidth: "48ch" }}>
           I build businesses, products, websites, systems, communities, and weird
           little ideas. I&apos;m not the world&apos;s best designer, marketer, or
-          developer. But somehow &mdash; when you combine curiosity, AI,
-          operations, creativity, and relentless experimentation &mdash; things
-          grow.
+          developer. But somehow, when you combine curiosity, AI, operations,
+          creativity, and relentless experimentation, things grow.
         </p>
         <p
           className="hero-subhead"

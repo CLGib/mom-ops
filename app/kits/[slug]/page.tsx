@@ -17,8 +17,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const kit = getKit(slug);
-  if (!kit) return { title: "Kit — Mom Ops" };
-  return { title: `${kit.title} — Mom Ops`, description: kit.blurb };
+  if (!kit) return { title: "Kit · Mom Ops" };
+  return { title: `${kit.title} · Mom Ops`, description: kit.blurb };
 }
 
 export default async function KitDetailPage({
@@ -59,7 +59,7 @@ export default async function KitDetailPage({
                     One-time. Customized to you by AI. Yours to download.
                   </span>
                 </div>
-                <KitBuyButton slug={kit.slug} label={`Buy this kit — ${formatKitPrice(kit.priceCents)}`} />
+                <KitBuyButton slug={kit.slug} label={`Buy this kit for ${formatKitPrice(kit.priceCents)}`} />
               </div>
             </div>
 
@@ -68,7 +68,7 @@ export default async function KitDetailPage({
               <ol className="kit-how-steps">
                 <li>Grab the kit ({formatKitPrice(kit.priceCents)}).</li>
                 <li>Answer a few quick questions about your kids, your street, your dates.</li>
-                <li>Your assistant tailors the whole playbook to you — and you download it.</li>
+                <li>Your assistant tailors the whole playbook to you, and you download it.</li>
               </ol>
               <p className="form-note" style={{ marginTop: "var(--space-sm)" }}>
                 All-access subscription (every kit, one price) is coming soon.

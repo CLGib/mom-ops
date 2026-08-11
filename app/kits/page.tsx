@@ -5,7 +5,7 @@ import SiteFooter from "../(marketing)/components/SiteFooter";
 import { getAllKits, formatKitPrice } from "@/lib/kits";
 
 export const metadata: Metadata = {
-  title: "Kits — Mom Ops",
+  title: "Kits · Mom Ops",
   description:
     "Done-for-you playbook kits for moms, customized to you by AI in about a minute. Skip the $200 tool stack and the hours of QA.",
 };
@@ -20,8 +20,8 @@ export default function KitsPage() {
           <div className="container">
             <h1 className="section-title">Grab the playbook. Pull it off.</h1>
             <p className="section-lead">
-              Done-for-you kits for the stuff you want to pull off &mdash; each one
-              customized to <em>you</em> by AI in about a minute. You could build it
+              Done-for-you kits for the stuff you want to pull off, each one
+              customized to <em>you</em> by AI in minutes. You could build it
               yourself, with a $200/mo AI subscription, a Canva plan, and a few
               hours of QA. Or grab it here.
             </p>

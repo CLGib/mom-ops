@@ -43,7 +43,7 @@ export default function NewsletterSignup({ source, cta = "Join the newsletter" }
   if (status === "done") {
     return (
       <p className="newsletter-success" role="status">
-        You&apos;re in. Check your inbox — first note from the workshop is on its way. 🛠️
+        You&apos;re in. Check your inbox. First note from the workshop is on its way. 🛠️
       </p>
     );
   }

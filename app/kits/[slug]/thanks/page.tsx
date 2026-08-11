@@ -51,7 +51,7 @@ export default async function KitThanksPage({
             ) : (
               <>
                 <p className="section-lead" style={{ marginLeft: "auto", marginRight: "auto" }}>
-                  Check your email &mdash; we just sent you a link to set up your account
+                  Check your email. We just sent you a link to set up your account
                   and customize your kit. (It can take a few seconds to arrive.)
                 </p>
                 <p className="form-note" style={{ marginTop: "var(--space-md)" }}>
