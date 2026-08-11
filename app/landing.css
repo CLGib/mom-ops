@@ -3741,3 +3741,38 @@ input[type="search"].form-input:focus {
   font-weight: 700;
 }
 
+/* ---- 100-week tracker ---- */
+.week-tracker {
+  border: 1px solid var(--border);
+}
+.week-tracker-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-sm);
+}
+.week-tracker-count {
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+.week-tracker-count strong {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--text);
+}
+.week-tracker-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--accent-soft-bg);
+  overflow: hidden;
+}
+.week-tracker-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+

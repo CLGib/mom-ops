@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteHeader from "../(marketing)/components/SiteHeader";
 import SiteFooter from "../(marketing)/components/SiteFooter";
+import WeekTracker from "../(marketing)/components/WeekTracker";
 import { getAllNotes } from "@/lib/notes";
 
 export const metadata: Metadata = {
@@ -31,6 +32,9 @@ export default function NotesPage() {
               week. Some will be useful. Some will be me thinking out loud. You get
               to watch either way.
             </p>
+            <div style={{ maxWidth: 620, marginTop: "var(--space-lg)" }}>
+              <WeekTracker bare />
+            </div>
             {notes.length === 0 ? (
               <p className="form-note">The first piece drops soon.</p>
             ) : (
