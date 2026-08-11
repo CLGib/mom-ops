@@ -3,7 +3,6 @@ import SiteHeader from "./(marketing)/components/SiteHeader";
 import HeroContent from "./(marketing)/components/HeroContent";
 import WhatYoullFind from "./(marketing)/components/WhatYoullFind";
 import HolyCow from "./(marketing)/components/HolyCow";
-import KitsPromo from "./(marketing)/components/KitsPromo";
 import NoCatch from "./(marketing)/components/NoCatch";
 import Experiments from "./(marketing)/components/Experiments";
 import Story from "./(marketing)/components/Story";
@@ -26,7 +25,6 @@ export default function HomePage() {
         <HeroContent />
         <WhatYoullFind />
         <HolyCow />
-        <KitsPromo />
         <NoCatch />
         <Experiments />
         <Story />
