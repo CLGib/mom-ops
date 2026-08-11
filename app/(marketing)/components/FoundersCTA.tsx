@@ -4,9 +4,9 @@ import CheckoutButton from "./CheckoutButton";
 import { useFoundersCount } from "./FoundersCountContext";
 
 const benefits = [
-  "Early access to new features",
-  "Input on development (we want your feedback)",
-  { text: "Opportunities to earn extra credits ", link: { href: "/#credits", label: "in the member portal" } },
+  "Early access to new helpers as we add them to the library",
+  "Input on what we build next (we want your feedback)",
+  "Locked-in $15.95/month for as long as you stay subscribed",
 ];
 
 export default function FoundersCTA() {
@@ -21,20 +21,11 @@ export default function FoundersCTA() {
           <h2 className="founders-cta-title">Why become a Founding Member?</h2>
           <ul className="founders-cta-benefits" role="list">
             {benefits.map((item, i) => (
-              <li key={i}>
-                {typeof item === "string" ? (
-                  item
-                ) : (
-                  <>
-                    {item.text}
-                    <a href={item.link.href}>{item.link.label}</a>
-                  </>
-                )}
-              </li>
+              <li key={i}>{item}</li>
             ))}
           </ul>
           <p className="founders-cta-price">
-            Same 35 Task Credits per month, same support, just{" "}
+            Same unlimited Mom Ops access, same support, just{" "}
             <strong>$15.95/month</strong> locked in for life.
           </p>
           <div className="founders-cta-actions">

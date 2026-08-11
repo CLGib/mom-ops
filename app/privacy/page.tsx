@@ -11,7 +11,7 @@ export default function Privacy() {
       <h1 className="text-3xl font-semibold mb-6">Privacy Policy</h1>
 
       <p className="mb-4">
-        Mom Ops, LLC respects your privacy. We collect only the information necessary to provide our virtual assistant services, including account information, submitted task details, and payment information processed securely through Stripe.
+        Mom Ops, LLC respects your privacy. We collect only the information necessary to provide our family operations services, including account information, submitted task details, and payment information processed securely through Stripe.
       </p>
 
       <p className="mb-4">

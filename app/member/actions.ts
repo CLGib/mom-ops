@@ -388,6 +388,81 @@ export async function approveTask(ticketId: string): Promise<{ error?: string }>
   }
 }
 
+/**
+ * Member asks for a human on the Mom Ops team to take an AI-fulfilled task further
+ * (calls, bookings, real-world execution). MVP: flag the ticket + email the admin.
+ * Payment for the concierge upsell is a fast follow.
+ */
+export async function requestConcierge(ticketId: string): Promise<{ error?: string }> {
+  try {
+    const serverClient = await createServerClient();
+    const { data: { user } } = await serverClient.auth.getUser();
+    if (!user) return { error: "Not logged in." };
+
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !serviceKey) return { error: "Server configuration error." };
+
+    const supabase = createClient(url, serviceKey);
+    const { data: ticket } = await supabase
+      .from("tickets")
+      .select("member_id, subject, concierge_requested, ticket_number")
+      .eq("id", ticketId)
+      .single();
+
+    if (!ticket || ticket.member_id !== user.id) {
+      return { error: "Task not found or you are not the member." };
+    }
+    if (ticket.concierge_requested) {
+      return {}; // idempotent — already requested
+    }
+
+    const { error } = await supabase
+      .from("tickets")
+      .update({
+        concierge_requested: true,
+        concierge_requested_at: new Date().toISOString(),
+      })
+      .eq("id", ticketId);
+    if (error) return { error: error.message };
+
+    // Notify the admin (Christina) that a member wants a human.
+    try {
+      const taskSubject = (ticket.subject && String(ticket.subject).trim()) || "Task";
+      const adminAlertEmail = process.env.ADMIN_ALERT_EMAIL;
+      let toEmail: string | null =
+        adminAlertEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminAlertEmail) ? adminAlertEmail : null;
+      if (!toEmail) {
+        const { data: adminRows } = await supabase.from("admins").select("user_id").limit(1);
+        if (adminRows?.[0]?.user_id) {
+          const { data: adminData } = await supabase.auth.admin.getUserById(adminRows[0].user_id);
+          const email = adminData?.user?.email;
+          if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) toEmail = email;
+        }
+      }
+      if (toEmail) {
+        const { queueEmail } = await import("@/lib/email/queue");
+        await queueEmail({
+          to_email: toEmail,
+          template: "concierge_requested_v1",
+          payload: {
+            ticket_id: ticketId,
+            subject: taskSubject,
+            ticket_number: (ticket as { ticket_number?: number | null }).ticket_number ?? null,
+          },
+          dedupe_key: `concierge_requested:${ticketId}`,
+        });
+      }
+    } catch (e) {
+      console.warn("[requestConcierge] admin email queue failed", e);
+    }
+
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong." };
+  }
+}
+
 export async function updateTaskReview(
   reviewId: string,
   updates: { comment?: string | null; visibility?: "private" | "public" }

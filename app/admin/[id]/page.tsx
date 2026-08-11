@@ -12,7 +12,6 @@ import CancelTaskButton from "../../va/CancelTaskButton";
 import SetTicketCost from "../../va/SetTicketCost";
 import TicketThread from "../../member/TicketThread";
 import MessageBody from "../../components/MessageBody";
-import ApproveMessageButton from "../ApproveMessageButton";
 import { getMemberDisplayNameForMacro } from "@/lib/member-display-name";
 
 export default async function AdminTicketPage({
@@ -77,15 +76,13 @@ export default async function AdminTicketPage({
   const memberContext = Array.isArray(memberContextRows) && memberContextRows.length > 0 ? memberContextRows[0] : null;
 
   let vaDisplayName: string = "VA";
-  let assignedVaWorkRequiresReview = false;
   if (ticket.assigned_va_id) {
     const { data: vaProfileRow } = await supabase
       .from("va_profiles")
-      .select("display_name, work_requires_review")
+      .select("display_name")
       .eq("user_id", ticket.assigned_va_id)
       .single();
     if (vaProfileRow?.display_name) vaDisplayName = vaProfileRow.display_name;
-    assignedVaWorkRequiresReview = vaProfileRow?.work_requires_review === true;
   }
   const memberDisplayName = getMemberDisplayNameForMacro(
     (memberContext as { preferred_name?: string | null } | null)?.preferred_name,
@@ -219,38 +216,6 @@ export default async function AdminTicketPage({
                 </li>
               );
             })}
-          </ul>
-        </section>
-      )}
-      {assignedVaWorkRequiresReview && (messages ?? []).some((m) => (m as { visible_to_member?: boolean; internal?: boolean }).visible_to_member === false && (m as { internal?: boolean }).internal !== true) && (
-        <section className="card" style={{ marginBottom: "var(--space-lg)", padding: "var(--space-md)", borderColor: "var(--accent, #b8860b)" }}>
-          <h2 className="section-heading">Pending review</h2>
-          <p className="form-note" style={{ marginBottom: "var(--space-sm)" }}>
-            This VA is in training mode. Approve messages to send them to the member.
-          </p>
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-            {(messages ?? [])
-              .filter((m) => (m as { visible_to_member?: boolean; internal?: boolean }).visible_to_member === false && (m as { internal?: boolean }).internal !== true)
-              .map((m) => (
-                <li
-                  key={m.id}
-                  style={{
-                    padding: "var(--space-sm) 0",
-                    borderBottom: "1px solid var(--color-border, #e5e5e5)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "var(--space-xs)",
-                  }}
-                >
-                  <p className="thread-message-meta" style={{ margin: 0 }}>
-                    {vaDisplayName} · {formatInCentral(m.created_at)}
-                  </p>
-                  <div style={{ background: "var(--color-bg-subtle, #f5f5f5)", padding: "var(--space-sm)", borderRadius: 6 }}>
-                    <MessageBody message={m.message} />
-                  </div>
-                  <ApproveMessageButton messageId={m.id} ticketId={id} />
-                </li>
-              ))}
           </ul>
         </section>
       )}

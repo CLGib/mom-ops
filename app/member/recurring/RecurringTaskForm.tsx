@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { TaskLibraryItem } from "@/lib/task-library";
+import { getMemberCreditCost } from "@/lib/member-credit-cost";
 import { createRecurringTask, type RecurringTaskForm as RecurringTaskFormType } from "../actions";
 
 const DAY_OPTIONS = [
@@ -120,7 +121,7 @@ export default function RecurringTaskForm({ taskLibrary, existingCount = 0 }: Pr
             <option value="">Select a task…</option>
             {taskLibrary.map((t) => (
               <option key={t.id} value={t.id}>
-                {t.task} ({t.credits} credits)
+                {t.task} ({getMemberCreditCost(t.credits)} credits)
               </option>
             ))}
           </select>

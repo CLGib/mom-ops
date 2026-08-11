@@ -5,27 +5,26 @@ import OfferCookieSetter from "../(marketing)/components/OfferCookieSetter";
 import AuthErrorBanner from "../(marketing)/components/AuthErrorBanner";
 import Header from "../(marketing)/components/Header";
 import HeroFreeTrial from "../(marketing)/components/HeroFreeTrial";
-import RealHumanSection from "../(marketing)/components/RealHumanSection";
-import LandingReviewsSection from "../(marketing)/components/LandingReviewsSection";
 import Problem from "../(marketing)/components/Problem";
-import Solution from "../(marketing)/components/Solution";
+import ProductPillars from "../(marketing)/components/ProductPillars";
+import AIExplained from "../(marketing)/components/AIExplained";
+import WhyMomOpsVsChatGPT from "../(marketing)/components/WhyMomOpsVsChatGPT";
+import HelperLibraryMockup from "../(marketing)/components/HelperLibraryMockup";
 import HowItWorks from "../(marketing)/components/HowItWorks";
-import Credits from "../(marketing)/components/Credits";
+import HybridModel from "../(marketing)/components/HybridModel";
 import ExploreRealExamples from "../(marketing)/components/ExploreRealExamples";
 import type { RealExample } from "../(marketing)/components/ExploreRealExamples";
-import Affordable from "../(marketing)/components/Affordable";
-import Specialist from "../(marketing)/components/Specialist";
-import Coffee from "../(marketing)/components/Coffee";
+import ValueMath from "../(marketing)/components/ValueMath";
+import LandingReviewsSection from "../(marketing)/components/LandingReviewsSection";
 import WhoItsFor from "../(marketing)/components/WhoItsFor";
-import Efficiency from "../(marketing)/components/Efficiency";
 import CTAFreeTrial from "../(marketing)/components/CTAFreeTrial";
 import FAQ from "../(marketing)/components/FAQ";
 import Footer from "../(marketing)/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Mom Ops - Try Your First Task Free",
+  title: "Mom Ops — Try the Family Operating System Free",
   description:
-    "Real virtual assistant support for moms. Sign up free and get your first task free — 35 credits to try us. No credit card required.",
+    "A library of AI-powered helpers, with optional human support. Sign up free, bring in your first helper on us. No credit card required.",
 };
 
 export default async function FreePage() {
@@ -63,17 +62,16 @@ export default async function FreePage() {
       <main>
         <HeroFreeTrial />
         <Problem />
-        <Solution />
-        <ExploreRealExamples examples={examples} />
+        <ProductPillars />
+        <AIExplained />
+        <WhyMomOpsVsChatGPT />
+        <HelperLibraryMockup />
         <HowItWorks />
-        <Credits />
-        <RealHumanSection />
+        <HybridModel />
+        <ExploreRealExamples examples={examples} />
+        <ValueMath />
         <LandingReviewsSection />
-        <Affordable />
-        <Specialist />
-        <Coffee />
         <WhoItsFor />
-        <Efficiency />
         <CTAFreeTrial />
         <FAQ />
       </main>

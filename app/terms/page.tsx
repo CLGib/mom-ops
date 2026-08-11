@@ -11,11 +11,11 @@ export default function Terms() {
       <h1 className="text-3xl font-semibold mb-6">Terms of Service</h1>
 
       <p className="mb-4">
-        Mom Ops, LLC provides structured virtual assistant services for household and administrative tasks.
+        Mom Ops, LLC provides AI-powered family operations services with optional human support for household and administrative tasks.
       </p>
 
       <p className="mb-4">
-        Membership is billed monthly at $29.95 and includes 35 Task Credits. Unused credits roll over up to three months. Additional credits may be purchased separately.
+        Membership is billed monthly at $29.95 and includes unlimited use of Mom Ops helpers, subject to fair-use limits to prevent abuse. Mom Ops reserves the right to rate-limit accounts whose usage significantly exceeds typical household patterns. Existing credit balances purchased under the previous credit model remain redeemable and do not expire.
       </p>
 
       <p className="mb-4">

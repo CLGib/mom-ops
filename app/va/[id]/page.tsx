@@ -51,14 +51,13 @@ export default async function VATicketPage({
 
   const { data: vaProfile } = await supabase
     .from("va_profiles")
-    .select("onboarding_complete, training_complete, work_requires_review")
+    .select("onboarding_complete, training_complete")
     .eq("user_id", user.id)
     .single();
   const onboardingComplete = vaProfile?.onboarding_complete === true;
   const trainingComplete = vaProfile?.training_complete === true;
   if (!trainingComplete) redirect("/va/training");
   const canClaimTasks = onboardingComplete && trainingComplete;
-  const workRequiresReview = vaProfile?.work_requires_review ?? true;
 
   const { data: otherTickets } = await supabase
     .from("tickets")
@@ -534,7 +533,7 @@ export default async function VATicketPage({
                 <ReassignTaskButton ticketId={id} currentStatus={ticket.status} />
                 <CancelTaskButton ticketId={id} currentStatus={ticket.status} />
               </div>
-              <TicketThread ticketId={id} ticketSubject={ticket.subject} senderId={user.id} senderRole="va" workRequiresReview={workRequiresReview} canSendInternalNote memberDisplayName={memberDisplayName} vaDisplayName={vaDisplayName} />
+              <TicketThread ticketId={id} ticketSubject={ticket.subject} senderId={user.id} senderRole="va" canSendInternalNote memberDisplayName={memberDisplayName} vaDisplayName={vaDisplayName} />
             </>
           )}
           {isReadOnly && (

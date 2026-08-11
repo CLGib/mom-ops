@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { TaskLibraryItem } from "@/lib/task-library";
+import { getMemberCreditCost } from "@/lib/member-credit-cost";
 
 type Props = {
   tasks: TaskLibraryItem[];
@@ -42,6 +43,8 @@ export default function ExploreTasksLibrary({ tasks, categories, mode, showOnlyW
 
   const hasActiveFilter = search.trim() !== "" || categoryFilter !== "";
   const showList = !showOnlyWhenFiltered || hasActiveFilter;
+  const displayCredits = (credits: number) =>
+    mode === "member" ? getMemberCreditCost(credits) : credits;
 
   return (
     <div style={{ maxWidth: 720 }}>
@@ -134,7 +137,7 @@ export default function ExploreTasksLibrary({ tasks, categories, mode, showOnlyW
                       fontWeight: 600,
                     }}
                   >
-                    ~{t.credits} credit{t.credits !== 1 ? "s" : ""}
+                    ~{displayCredits(t.credits)} credit{displayCredits(t.credits) !== 1 ? "s" : ""}
                   </span>
                 </div>
                 {mode === "member" && (

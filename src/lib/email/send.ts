@@ -542,6 +542,36 @@ function getTemplate(
         `.trim(),
       };
     },
+    concierge_requested_v1: () => {
+      const subject = escapeHtml(String(payload.subject ?? "Task"));
+      const ticketId = typeof payload.ticket_id === "string" ? payload.ticket_id : "";
+      const adminTaskLink = ticketId ? `${SITE_URL}/admin/${ticketId}` : `${SITE_URL}/admin`;
+      const num =
+        typeof payload.ticket_number === "number" ? ` (#${payload.ticket_number})` : "";
+      return {
+        subject: `Concierge requested – a member wants a human${num}`,
+        html: `
+          <p>A member reviewed their AI deliverable and asked for a human to take it further.</p>
+          <p><strong>Task:</strong> ${subject}${num}</p>
+          <p><a href="${adminTaskLink}">Open task in admin</a></p>
+          <p>- Mom Ops</p>
+        `.trim(),
+      };
+    },
+    ai_fulfill_failed_v1: () => {
+      const subject = escapeHtml(String(payload.subject ?? "Task"));
+      const ticketId = typeof payload.ticket_id === "string" ? payload.ticket_id : "";
+      const adminTaskLink = ticketId ? `${SITE_URL}/admin/${ticketId}` : `${SITE_URL}/admin`;
+      return {
+        subject: `AI couldn't finish a task – needs a human`,
+        html: `
+          <p>The AI assistant couldn't complete a task automatically. It's waiting for a human.</p>
+          <p><strong>Task:</strong> ${subject}</p>
+          <p><a href="${adminTaskLink}">Open task in admin</a></p>
+          <p>- Mom Ops</p>
+        `.trim(),
+      };
+    },
     va_tier1_milestone_ceo_v1: () => {
       const vaName = escapeHtml(String(payload.va_display_name ?? "A VA"));
       const vaId = typeof payload.va_id === "string" ? payload.va_id : "";

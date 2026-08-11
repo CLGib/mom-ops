@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { formatInCentral } from "@/lib/format-date";
 
 const PAGE_SIZE = 20;
@@ -30,28 +29,18 @@ export default function AdminTicketList({
   vaDisplayNames = {},
   memberDisplayNames = {},
   memberEmails = {},
-  ticketIdsNeedingReview = [],
 }: {
   tickets: Ticket[];
   vaDisplayNames?: Record<string, string>;
   memberDisplayNames?: Record<string, string>;
   memberEmails?: Record<string, string>;
-  /** Ticket IDs that have VA messages pending CEO review (training mode). */
-  ticketIdsNeedingReview?: string[];
 }) {
   const safeTickets = Array.isArray(tickets) ? tickets : [];
   const safeVaDisplayNames = vaDisplayNames && typeof vaDisplayNames === "object" ? vaDisplayNames : {};
   const safeMemberDisplayNames = memberDisplayNames && typeof memberDisplayNames === "object" ? memberDisplayNames : {};
   const safeMemberEmails = memberEmails && typeof memberEmails === "object" ? memberEmails : {};
-  const needReviewSet = useMemo(
-    () => new Set(Array.isArray(ticketIdsNeedingReview) ? ticketIdsNeedingReview : []),
-    [ticketIdsNeedingReview]
-  );
-  const searchParams = useSearchParams();
-  const needsReviewFromUrl = searchParams.get("needsReview") === "1";
   const [search, setSearch] = useState("");
-  const [includeClosed, setIncludeClosed] = useState(needsReviewFromUrl);
-  const [needsReviewOnly, setNeedsReviewOnly] = useState(needsReviewFromUrl);
+  const [includeClosed, setIncludeClosed] = useState(false);
   const [filterMemberId, setFilterMemberId] = useState("");
   const [filterVaId, setFilterVaId] = useState("");
   const [page, setPage] = useState(0);
@@ -86,20 +75,9 @@ export default function AdminTicketList({
     return [unassigned, ...list];
   }, [safeTickets, safeVaDisplayNames]);
 
-  const sortNeedingReviewFirst = (list: Ticket[]) =>
-    [...list].sort((a, b) => {
-      const aNeed = needReviewSet.has(a?.id ?? "");
-      const bNeed = needReviewSet.has(b?.id ?? "");
-      if (aNeed && !bNeed) return -1;
-      if (!aNeed && bNeed) return 1;
-      return 0;
-    });
-
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const excludeCancelled = (list: Ticket[]) => list.filter((t) => !isCancelled(t.status));
-    const byNeedsReview = (list: Ticket[]) =>
-      needsReviewOnly ? list.filter((t) => needReviewSet.has(t?.id ?? "")) : list;
     let list: Ticket[];
     if (q) {
       // When searching: include cancelled so they are findable
@@ -129,8 +107,8 @@ export default function AdminTicketList({
         list = list.filter((t) => t.assigned_va_id === filterVaId);
       }
     }
-    return sortNeedingReviewFirst(byNeedsReview(list));
-  }, [safeTickets, search, includeClosed, needsReviewOnly, needReviewSet, safeMemberDisplayNames, safeMemberEmails, filterMemberId, filterVaId]);
+    return list;
+  }, [safeTickets, search, includeClosed, safeMemberDisplayNames, safeMemberEmails, filterMemberId, filterVaId]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages - 1);
@@ -170,18 +148,6 @@ export default function AdminTicketList({
             aria-label="Include closed tickets"
           />
           Include closed
-        </label>
-        <label style={{ display: "flex", alignItems: "center", gap: "var(--space-xs)", fontSize: "0.9rem", cursor: "pointer" }}>
-          <input
-            type="checkbox"
-            checked={needsReviewOnly}
-            onChange={(e) => {
-              setNeedsReviewOnly(e.target.checked);
-              setPage(0);
-            }}
-            aria-label="Show only tickets needing review"
-          />
-          Needs review only
         </label>
         <label htmlFor="admin-filter-member" style={{ fontSize: "0.9rem" }}>
           Member
@@ -227,25 +193,21 @@ export default function AdminTicketList({
         </select>
         <p id="admin-ticket-search-hint" className="form-note" style={{ margin: 0, width: "100%" }}>
           {search.trim()
-            ? `Showing ${filtered.length} matching ticket${filtered.length !== 1 ? "s" : ""}${needsReviewOnly ? " (needs review only)" : ""}${filterMemberId || filterVaId ? " (filtered by member/specialist)" : ""}.`
-            : needsReviewOnly
-              ? `Showing ${filtered.length} ticket${filtered.length !== 1 ? "s" : ""} needing review${filterMemberId || filterVaId ? " (filtered)" : ""}.`
-              : includeClosed
-                ? `Showing ${filtered.length} ticket${filtered.length !== 1 ? "s" : ""}${filterMemberId || filterVaId ? " (filtered)" : ""}.`
-                : `Showing ${filtered.length} ticket${filtered.length !== 1 ? "s" : ""}${filterMemberId || filterVaId ? " (filtered)" : ""}. ${!filterMemberId && !filterVaId ? (closedCount > 0 ? `${closedCount} closed. ` : "") + "Search or enable \"Include closed\" to see them. " : ""}Canceled tickets are hidden but searchable.`}
+            ? `Showing ${filtered.length} matching ticket${filtered.length !== 1 ? "s" : ""}${filterMemberId || filterVaId ? " (filtered by member/specialist)" : ""}.`
+            : includeClosed
+              ? `Showing ${filtered.length} ticket${filtered.length !== 1 ? "s" : ""}${filterMemberId || filterVaId ? " (filtered)" : ""}.`
+              : `Showing ${filtered.length} ticket${filtered.length !== 1 ? "s" : ""}${filterMemberId || filterVaId ? " (filtered)" : ""}. ${!filterMemberId && !filterVaId ? (closedCount > 0 ? `${closedCount} closed. ` : "") + "Search or enable \"Include closed\" to see them. " : ""}Canceled tickets are hidden but searchable.`}
         </p>
       </div>
       {filtered.length === 0 ? (
         <p className="form-note">
           {filterMemberId || filterVaId
             ? "No tickets match the selected member or specialist. Clear filters to see more."
-            : needsReviewOnly
-              ? "No tickets need review right now."
-              : search.trim()
-                ? "No tickets match your search."
-                : includeClosed
-                  ? "No tickets."
-                  : "No open tickets. Enable \"Include closed\" or search to find them."}
+            : search.trim()
+              ? "No tickets match your search."
+              : includeClosed
+                ? "No tickets."
+                : "No open tickets. Enable \"Include closed\" or search to find them."}
         </p>
       ) : (
         <>
@@ -254,22 +216,6 @@ export default function AdminTicketList({
               <li key={t?.id ?? String(Math.random())} className="ticket-item">
                 <div>
                   <Link href={`/admin/${t?.id ?? ""}`}>#{t?.ticket_number ?? (t?.id ? t.id.slice(0, 8) : "—")} {t?.subject ?? ""}</Link>
-                  {t?.id && needReviewSet.has(t.id) && (
-                    <span
-                      className="badge"
-                      style={{
-                        marginLeft: "var(--space-xs)",
-                        background: "var(--color-accent, #b8860b)",
-                        color: "#fff",
-                        fontSize: "0.75rem",
-                        padding: "2px 6px",
-                        borderRadius: 4,
-                      }}
-                      title="Specialist message(s) waiting for your approval before the member sees them"
-                    >
-                      Needs review
-                    </span>
-                  )}
                   <span className="ticket-meta" style={{ marginLeft: "var(--space-sm)" }}>
                     {t?.assigned_va_id
                       ? `Assigned to: ${safeVaDisplayNames[t.assigned_va_id] ?? (t.assigned_va_id ? t.assigned_va_id.slice(0, 8) + "…" : "—")}`
