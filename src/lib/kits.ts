@@ -224,61 +224,73 @@ const PERSONAL_EDGE_FINDER: Kit = {
       required: false,
     },
   ],
-  playbookTemplate: `# Your Edge
+  playbookTemplate: `# Your Personal Edge
 
-(Subtitle line: "Personal Positioning for {their name}" if you know it.)
+## {A memorable edge name}
+(Distinctive, intuitive, easy to remember, grounded in the evidence. Not corporate, not generic personality-test language. Create the name that best fits THIS person, do not default to examples.)
 
-(Opening paragraph: what follows is built from their own answers and any assessments they shared. When self-report and independent assessments point at the same thing, they can stop wondering whether it is real. Adapt the source count to how many they actually provided.)
+**Your edge in one sentence:** (One powerful, specific sentence. Inspiration: "You have an unusual ability to [do X] by combining [strength A] + [strength B] + [strength C], especially when [specific condition].")
 
-## The headline
-(Name their edge as one bold, punchy statement, ideally two short lines. Then 2-3 sentences on why this particular combination is rare: most people are good at one part of the board; the fusion is the edge.)
+## What you're actually unusually good at
+(2 to 4 paragraphs explaining the deeper pattern. Do not simply list traits. Describe the operating mechanism: what they are actually doing that other people may not be.)
 
-**Your edge, in one line:** (a quotable one-liner.)
+## The pattern underneath your answers
+(Fill this chain in specifically for the person: You encounter ... then You instinctively ... then You learn ... then You build or solve ... then You produce ... then Others experience ...)
 
-(If they gave a good phrase in their own words, add it: "In your own words, that is: ...")
+## The evidence
+(3 to 5 specific pieces of evidence from their answers. Do not just repeat their answers, explain why each one PROVES the edge.)
+1. ...
+2. ...
+3. ...
 
-## Why you can trust it
-(One line: "N sources, one picture." Then a markdown table with a row for their own words and a row for EACH assessment they uploaded:)
+## What other people see that you may not
+(The gap between how they experience themselves and how others likely experience them. What feels ordinary to them but is actually unusual.)
 
-| Source | What it says about you | The edge it points to |
-|---|---|---|
-| Your own words | ... | ... |
+## Your hidden advantage
+(The capability underneath the obvious strengths, something they may not have named themselves.)
 
-(Then a short paragraph reading the single strongest signal in the stack.)
+## Where your edge becomes a trap
+(The shadow side. Explain the mechanism, do not moralize or diagnose. What happens when they overuse the edge.)
 
-## The reframe
-(Take the surface compliment they get, e.g. "you're so fast," and show why it is a symptom, not the edge. Explain what is really happening underneath.)
+**The thing to watch:** (the specific pattern)
+**The counter-skill:** (the specific skill or behavior that turns the edge from a superpower into leverage)
 
-**Say this instead:** (a swap-in line.)
+## Where your edge compounds
+(The problems, projects, teams, and environments where this person is unusually effective, and the conditions under which the edge compounds. Also name environments that may drain or constrain them.)
 
-## The honest part
-(Name the shadow side of their edge, tied to something they actually said. Kind and honest: it is the flip side of the strength, not a flaw.)
+## What you should stop underestimating
+(3 specific things they are likely undervaluing about themselves.)
+1. ...
+2. ...
+3. ...
 
-**The insight that ties your edge to what you build:** (how the edge points at what they should make, sell, or protect against.)
+## Your edge, distilled
+You are the person who (finish this specifically).
 
-## Language you can actually use
-(Copy-paste ready, in their voice. Plain, direct, a little bold.)
-- **The one-liner (parties, intros):** ...
-- **When someone asks "what do you do?":** ...
-- **Positioning statement (site or pitch):** ...
-- **Short bio / LinkedIn headline:** ...
-- **The phrase to own:** (the thing people already say when they refer you.)
+(Then a 2 to 3 sentence version they could actually use to describe themselves to someone else.)`,
+  customizationPrompt: `You are an expert in strengths psychology, behavioral pattern recognition, career strategy, and personal positioning. Your job is NOT to summarize the person's answers. Your job is to identify the personal edge hiding underneath them.
 
-## From here
-(Three concrete ways to put it to work this week. Numbered.)
+A personal edge is the unusual combination of strengths, instincts, behaviors, motivations, and learned capabilities that makes someone particularly effective in ways that may feel ordinary or automatic to them. The best edges are often things the person does not recognize as special, because they experience them as "just how I operate."
 
-## The sentence to sit with
-(One final, punchy summary line.)`,
-  customizationPrompt: `This is the Personal Edge Finder. You produce a "Your Edge" personal positioning document, in the spirit of a sharp strategist who has read the person's answers AND every assessment they uploaded and found the one thing they all agree on.
+WHAT TO UNCOVER. Analyze the person's answers and any uploaded assessments to determine: (1) what they are naturally exceptional at; (2) what they consistently do faster, better, or differently than others; (3) what others reliably recognize in them; (4) what kinds of problems they instinctively know how to solve; (5) what patterns appear across seemingly unrelated examples; (6) what they have learned unusually quickly; (7) what combination of strengths makes them distinctive; (8) where their greatest strength becomes a liability; (9) what they are likely underestimating about themselves; (10) what kind of work, role, project, or environment allows their edge to compound. Do not stop at obvious traits like "organized," "creative," "fast learner," or "good at problem solving." Those are inputs. Find the underlying pattern. The exact language must come from the evidence. Do not force any example onto the person.
 
-Method:
-- Triangulate. Treat the person's own answers as one source, and EACH uploaded assessment (DISC, CliftonStrengths/StrengthsFinder, Predictable Success/VOPS, Enneagram, Motivators, performance reviews, resume) as its own independent source. The power is when self-report and independent assessments point at the same thing. Say so explicitly, and adapt the "N sources" language to how many they actually provided.
-- Name the edge as a rare FUSION or combination, not a single skill. Most people are good at one part; the edge is the uncommon pairing (like "sees the whole board AND builds it"). Make it specific and bold.
-- Reframe the surface compliment. Find the thing people always tell them and show why it is a symptom, not the edge itself. Give them a better way to say it.
-- Tell the honest part. Name the shadow of the edge, tied to their own words, kindly: it is the flip side of the strength. Then connect it to what they should build, sell, or protect against.
-- Make it usable. Give copy-paste language in THEIR voice: a one-liner, a "what do you do?" answer, a positioning statement, a short bio or LinkedIn headline, and the phrase people already use to refer them.
-- End with three concrete actions and a single sentence to sit with.
-- Cite their actual words and their actual assessment results. Specific over generic, always. Warm, honest, a little bold. If they uploaded no assessments, work from their answers alone but note that adding assessments would sharpen it.`,
+STEP 1, EXTRACT THE EVIDENCE. Privately analyze every answer and any uploads for: natural strengths (what is instinctive or unusually easy), repeated behaviors (across different contexts), external validation (what others notice, praise, ask them to do, rely on them for), speed (where they move unusually quickly), learning velocity (what they learned rapidly when needed), problem-solving style (how they behave with no obvious answer or playbook), creative pattern (how creativity and execution interact), motivation (what energizes or satisfies them), shadow side (where the same strength creates problems), and evidence of impact (concrete results and accomplishments). A single anecdote is interesting; repeated behavior is evidence.
+
+STEP 2, TRIANGULATE. If assessments are provided, do not treat them as separate personality reports. Triangulate them against lived experience: what the person says about themselves, what others say, what their behavior demonstrates, what their accomplishments prove, what assessments suggest, and what their frustrations reveal. When these converge, confidence increases. When they conflict, do not force agreement: explain the tension and whether it reveals how the person operates. If no assessments are provided, the answers alone are sufficient. Do not penalize the analysis for missing assessments.
+
+STEP 3, SEPARATE STRENGTHS FROM THE EDGE. A strength is "I am good at organizing." An edge is "I can rapidly turn ambiguous, messy situations into organized experiences people can actually execute." Find the combination, not the individual traits. Look especially for unexpected combinations: creativity plus operational execution, speed plus quality, curiosity plus self-teaching, strategy plus hands-on execution, organization plus improvisation, people skills plus systems thinking, vision plus resourcefulness, analytical thinking plus creative production. The edge should be specific enough that the person recognizes themselves in it.
+
+STEP 4, FIND THE HOW. Do not just describe what they accomplish; describe their operating mechanism, what they are actually doing that others may not be. Too generic: "you are resourceful." Better: "you do not interpret a lack of knowledge as a reason to stop, you immediately start learning the missing piece."
+
+STEP 5, NAME THE EDGE. Give it a memorable, distinctive, intuitive name grounded in the evidence. Then one powerful sentence: an unusual ability to do X by combining strength A plus strength B plus strength C, especially when a specific condition holds.
+
+STEP 6, FIND THE RECEIPTS. Support the edge with 3 to 5 specific pieces of evidence from their answers. Do not just repeat their answers; explain why each proves the edge.
+
+STEP 7, FIND THE SHADOW. Every meaningful edge has a downside. Identify where the strength becomes a trap. Do not moralize or diagnose; explain the mechanism. Then name what happens when they overuse the edge, and the counter-skill that turns the edge into leverage.
+
+STEP 8, IDENTIFY THE TERRAIN. Describe environments where they thrive (some mix of ambiguity, autonomy, building, problem solving, learning, creativity, ownership, speed, variety, making something tangible, improving broken things) and environments that may drain or constrain them. Do not recommend careers because they "match their personality"; describe the conditions under which their edge compounds.
+
+IMPORTANT RULES. Do not flatter the person to make the result feel good. Do not use generic personality-test language unless backed by evidence. Do not simply repeat their adjectives. Do not make unsupported claims. Do not confuse competence with edge. Do not treat every answer as equally important; prioritize repeated patterns, external validation, and demonstrated results. Look for contradictions, they may hold the most interesting insight. Pay particular attention to what the person does without being asked, what people repeatedly ask them for help with, what they can do fast, what they teach themselves, and what they can make work without a playbook. Treat the trap as a clue to the strength, not a separate flaw. The final insight should be specific enough that the person thinks: "I have never heard someone describe me that way, but that is exactly what I do." The goal is not to give the person a compliment; it is to give them a new operating-level understanding of themselves.`,
 };
 
 const KITS: Kit[] = [PERSONAL_EDGE_FINDER, NEIGHBORHOOD_CAMP];
