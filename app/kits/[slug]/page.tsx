@@ -73,7 +73,7 @@ export default async function KitDetailPage({
               </ol>
               <p className="form-note" style={{ marginTop: "var(--space-sm)" }}>
                 Buy once and it lives in your{" "}
-                <Link href="/library" className="link">My Stuff</Link> library, ready to run anytime.
+                <Link href="/my-stuff" className="link">My Stuff</Link> library, ready to run anytime.
               </p>
             </div>
 

@@ -5,7 +5,7 @@ import { checkRateLimitMemory, getClientIp } from "@/lib/rate-limit-memory";
 type Role = "member" | "va" | "admin" | "director" | "cfo";
 
 function dashboardForRole(role: Role): string {
-  if (role === "member") return "/member";
+  if (role === "member") return "/my-stuff";
   if (role === "va") return "/va";
   if (role === "admin") return "/admin";
   if (role === "director") return "/director";

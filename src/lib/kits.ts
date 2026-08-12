@@ -146,98 +146,139 @@ const NEIGHBORHOOD_CAMP: Kit = {
   published: false, // parked for now
 };
 
-// NOTE: the questions, methodology, and output structure below are a DRAFT.
-// Swap in Chrissy's real Personal Edge framework (from her Claude session) — it's
-// config only (inputFields + customizationPrompt + playbookTemplate), no code change.
 const PERSONAL_EDGE_FINDER: Kit = {
   slug: "personal-edge-finder",
   title: "The Personal Edge Finder",
   blurb:
-    "Answer a few honest questions (and upload any assessments you've got). I'll hand you a short, sharp document that names your personal edge, and how to actually use it.",
+    "Answer a few honest questions and upload whatever assessments you've got. I triangulate them into a sharp positioning document that names your edge, reframes it, and hands you language you can actually use.",
   priceCents: 295,
   published: true,
   ctaLabel: "Find my edge →",
   allowUploads: {
-    label: "Upload any assessments you already have (optional)",
+    label: "Upload your assessments (the more, the sharper)",
     accept: [".pdf", ".png", ".jpg", ".jpeg", ".docx"],
-    help: "StrengthsFinder, Enneagram, DISC, a performance review, your resume — anything. I'll read them and factor them in.",
+    help: "DISC, CliftonStrengths / StrengthsFinder, Predictable Success, Enneagram, Motivators, past reviews, a resume. I triangulate everything you give me. No assessments? Your answers alone still work.",
   },
   whatsIncluded: [
-    "A punchy name for your personal edge (the thing you do that others don't)",
-    "Where it comes from, pulled from your own words and assessments",
-    "How it shows up in your work and life",
-    "Where to point it: the roles and projects where it's a superpower",
-    "A one-line edge statement you can drop in a bio or intro",
+    "Your edge, named as a rare combination (not just one skill)",
+    "The proof: your own words and your assessments triangulated into one picture",
+    "A reframe of the compliment you always get but never know how to use",
+    "The honest shadow side of your edge, and what to do about it",
+    "Copy-paste language: your one-liner, your 'what do you do?' answer, a positioning statement, a bio",
+    "Three concrete ways to put it to work this week",
   ],
   inputFields: [
     {
-      name: "whatPeopleAsk",
-      label: "What do people always come to you for?",
+      name: "ownWords",
+      label: "In your own words, what do you actually do best?",
       type: "textarea",
-      placeholder: "The stuff friends, coworkers, or family text you about.",
+      placeholder: "The thing you'd do even if no one paid you. Don't polish it.",
       required: true,
     },
     {
-      name: "easyForYou",
-      label: "What's easy for you that others seem to find hard?",
+      name: "whatPeopleSay",
+      label: "What do people always come to you for, or say about you?",
       type: "textarea",
-      placeholder: "The thing you do without thinking that makes people go 'how?'",
+      placeholder: "The 'OMG you did that' moments, or the phrase people use when they refer you.",
       required: true,
     },
     {
-      name: "loseTrackOfTime",
-      label: "What are you doing when you lose track of time?",
-      type: "text",
-      placeholder: "e.g. untangling a messy process, making something look right...",
-      required: true,
-    },
-    {
-      name: "proudOf",
-      label: "What have you built or pulled off that you're weirdly proud of?",
+      name: "messFixed",
+      label: "Tell me about a mess you walked into and made work.",
       type: "textarea",
-      placeholder: "Big or small. The thing that maybe shouldn't have worked, but did.",
+      placeholder: "What was broken, and what did you actually do?",
       required: true,
     },
     {
-      name: "complimentBrushOff",
-      label: "What's a compliment you brush off but secretly love?",
-      type: "text",
+      name: "proudWin",
+      label: "A result or win you're genuinely proud of (the receipts).",
+      type: "textarea",
+      placeholder: "Numbers if you've got them, e.g. 'grew it from $1M to $4M.'",
+      required: true,
+    },
+    {
+      name: "capabilityTrap",
+      label: "Where does your strength quietly become a trap?",
+      type: "textarea",
+      placeholder: "The honest downside of being the capable one.",
       required: false,
     },
     {
-      name: "roles",
-      label: "A few hats you've worn (jobs, roles, side projects)",
+      name: "compliment",
+      label: "A compliment you get a lot but aren't sure how to use.",
       type: "text",
-      placeholder: "e.g. teacher, ops manager, made a podcast, run the PTA...",
+      placeholder: "e.g. 'you're so fast,' 'you're so organized.'",
       required: false,
     },
     {
-      name: "dream",
-      label: "If nothing held you back, what would you love to be known for?",
+      name: "drivenBy",
+      label: "What actually drives you?",
+      type: "text",
+      placeholder: "Results? Truth? Creativity? Helping? Being right? Be honest.",
+      required: false,
+    },
+    {
+      name: "knownFor",
+      label: "If nothing held you back, what would you want to be known for?",
       type: "textarea",
       required: false,
     },
   ],
-  playbookTemplate: `# Your Personal Edge
+  playbookTemplate: `# Your Edge
 
-## Your edge, in a phrase
-(Name it. One punchy, memorable line. Then 2-3 sentences on what it means for them specifically.)
+(Subtitle line: "Personal Positioning for {their name}" if you know it.)
 
-## Where it comes from
-(The through-line across their answers and any uploaded assessments. Cite their actual words. Why this particular combination is rare.)
+(Opening paragraph: what follows is built from their own answers and any assessments they shared. When self-report and independent assessments point at the same thing, they can stop wondering whether it is real. Adapt the source count to how many they actually provided.)
 
-## How it shows up
-(3-5 concrete ways this edge plays out in their work and life.)
+## The headline
+(Name their edge as one bold, punchy statement, ideally two short lines. Then 2-3 sentences on why this particular combination is rare: most people are good at one part of the board; the fusion is the edge.)
 
-## Where to point it
-(The roles, projects, and kinds of work where this edge is a genuine superpower. Specific and encouraging.)
+**Your edge, in one line:** (a quotable one-liner.)
 
-## Your edge statement
-(One line they can drop in a bio, intro, or pitch. Make it sound like them.)
+(If they gave a good phrase in their own words, add it: "In your own words, that is: ...")
 
-## One thing to try this week
-(A small, concrete action to lean into the edge.)`,
-  customizationPrompt: `This is the Personal Edge Finder. Your job: help ONE person see their unique edge — the specific, hard-to-copy combination of strengths, instincts, and interests that makes them them. Draw on their answers AND any uploaded assessments (strengths tests, reviews, resumes, screenshots). Find the through-line: the thing that keeps showing up across everything. Name it as a punchy, memorable phrase (in the spirit of "you see how everything connects" or "you turn chaos into a plan"). Be specific and personal — quote or paraphrase their actual words; never generic horoscope fluff. Warm, honest, and encouraging: help them believe it. If they uploaded assessments, explicitly connect what those say to what they wrote. End with a one-line edge statement that sounds like them.`,
+## Why you can trust it
+(One line: "N sources, one picture." Then a markdown table with a row for their own words and a row for EACH assessment they uploaded:)
+
+| Source | What it says about you | The edge it points to |
+|---|---|---|
+| Your own words | ... | ... |
+
+(Then a short paragraph reading the single strongest signal in the stack.)
+
+## The reframe
+(Take the surface compliment they get, e.g. "you're so fast," and show why it is a symptom, not the edge. Explain what is really happening underneath.)
+
+**Say this instead:** (a swap-in line.)
+
+## The honest part
+(Name the shadow side of their edge, tied to something they actually said. Kind and honest: it is the flip side of the strength, not a flaw.)
+
+**The insight that ties your edge to what you build:** (how the edge points at what they should make, sell, or protect against.)
+
+## Language you can actually use
+(Copy-paste ready, in their voice. Plain, direct, a little bold.)
+- **The one-liner (parties, intros):** ...
+- **When someone asks "what do you do?":** ...
+- **Positioning statement (site or pitch):** ...
+- **Short bio / LinkedIn headline:** ...
+- **The phrase to own:** (the thing people already say when they refer you.)
+
+## From here
+(Three concrete ways to put it to work this week. Numbered.)
+
+## The sentence to sit with
+(One final, punchy summary line.)`,
+  customizationPrompt: `This is the Personal Edge Finder. You produce a "Your Edge" personal positioning document, in the spirit of a sharp strategist who has read the person's answers AND every assessment they uploaded and found the one thing they all agree on.
+
+Method:
+- Triangulate. Treat the person's own answers as one source, and EACH uploaded assessment (DISC, CliftonStrengths/StrengthsFinder, Predictable Success/VOPS, Enneagram, Motivators, performance reviews, resume) as its own independent source. The power is when self-report and independent assessments point at the same thing. Say so explicitly, and adapt the "N sources" language to how many they actually provided.
+- Name the edge as a rare FUSION or combination, not a single skill. Most people are good at one part; the edge is the uncommon pairing (like "sees the whole board AND builds it"). Make it specific and bold.
+- Reframe the surface compliment. Find the thing people always tell them and show why it is a symptom, not the edge itself. Give them a better way to say it.
+- Tell the honest part. Name the shadow of the edge, tied to their own words, kindly: it is the flip side of the strength. Then connect it to what they should build, sell, or protect against.
+- Make it usable. Give copy-paste language in THEIR voice: a one-liner, a "what do you do?" answer, a positioning statement, a short bio or LinkedIn headline, and the phrase people already use to refer them.
+- End with three concrete actions and a single sentence to sit with.
+- Cite their actual words and their actual assessment results. Specific over generic, always. Warm, honest, a little bold. If they uploaded no assessments, work from their answers alone but note that adding assessments would sharpen it.`,
 };
 
 const KITS: Kit[] = [PERSONAL_EDGE_FINDER, NEIGHBORHOOD_CAMP];
