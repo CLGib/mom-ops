@@ -78,11 +78,11 @@ export default async function KitCustomizePage({
               ← All kits
             </Link>
             <h1 className="section-title" style={{ marginTop: "var(--space-sm)" }}>
-              Customize your {kit.title}
+              {kit.title}
             </h1>
             <p className="section-lead">
-              Answer a few quick questions and your assistant tailors the whole
-              playbook to you. Tweak and regenerate as many times as you want.
+              Tap the boxes that fit, add a detail or two, and drop in anything you&apos;ve
+              got. Takes a few minutes. You can tweak and regenerate as many times as you like.
             </p>
             <KitCustomizer
               slug={kit.slug}

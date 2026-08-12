@@ -7,7 +7,7 @@
 export type KitInputField = {
   name: string;
   label: string;
-  type: "text" | "textarea" | "number" | "select";
+  type: "text" | "textarea" | "number" | "select" | "multiselect";
   placeholder?: string;
   options?: string[];
   /** If set, prefill from this profiles column. */
@@ -169,58 +169,62 @@ const PERSONAL_EDGE_FINDER: Kit = {
   ],
   inputFields: [
     {
-      name: "ownWords",
-      label: "In your own words, what do you actually do best?",
-      type: "textarea",
-      placeholder: "The thing you'd do even if no one paid you. Don't polish it.",
+      name: "soundLikeYou",
+      label: "Which of these sound like you? Tap all that fit.",
+      type: "multiselect",
       required: true,
+      options: [
+        "People come to me to “figure it out”",
+        "I teach myself whatever I need to get it done",
+        "I make things from scratch",
+        "I turn chaos into a plan",
+        "I move way faster than most people",
+        "I'm fine working with no playbook",
+        "I see how unrelated things connect",
+        "I'd rather build it than talk about it",
+        "I spot what's broken before other people do",
+        "I hold the big picture and the tiny details at once",
+        "I get restless when things are too settled",
+        "I make things that already work even better",
+      ],
     },
     {
-      name: "whatPeopleSay",
-      label: "What do people always come to you for, or say about you?",
-      type: "textarea",
-      placeholder: "The 'OMG you did that' moments, or the phrase people use when they refer you.",
-      required: true,
-    },
-    {
-      name: "messFixed",
-      label: "Tell me about a mess you walked into and made work.",
-      type: "textarea",
-      placeholder: "What was broken, and what did you actually do?",
-      required: true,
+      name: "lightsYouUp",
+      label: "And what lights you up? Tap all that fit.",
+      type: "multiselect",
+      required: false,
+      options: [
+        "Solving a hard problem",
+        "Making something tangible",
+        "Learning something new",
+        "Bringing order to a mess",
+        "Getting someone unstuck",
+        "Launching something",
+        "Being trusted with the hard thing",
+        "A real, provable result",
+        "Figuring out new tech or tools",
+        "Connecting people or ideas",
+      ],
     },
     {
       name: "proudWin",
-      label: "A result or win you're genuinely proud of (the receipts).",
+      label: "Tell me about something you pulled off that you're proud of.",
       type: "textarea",
-      placeholder: "Numbers if you've got them, e.g. 'grew it from $1M to $4M.'",
+      placeholder: "Big or small. Numbers if you've got them (e.g. 'grew it from $1M to $4M').",
       required: true,
     },
     {
+      name: "whatPeopleAsk",
+      label: "What do people always come to you for? (optional)",
+      type: "textarea",
+      placeholder: "The thing friends or coworkers text you about.",
+      required: false,
+    },
+    {
       name: "capabilityTrap",
-      label: "Where does your strength quietly become a trap?",
+      label: "Where does being “the capable one” become a trap? (optional)",
       type: "textarea",
-      placeholder: "The honest downside of being the capable one.",
-      required: false,
-    },
-    {
-      name: "compliment",
-      label: "A compliment you get a lot but aren't sure how to use.",
-      type: "text",
-      placeholder: "e.g. 'you're so fast,' 'you're so organized.'",
-      required: false,
-    },
-    {
-      name: "drivenBy",
-      label: "What actually drives you?",
-      type: "text",
-      placeholder: "Results? Truth? Creativity? Helping? Being right? Be honest.",
-      required: false,
-    },
-    {
-      name: "knownFor",
-      label: "If nothing held you back, what would you want to be known for?",
-      type: "textarea",
+      placeholder: "The honest downside of being the person who can handle anything.",
       required: false,
     },
   ],

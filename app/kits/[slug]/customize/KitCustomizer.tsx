@@ -28,6 +28,20 @@ export default function KitCustomizer({ slug, fields, prefill, allowUploads, sub
     setValues((prev) => ({ ...prev, [name]: v }));
   }
 
+  // Multi-select ("check all that apply") stores selections as a single joined string.
+  const MULTI_SEP = " | ";
+  function selectedSet(v?: string): Set<string> {
+    return new Set((v ? v.split(MULTI_SEP) : []).filter(Boolean));
+  }
+  function toggleMulti(name: string, option: string) {
+    setValues((prev) => {
+      const set = selectedSet(prev[name]);
+      if (set.has(option)) set.delete(option);
+      else set.add(option);
+      return { ...prev, [name]: [...set].join(MULTI_SEP) };
+    });
+  }
+
   async function handleGenerate(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -95,7 +109,24 @@ export default function KitCustomizer({ slug, fields, prefill, allowUploads, sub
               {f.label}
               {f.required ? " *" : ""}
             </label>
-            {f.type === "textarea" ? (
+            {f.type === "multiselect" ? (
+              <div className="chip-group">
+                {(f.options ?? []).map((o) => {
+                  const on = selectedSet(values[f.name]).has(o);
+                  return (
+                    <button
+                      key={o}
+                      type="button"
+                      className={`chip${on ? " chip--on" : ""}`}
+                      aria-pressed={on}
+                      onClick={() => toggleMulti(f.name, o)}
+                    >
+                      {o}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : f.type === "textarea" ? (
               <textarea
                 id={`kf-${f.name}`}
                 className="input"
