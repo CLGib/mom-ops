@@ -55,12 +55,15 @@ const usage = data.usage ? `${data.usage.input_tokens}in/${data.usage.output_tok
 
 const has = (re) => (re.test(md) ? "yes" : "NO");
 console.log(`\n⏱  ${ms}ms  ${usage}`);
-console.log(`headline section:      ${has(/##\s*The headline/i)}`);
-console.log(`source table:          ${has(/\|\s*Source\s*\||Your own words/i)}`);
-console.log(`reframe section:       ${has(/##\s*The reframe/i)}`);
-console.log(`honest part / shadow:  ${has(/##\s*The honest part/i)}`);
-console.log(`usable language:       ${has(/Language you can actually use|one-liner/i)}`);
-console.log(`from here:             ${has(/##\s*From here/i)}`);
-console.log(`sentence to sit with:  ${has(/sentence to sit with/i)}`);
-console.log(`em dashes present:     ${/—/.test(md) ? "YES (bad)" : "no (good)"}`);
+console.log(`edge name + one-sentence: ${has(/##\s*.+\n+\*\*Your edge in one sentence/i)}`);
+console.log(`unusually good at:        ${has(/unusually good at/i)}`);
+console.log(`pattern chain:            ${has(/pattern underneath|You encounter/i)}`);
+console.log(`the evidence:             ${has(/##\s*The evidence/i)}`);
+console.log(`what others see:          ${has(/other people see/i)}`);
+console.log(`hidden advantage:         ${has(/hidden advantage/i)}`);
+console.log(`edge becomes a trap:      ${has(/becomes a trap|thing to watch|counter-skill/i)}`);
+console.log(`where it compounds:       ${has(/compound/i)}`);
+console.log(`stop underestimating:     ${has(/underestimating/i)}`);
+console.log(`edge distilled:           ${has(/distilled|You are the person who/i)}`);
+console.log(`em dashes present:        ${/—/.test(md) ? "YES (bad)" : "no (good)"}`);
 console.log(`\n${"=".repeat(80)}\n${md}\n${"=".repeat(80)}`);
