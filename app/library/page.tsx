@@ -1,83 +1,57 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import SiteHeader from "../(marketing)/components/SiteHeader";
 import SiteFooter from "../(marketing)/components/SiteFooter";
-import TheRegulars from "../(marketing)/components/TheRegulars";
-import { getKit } from "@/lib/kits";
+import { getAllBooks } from "@/lib/books";
 
-export const dynamic = "force-dynamic";
-
-export const metadata = {
-  title: "My Stuff · Mom Ops",
+export const metadata: Metadata = {
+  title: "The Library · Mom Ops",
+  description: "Books I've read, what I actually gained from them, and whether they're worth your time.",
 };
 
-export default async function LibraryPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    redirect("/login?next=/library");
-  }
+function stars(rating: number): string {
+  const full = Math.round(rating);
+  return "★★★★★☆☆☆☆☆".slice(5 - full, 10 - full);
+}
 
-  const [{ data: purchases }, { data: profile }] = await Promise.all([
-    supabase.from("kit_purchases").select("kit_id, created_at").eq("member_id", user.id),
-    supabase.from("profiles").select("subscription_status, preferred_name, full_name").eq("id", user.id).maybeSingle(),
-  ]);
-
-  const isSupporter = profile?.subscription_status === "active";
-  const name =
-    (profile?.preferred_name as string) || (profile?.full_name as string) || "";
-
-  // Owned products = purchased kits (deduped). Supporters own everything anyway.
-  const ownedSlugs = [...new Set((purchases ?? []).map((p) => p.kit_id))];
-  const owned = ownedSlugs.map((slug) => getKit(slug)).filter((k): k is NonNullable<typeof k> => !!k);
-
+export default function LibraryPage() {
+  const books = getAllBooks();
   return (
     <>
       <SiteHeader />
       <main>
         <section className="section">
-          <div className="container" style={{ maxWidth: 760 }}>
-            <h1 className="section-title">{name ? `Your stuff, ${name}` : "Your stuff"}</h1>
-
-            {isSupporter ? (
-              <p className="section-lead">
-                <span className="note-type note-type--skill" style={{ marginRight: "0.5rem" }}>
-                  The Regulars
-                </span>
-                You have all-access. Everything I build is yours.
+          <div className="container">
+            <h1 className="section-title">The Library</h1>
+            <p className="section-lead">
+              Books I've actually read, what I gained from each one, and whether it's
+              worth your time. No affiliate-link book lists. Just honest notes.
+            </p>
+            {books.length === 0 ? (
+              <p className="form-note" style={{ marginTop: "var(--space-lg)" }}>
+                First review coming soon.
               </p>
             ) : (
-              <p className="section-lead">Everything you have picked up, in one place.</p>
-            )}
-
-            {owned.length === 0 && !isSupporter ? (
-              <p className="form-note" style={{ marginTop: "var(--space-md)" }}>
-                Nothing here yet. Grab a tool and it will show up here to run anytime.
-              </p>
-            ) : (
-              <ul className="notes-list" style={{ marginTop: "var(--space-lg)" }}>
-                {owned.map((kit) => (
-                  <li key={kit.slug}>
-                    <div className="note-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-md)", flexWrap: "wrap" }}>
-                      <span>
-                        <span className="note-row-title" style={{ marginBottom: 0 }}>{kit.title}</span>
+              <ul className="notes-list">
+                {books.map((b) => (
+                  <li key={b.slug}>
+                    <Link href={`/library/${b.slug}`} className="note-row">
+                      <span className="note-row-meta">
+                        <span aria-label={`${b.rating} out of 5`} style={{ color: "var(--accent)" }}>
+                          {stars(b.rating)}
+                        </span>
                       </span>
-                      <Link href={`/kits/${kit.slug}/customize`} className="btn btn-primary">
-                        Open
-                      </Link>
-                    </div>
+                      <span className="note-row-title">{b.title}</span>
+                      {b.author && (
+                        <span className="note-row-summary" style={{ fontStyle: "italic" }}>
+                          {b.author}
+                        </span>
+                      )}
+                      {b.takeaway && <span className="note-row-summary">{b.takeaway}</span>}
+                    </Link>
                   </li>
                 ))}
               </ul>
-            )}
-
-            {!isSupporter && (
-              <div style={{ marginTop: "var(--space-2xl)" }}>
-                <TheRegulars bare />
-              </div>
             )}
           </div>
         </section>

@@ -7,6 +7,7 @@ export default function SiteHeader() {
         </a>
         <nav className="nav" aria-label="Main">
           <a href="/notes">Notebook</a>
+          <a href="/library">Library</a>
           <a href="/kits">Tools</a>
           <a href="/#experiments">What I&apos;m building</a>
           <a href="/#newsletter" className="nav-cta nav-cta-button">
