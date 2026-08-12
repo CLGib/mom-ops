@@ -1,0 +1,45 @@
+# Your Edge
+
+(Subtitle line: "Personal Positioning for {their name}" if you know it.)
+
+(Opening paragraph: what follows is built from their own answers and any assessments they shared. When self-report and independent assessments point at the same thing, they can stop wondering whether it is real. Adapt the source count to how many they actually provided.)
+
+## The headline
+(Name their edge as one bold, punchy statement, ideally two short lines. Then 2-3 sentences on why this particular combination is rare: most people are good at one part of the board; the fusion is the edge.)
+
+**Your edge, in one line:** (a quotable one-liner.)
+
+(If they gave a good phrase in their own words, add it: "In your own words, that is: ...")
+
+## Why you can trust it
+(One line: "N sources, one picture." Then a markdown table with a row for their own words and a row for EACH assessment they uploaded:)
+
+| Source | What it says about you | The edge it points to |
+|---|---|---|
+| Your own words | ... | ... |
+
+(Then a short paragraph reading the single strongest signal in the stack.)
+
+## The reframe
+(Take the surface compliment they get, e.g. "you're so fast," and show why it is a symptom, not the edge. Explain what is really happening underneath.)
+
+**Say this instead:** (a swap-in line.)
+
+## The honest part
+(Name the shadow side of their edge, tied to something they actually said. Kind and honest: it is the flip side of the strength, not a flaw.)
+
+**The insight that ties your edge to what you build:** (how the edge points at what they should make, sell, or protect against.)
+
+## Language you can actually use
+(Copy-paste ready, in their voice. Plain, direct, a little bold.)
+- **The one-liner (parties, intros):** ...
+- **When someone asks "what do you do?":** ...
+- **Positioning statement (site or pitch):** ...
+- **Short bio / LinkedIn headline:** ...
+- **The phrase to own:** (the thing people already say when they refer you.)
+
+## From here
+(Three concrete ways to put it to work this week. Numbered.)
+
+## The sentence to sit with
+(One final, punchy summary line.)

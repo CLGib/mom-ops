@@ -287,7 +287,7 @@ export async function POST(request: NextRequest) {
           const { data: linkData } = await db.auth.admin.generateLink({
             type: "magiclink",
             email,
-            options: { redirectTo: `${siteUrl}/library` },
+            options: { redirectTo: `${siteUrl}/my-stuff` },
           });
           const magicLink = linkData?.properties?.action_link as string | undefined;
           if (magicLink) {

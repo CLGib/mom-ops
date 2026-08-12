@@ -49,7 +49,7 @@ export default async function KitThanksPage({
                 </Link>
                 <p className="form-note" style={{ marginTop: "var(--space-md)" }}>
                   It also lives in your{" "}
-                  <Link href="/library" className="link">My Stuff</Link> library, ready anytime.
+                  <Link href="/my-stuff" className="link">My Stuff</Link> library, ready anytime.
                 </p>
               </>
             ) : (
