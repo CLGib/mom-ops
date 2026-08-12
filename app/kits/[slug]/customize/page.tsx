@@ -84,7 +84,13 @@ export default async function KitCustomizePage({
               Answer a few quick questions and your assistant tailors the whole
               playbook to you. Tweak and regenerate as many times as you want.
             </p>
-            <KitCustomizer slug={kit.slug} fields={kit.inputFields} prefill={prefill} />
+            <KitCustomizer
+              slug={kit.slug}
+              fields={kit.inputFields}
+              prefill={prefill}
+              allowUploads={kit.allowUploads}
+              submitLabel={kit.ctaLabel}
+            />
           </div>
         </section>
       </main>
