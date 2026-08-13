@@ -390,7 +390,7 @@ export async function buildBrandedDocx(input: BrandedDocInput): Promise<Buffer> 
           format: LevelFormat.BULLET,
           text: "•",
           style: {
-            paragraph: { indent: { left: 720 } },
+            paragraph: { indent: { left: 720, hanging: 360 } },
           },
         },
       ],
@@ -404,7 +404,7 @@ export async function buildBrandedDocx(input: BrandedDocInput): Promise<Buffer> 
           text: "%1.",
           alignment: AlignmentType.START,
           style: {
-            paragraph: { indent: { left: 720 } },
+            paragraph: { indent: { left: 720, hanging: 360 } },
           },
         },
       ],

@@ -3523,9 +3523,10 @@ input[type="search"].form-input:focus {
 .kit-doc ul,
 .kit-doc ol {
   margin: 0 0 var(--space-sm);
-  padding-left: 1.35rem;
-  display: grid;
-  gap: 0.25rem;
+  padding-left: 1.5rem;
+}
+.kit-doc li {
+  margin-bottom: 0.25rem;
 }
 .kit-doc-table-wrap {
   overflow-x: auto;
