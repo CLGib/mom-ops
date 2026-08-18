@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import SiteHeader from "../(marketing)/components/SiteHeader";
 import SiteFooter from "../(marketing)/components/SiteFooter";
 import TheRegulars from "../(marketing)/components/TheRegulars";
-import { getKit } from "@/lib/kits";
+import { getKit, getPublishedKits } from "@/lib/kits";
 
 export const dynamic = "force-dynamic";
 
@@ -30,8 +30,10 @@ export default async function LibraryPage() {
   const name =
     (profile?.preferred_name as string) || (profile?.full_name as string) || "";
 
-  // Owned products = purchased kits (deduped). Supporters own everything anyway.
-  const ownedSlugs = [...new Set((purchases ?? []).map((p) => p.kit_id))];
+  // Owned products = purchased kits, plus everything published for all-access supporters.
+  const purchasedSlugs = (purchases ?? []).map((p) => p.kit_id);
+  const supporterSlugs = isSupporter ? getPublishedKits().map((k) => k.slug) : [];
+  const ownedSlugs = [...new Set([...purchasedSlugs, ...supporterSlugs])];
   const owned = ownedSlugs.map((slug) => getKit(slug)).filter((k): k is NonNullable<typeof k> => !!k);
 
   return (
