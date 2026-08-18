@@ -68,6 +68,25 @@ function getTemplate(
         <p>- The Mom Ops Team</p>
       `.trim(),
     }),
+    // A weekly newsletter issue. body_html is pre-rendered from a Notebook note;
+    // subject + unsubscribe_url come from the broadcast enqueuer.
+    newsletter_issue_v1: () => {
+      const bodyHtml = typeof payload.body_html === "string" ? payload.body_html : "";
+      const subject =
+        typeof payload.subject === "string" && payload.subject.trim()
+          ? payload.subject
+          : "Notes from the workshop";
+      const unsub =
+        typeof payload.unsubscribe_url === "string" ? payload.unsubscribe_url : SITE_URL;
+      return {
+        subject,
+        html: `<div style="max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#1A1917;line-height:1.65;font-size:16px;">
+${bodyHtml}
+<hr style="border:none;border-top:1px solid #ececec;margin:36px 0 16px;">
+<p style="color:#8A8681;font-size:13px;line-height:1.5;">You're getting this because you're part of Mom Ops. <a href="${unsub}" style="color:#8A8681;">Unsubscribe</a> anytime, no hard feelings.<br/>Mom Ops, LLC</p>
+</div>`,
+      };
+    },
   };
   const fn = templates[template];
   if (!fn) throw new Error(`Unknown template: ${template}`);
@@ -130,12 +149,24 @@ export async function sendOne(row: OutboxRow): Promise<{ ok: boolean; error?: st
   }
 
   const resend = new Resend(apiKey);
+  // For newsletter issues, advertise one-click unsubscribe so Gmail/Apple show
+  // a native "Unsubscribe" button (and it keeps us CAN-SPAM clean).
+  const unsubUrl =
+    typeof row.payload?.unsubscribe_url === "string" ? row.payload.unsubscribe_url : null;
   const { error } = await resend.emails.send({
     from: FROM_EMAIL,
     to: toEmail,
     replyTo: FROM_EMAIL,
     subject,
     html,
+    ...(unsubUrl
+      ? {
+          headers: {
+            "List-Unsubscribe": `<${unsubUrl}>`,
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+          },
+        }
+      : {}),
   });
 
   if (error) {
