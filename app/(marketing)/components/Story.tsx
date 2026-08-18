@@ -46,8 +46,8 @@ export default function Story() {
               becoming really good at <strong>connecting everything</strong>.
             </p>
             <p className="section-body">
-              Today I use AI, curiosity, and a healthy amount of duct tape to
-              build businesses faster than I ever thought possible. And now
+              Today I use AI, curiosity, and whatever it takes to build
+              businesses faster than I ever thought possible. And now
               I&apos;m sharing everything I learn along the way.
             </p>
           </div>

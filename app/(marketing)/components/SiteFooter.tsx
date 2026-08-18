@@ -20,7 +20,7 @@ export default function SiteFooter() {
             <Link href="/login">Member login</Link>
           </div>
         </div>
-        <p className="footer-copy">© {2026} Mom Ops LLC. Built with curiosity and duct tape.</p>
+        <p className="footer-copy">© {2026} Mom Ops LLC. Built with curiosity and code.</p>
       </div>
     </footer>
   );
