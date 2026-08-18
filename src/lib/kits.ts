@@ -42,6 +42,8 @@ export type Kit = {
   allowUploads?: KitUploads;
   /** Optional label for the generate button on the customizer. */
   ctaLabel?: string;
+  /** Optional label shown on the generate button while the AI is working. */
+  loadingLabel?: string;
 };
 
 const NEIGHBORHOOD_CAMP: Kit = {
@@ -311,6 +313,7 @@ const SYLLABUS_BUILDER: Kit = {
   priceCents: 295,
   published: true,
   ctaLabel: "Build my own class →",
+  loadingLabel: "Building your class syllabus…",
   allowUploads: {
     label: "Already collecting stuff? Drop it in. (optional)",
     accept: [".pdf", ".png", ".jpg", ".jpeg", ".docx"],

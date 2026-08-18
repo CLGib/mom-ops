@@ -26,6 +26,9 @@ export default function Terms() {
         Money-Back Guarantee
       </h2>
       <p className="mb-4">
+        Every one-time product purchase (our kits and micro-products) comes with a 100 percent money-back guarantee. If it is not for you, email chrissy@themomops.com within 30 days of purchase and we will refund you in full, no questions asked.
+      </p>
+      <p className="mb-4">
         If you are not satisfied with your first completed task, you may request a refund of your first monthly membership fee within 7 days of task delivery. Refunds apply to the membership fee only and do not apply to additional credit purchases. Limit one refund per member.
       </p>
 
