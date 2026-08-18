@@ -18,9 +18,10 @@ export default function StudioSender({
 
   const selected = notes.find((n) => n.slug === slug);
 
-  async function send() {
+  async function post(test: boolean) {
     if (!slug) return;
     if (
+      !test &&
       !window.confirm(
         `Send "${selected?.title}" to ${subscriberCount} subscriber${subscriberCount === 1 ? "" : "s"}? This emails real people.`
       )
@@ -35,7 +36,7 @@ export default function StudioSender({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ slug }),
+        body: JSON.stringify({ slug, test }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -43,7 +44,9 @@ export default function StudioSender({
         return;
       }
       setResult(
-        `Queued "${data.subject}" to ${data.queued} of ${data.recipients} subscribers. They send within ~2 minutes.`
+        test
+          ? `Test sent just to you. Check your inbox in ~2 minutes to see exactly what subscribers get.`
+          : `Queued "${data.subject}" to ${data.queued} of ${data.recipients} subscribers. They send within ~2 minutes.`
       );
     } catch {
       setError("Network error. Try again.");
@@ -75,14 +78,24 @@ export default function StudioSender({
         </select>
       </div>
 
-      <button
-        type="button"
-        className="btn btn-primary btn-large"
-        onClick={send}
-        disabled={sending || !slug || subscriberCount === 0}
-      >
-        {sending ? "Queueing…" : `Send to ${subscriberCount} →`}
-      </button>
+      <div style={{ display: "flex", gap: "var(--space-sm)", flexWrap: "wrap", alignItems: "center" }}>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => post(true)}
+          disabled={sending || !slug}
+        >
+          Send test to me
+        </button>
+        <button
+          type="button"
+          className="btn btn-primary btn-large"
+          onClick={() => post(false)}
+          disabled={sending || !slug || subscriberCount === 0}
+        >
+          {sending ? "Queueing…" : `Send to ${subscriberCount} →`}
+        </button>
+      </div>
 
       {selected && (
         <p className="form-note" style={{ marginTop: "var(--space-sm)" }}>
