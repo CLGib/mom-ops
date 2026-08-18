@@ -2,17 +2,6 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { checkRateLimitMemory, getClientIp } from "@/lib/rate-limit-memory";
 
-type Role = "member" | "va" | "admin" | "director" | "cfo";
-
-function dashboardForRole(role: Role): string {
-  if (role === "member") return "/my-stuff";
-  if (role === "va") return "/va";
-  if (role === "admin") return "/admin";
-  if (role === "director") return "/director";
-  if (role === "cfo") return "/cfo";
-  return "/member";
-}
-
 export async function middleware(req: NextRequest) {
   try {
     // Canonical domain: redirect www to apex so cookies stay on one host
@@ -58,7 +47,8 @@ export async function middleware(req: NextRequest) {
       return NextResponse.next();
     }
 
-    // API routes: defense-in-depth — require auth for non-public APIs; return JSON, never redirect
+    // API routes: defense-in-depth — require auth for non-public APIs; return JSON, never redirect.
+    // Content pages (/my-stuff, /kits/*/customize) enforce their own auth in-page.
     if (path.startsWith("/api/") || path === "/api") {
       if (isPublicApiPath(path)) return NextResponse.next();
 
@@ -78,137 +68,24 @@ export async function middleware(req: NextRequest) {
       if (!apiUser) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
-      const { data: apiRoleRow } = await apiSupabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", apiUser.id)
-        .maybeSingle();
-      const apiRole = apiRoleRow?.role as Role | undefined;
-      if (path.startsWith("/api/admin/") && apiRole !== "admin") {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
       return NextResponse.next();
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseAnonKey) return NextResponse.next();
-
-    const res = NextResponse.next({ request: req });
-    const pathWithQuery = req.nextUrl.pathname + req.nextUrl.search;
-
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        getAll() {
-          return req.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            res.cookies.set(name, value, options);
-          });
-        },
-      },
-    });
-
-    const { data: userData, error: userErr } = await supabase.auth.getUser();
-    const user = userData?.user ?? null;
-
-    if (!user) {
-      const loginUrl = req.nextUrl.clone();
-      loginUrl.pathname = "/login";
-      loginUrl.searchParams.set("next", pathWithQuery);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    // Fetch role for THIS user
-    const { data: roleRow, error: roleErr } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (process.env.NODE_ENV === "development" && roleErr) {
-      console.warn("[middleware] user_roles fetch:", roleErr.message);
-    }
-
-    const role = (roleRow?.role as Role | undefined) ?? null;
-
-    const allowedRoles: Role[] = ["member", "va", "admin", "director", "cfo"];
-    if (roleErr || !role || !allowedRoles.includes(role)) {
-      // Authenticated but missing role -> send to dedicated page (avoid login loop)
-      const noAccessUrl = req.nextUrl.clone();
-      noAccessUrl.pathname = "/no-access";
-      noAccessUrl.searchParams.set("reason", "role_not_set");
-      return NextResponse.redirect(noAccessUrl);
-    }
-
-    // Enforce route by role (page routes only)
-    if (path.startsWith("/member")) {
-      if (role !== "member" && role !== "admin") {
-        return NextResponse.redirect(new URL(dashboardForRole(role), req.url));
-      }
-      return res;
-    }
-
-    if (path.startsWith("/va")) {
-      if (role !== "va" && role !== "admin") {
-        return NextResponse.redirect(new URL(dashboardForRole(role), req.url));
-      }
-      return res;
-    }
-
-    if (path.startsWith("/admin")) {
-      if (role !== "admin") {
-        return NextResponse.redirect(new URL(dashboardForRole(role), req.url));
-      }
-      return res;
-    }
-
-    if (path.startsWith("/director")) {
-      if (role !== "director" && role !== "admin") {
-        return NextResponse.redirect(new URL(dashboardForRole(role), req.url));
-      }
-      return res;
-    }
-
-    if (path.startsWith("/cfo")) {
-      if (role !== "cfo" && role !== "admin") {
-        return NextResponse.redirect(new URL(dashboardForRole(role), req.url));
-      }
-      return res;
-    }
-
-    if (path.startsWith("/toolbox")) {
-      if (role !== "va" && role !== "admin" && role !== "director") {
-        return NextResponse.redirect(new URL(dashboardForRole(role), req.url));
-      }
-      return res;
-    }
-
-    return res;
+    return NextResponse.next();
   } catch (err) {
     console.error("middleware error:", err);
     return NextResponse.next();
   }
 }
 
-/** API paths that do not require authentication (webhooks, public read-only, guest checkout, cron jobs, freetask draft, etc.) */
-const PUBLIC_API_PREFIXES = ["/api/webhooks/", "/api/founders/count", "/api/stripe/checkout", "/api/jobs/", "/api/va-apply", "/api/freetask-draft", "/api/subscribe"];
+/** API paths that do not require authentication (webhooks, guest checkout, cron jobs, newsletter signup). */
+const PUBLIC_API_PREFIXES = ["/api/webhooks/", "/api/stripe/checkout", "/api/jobs/", "/api/subscribe"];
 
 function isPublicApiPath(path: string): boolean {
   if (!path.startsWith("/api")) return false;
-  return PUBLIC_API_PREFIXES.some((prefix) => path.startsWith(prefix) || path === "/api/founders/count");
+  return PUBLIC_API_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 
 export const config = {
-  matcher: [
-    "/login",
-    "/member/:path*",
-    "/va/:path*",
-    "/admin/:path*",
-    "/director/:path*",
-    "/cfo/:path*",
-    "/toolbox/:path*",
-    "/api/:path*",
-  ],
+  matcher: ["/login", "/api/:path*"],
 };
