@@ -10,7 +10,7 @@ Last year, my daughter started kindergarten.
 
 Such an exciting time. She was getting ready to enter the world of big kids.
 
-To me, kindergarten is the year you set the precedents. This is what our family is about. This is what we expect of ourselves.
+To me, kindergarten is the year you set the precedents. This is what our family expects.
 
 And here's one of ours: we don't sit around waiting for someday. We set goals and we go make them happen. Someday isn't a day. TODAY is. So what's the baby step we can take right now to get one step closer?
 
