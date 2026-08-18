@@ -76,12 +76,14 @@ export function markdownToBrandedDocInput(
         if (contentCells.length > 0) tableLines.push(contentCells);
         i++;
       }
-      const isSep = (row: string[]) => row.every((c) => /^[-:\s]+$/.test(c));
-      const first = tableLines[0];
-      const skipSep = first && isSep(first);
-      const headers = (skipSep ? tableLines[1] : tableLines[0]) ?? [];
-      const rows = skipSep ? tableLines.slice(2) : tableLines.slice(1);
-      if (headers.length > 0) {
+      // A markdown table's second row is a separator (e.g. |---|:--:|). Treat
+      // the first row as the header and drop any separator rows from the body,
+      // so "---" never leaks into the rendered table as a data cell.
+      const isSep = (row: string[]) =>
+        row.length > 0 && row.every((c) => /^:?-+:?$/.test(c.trim()));
+      const headers = tableLines[0] ?? [];
+      const rows = tableLines.slice(1).filter((r) => !isSep(r));
+      if (headers.length > 0 && !isSep(headers)) {
         blocks.push({ type: "table", headers, rows });
       }
       continue;
