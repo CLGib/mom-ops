@@ -6,6 +6,10 @@ import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
 
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? "support@themomops.com";
+// A personal display name ("Chrissy at Mom Ops <support@…>") reads as a human,
+// which helps Gmail sort into Primary instead of Promotions.
+const FROM_NAME = process.env.RESEND_FROM_NAME ?? "Chrissy at Mom Ops";
+const FROM = `${FROM_NAME} <${FROM_EMAIL}>`;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://themomops.com";
 
 function getServiceSupabase() {
@@ -154,7 +158,7 @@ export async function sendOne(row: OutboxRow): Promise<{ ok: boolean; error?: st
   const unsubUrl =
     typeof row.payload?.unsubscribe_url === "string" ? row.payload.unsubscribe_url : null;
   const { error } = await resend.emails.send({
-    from: FROM_EMAIL,
+    from: FROM,
     to: toEmail,
     replyTo: FROM_EMAIL,
     subject,
