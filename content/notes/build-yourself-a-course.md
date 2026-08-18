@@ -50,7 +50,7 @@ Here's how to enroll yourself.
 
 ## How to build your own academy
 
-**1. Name your mountain.** The one thing you're bad at that's actually in your way. Mine is content. Say it out loud. It stings less than you think.
+**1. Name your mountain.** This isn't about fixing some weakness. It's the thing you're curious about. The thing that would take you to the next level. The Scout badge you always wanted to earn. It can literally be ANYTHING. Mine right now is content. Say it out loud.
 
 **2. Turn it into a syllabus, not a vibe.** This is the AI part. Ask it to act like a curriculum designer and build you a real course, from where you are now to genuinely good. Modules, in order, one thing to practice each week. Then push back until it fits YOU and not some imaginary student.
 
