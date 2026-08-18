@@ -310,7 +310,7 @@ const SYLLABUS_BUILDER: Kit = {
     "Real talk: you can do this yourself with the paid version of Claude and a little tinkering, and you should try. But if you'd rather skip the setup, tell me what you want to get good at and I'll build you a real class for it. Weekly modules, the few resources worth your time, and a project you'll actually ship. Same AI, running on my account.",
   priceCents: 295,
   published: true,
-  ctaLabel: "Build my class →",
+  ctaLabel: "Build my own class →",
   allowUploads: {
     label: "Already collecting stuff? Drop it in. (optional)",
     accept: [".pdf", ".png", ".jpg", ".jpeg", ".docx"],

@@ -72,7 +72,7 @@ You tell it the one thing you want to get good at, how much time you actually ha
 
 It's the same AI. It just runs on my account instead of yours. That's the whole reason it costs anything: **$2.95** so you can skip the setup and go straight to the syllabus.
 
-[**Build my class →**](/kits/syllabus-builder)
+[**Build my own class →**](/kits/syllabus-builder)
 
 Next week I'll show you the other thing I promised: how I finally figured out what I'm actually good at. I even built a little tool so you can find yours too.
 
