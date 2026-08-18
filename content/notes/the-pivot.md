@@ -44,7 +44,7 @@ The customer. The offer. The marketing. The website. The systems. The money. The
 
 I can see the whole board. And then I can go build it.
 
-OMG. Did I just say personal edge?
+OMG. Do I have a real personal edge?
 
 Yeah.
 
