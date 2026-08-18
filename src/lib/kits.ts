@@ -303,7 +303,138 @@ STEP 8, IDENTIFY THE TERRAIN. Describe environments where they thrive (some mix 
 IMPORTANT RULES. Do not flatter the person to make the result feel good. Do not use generic personality-test language unless backed by evidence. Do not simply repeat their adjectives. Do not make unsupported claims. Do not confuse competence with edge. Do not treat every answer as equally important; prioritize repeated patterns, external validation, and demonstrated results. Look for contradictions, they may hold the most interesting insight. Pay particular attention to what the person does without being asked, what people repeatedly ask them for help with, what they can do fast, what they teach themselves, and what they can make work without a playbook. Treat the trap as a clue to the strength, not a separate flaw. The final insight should be specific enough that the person thinks: "I have never heard someone describe me that way, but that is exactly what I do." The goal is not to give the person a compliment; it is to give them a new operating-level understanding of themselves.`,
 };
 
-const KITS: Kit[] = [PERSONAL_EDGE_FINDER, NEIGHBORHOOD_CAMP];
+const SYLLABUS_BUILDER: Kit = {
+  slug: "syllabus-builder",
+  title: "Build Your Own Class",
+  blurb:
+    "Real talk: you can do this yourself with the paid version of Claude and a little tinkering, and you should try. But if you'd rather skip the setup, tell me what you want to get good at and I'll build you a real class for it. Weekly modules, the few resources worth your time, and a project you'll actually ship. Same AI, running on my account.",
+  priceCents: 295,
+  published: true,
+  ctaLabel: "Build my class →",
+  allowUploads: {
+    label: "Already collecting stuff? Drop it in. (optional)",
+    accept: [".pdf", ".png", ".jpg", ".jpeg", ".docx"],
+    help: "A course outline you're eyeing, notes, a saved article, a book's table of contents. I'll fold the good parts in and cut the rest. Nothing to upload? Your answers are plenty.",
+  },
+  whatsIncluded: [
+    "A week-by-week syllabus cut to the time you actually have",
+    "One skill, one big idea, and one thing to practice each week",
+    "A short, curated resource list: the good stuff, not the whole pile",
+    "A real final project to ship, broken into milestones",
+    "A 20-minute minimum step for the weeks life gets loud",
+    "A simple way to keep it in front of you so you actually do it",
+    "No subscription and no setup: it runs on my account, not yours",
+  ],
+  inputFields: [
+    {
+      name: "mountain",
+      label: "What do you want to get good at?",
+      type: "text",
+      placeholder: "e.g. content strategy, running, watercolor, public speaking, Excel",
+      required: true,
+    },
+    {
+      name: "whatGoodLooksLike",
+      label: "What does “good” actually look like for you?",
+      type: "textarea",
+      placeholder:
+        "The specific thing you want to be able to do. e.g. “write a newsletter people actually open,” or “run a 5k without stopping.”",
+      required: true,
+    },
+    {
+      name: "whereYouAre",
+      label: "Where are you starting from?",
+      type: "select",
+      options: [
+        "Total beginner, square one",
+        "I know a little",
+        "I'm decent but stuck",
+        "I'm good and want to be great",
+      ],
+      required: true,
+    },
+    {
+      name: "timePerWeek",
+      label: "How much time can you really give it each week?",
+      type: "select",
+      options: [
+        "A couple hours",
+        "3 to 5 hours",
+        "5 to 10 hours",
+        "As much as it takes",
+      ],
+      required: true,
+    },
+    {
+      name: "howYouLearn",
+      label: "How do you learn best? Tap all that fit.",
+      type: "multiselect",
+      required: false,
+      options: [
+        "Reading",
+        "Watching",
+        "Doing it hands-on",
+        "Listening (audio/podcasts)",
+        "Talking it through",
+        "A structured class",
+      ],
+    },
+    {
+      name: "finalProject",
+      label: "Got a real thing you want to ship at the end? (optional)",
+      type: "text",
+      placeholder: "e.g. launch a newsletter, give a talk, run the race. Leave blank and I'll pick one for you.",
+      required: false,
+    },
+    {
+      name: "constraints",
+      label: "Anything I should know? (optional)",
+      type: "textarea",
+      placeholder: "e.g. two kids and a full-time job, I get overwhelmed easily, I hate long video courses.",
+      required: false,
+    },
+  ],
+  playbookTemplate: `# Your {{Mountain}} Syllabus
+
+## The mountain
+(One clear sentence naming what "good" looks like for THIS person, in their words. This is the finish line the whole syllabus climbs toward.)
+
+## The plan at a glance
+(2 to 3 warm sentences: how many weeks, how many hours a week, and the arc of the journey from where they are now to the finish line. Make it feel finishable, not overwhelming.)
+
+## Your weekly modules
+(A module for each week, scaled to the time they gave you. For EACH week give: **The skill** (the one thing this week builds), **The big idea** (the single concept to internalize), **Practice this week** (one concrete, small action they can actually do), and **Learn it from** (the single best specific resource for this week, a real book/article/video/person, not a vague category).)
+
+## Your short reading & watching list
+(The curated few, not the pile. 4 to 7 genuinely worth-it resources with a one-line reason each. Name real experts and real sources. If you're not certain a specific title exists, describe exactly what to search for instead of inventing a citation.)
+
+## Your final project
+(The real thing they ship at the end, restated concretely. Then 3 to 5 milestones that build toward it across the weeks. If they gave you a project, use it. If not, propose one that fits their goal.)
+
+## If you only have 20 minutes this week
+(The smallest possible step that still moves them forward, for the weeks life gets loud. This is the anti-quit valve.)
+
+## Keep it in front of you
+(2 to 3 sentences: how to keep this syllabus visible day to day so it actually gets done, and a simple check-in rhythm, e.g. review and adjust every few weeks. Reinforce that the plan you look at is the plan you finish.)`,
+  customizationPrompt: `You are an expert curriculum designer and learning scientist. The buyer wants to teach themselves ONE specific thing, and you are building them a real, personal syllabus for it, the kind of self-directed course a sharp friend would build if they cared about the person actually finishing.
+
+CORE PRINCIPLES.
+1. Cut it to size. Scale the number of weeks and the weekly workload to the exact time they said they have. A short syllabus they finish beats a perfect one they quit. When in doubt, make it shorter.
+2. Every week must build one skill and end in action. No passive "read about X" weeks. Each module has one thing to practice, something they DO.
+3. Curate ruthlessly. The whole point is that the internet is an overwhelming pile. Your job is to hand them the few resources actually worth their time, with a reason for each. Quality over volume.
+4. The final project is real. Learning sticks when it ships. Tie the whole syllabus to a concrete deliverable they will produce, and break it into milestones. If they named a project, use it. If not, propose one that fits their goal.
+5. Respect where they're starting. A total beginner and a stuck intermediate get different first weeks. Meet them where they are.
+6. Match how they learn. Weight the resources toward their preferred modes (reading, watching, hands-on, audio, discussion, structured class), but don't skip a crucial resource just because it's a different format.
+7. Honor their constraints as hard limits. If they said two kids and a full-time job, do not hand them a 15-hour week. If they said they hate long video courses, don't build the plan around one.
+
+ON RESOURCES AND HONESTY. Recommend real, specific, well-known resources when you are confident they exist (name the book, the creator, the course). When you are not certain a specific title exists, do NOT invent a citation. Instead, describe precisely what to search for and what makes a good one ("search for a beginner watercolor course that teaches wet-on-wet first; look for one under two hours with real practice exercises"). Never fabricate a URL, author, or title.
+
+ON TONE. Warm, direct, encouraging, a little scrappy. Talk to them like a friend who believes they can do this. Not corporate, not academic, not a personality test. Never use em dashes.
+
+Build the syllabus using the provided structure. Make it specific to THIS person's goal, level, time, and constraints. The finished document should make them think: "Okay. I can actually do this. I know exactly what to do Monday."`,
+};
+
+const KITS: Kit[] = [PERSONAL_EDGE_FINDER, SYLLABUS_BUILDER, NEIGHBORHOOD_CAMP];
 
 export function getAllKits(): Kit[] {
   return KITS;
