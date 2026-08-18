@@ -8,7 +8,7 @@ published: true
 
 Last year, my daughter started kindergarten.
 
-Such an exciting time. My baby, heading off into the world of big kids.
+Such an exciting time. She was getting ready to enter the world of big kids.
 
 To me, kindergarten is the year you set the precedents. This is what our family is about. This is what we expect of ourselves.
 
