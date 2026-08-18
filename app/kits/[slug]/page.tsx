@@ -3,14 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import SiteHeader from "../../(marketing)/components/SiteHeader";
 import SiteFooter from "../../(marketing)/components/SiteFooter";
-import { getKit, getAllKits, formatKitPrice } from "@/lib/kits";
+import { getKit, formatKitPrice } from "@/lib/kits";
+import { createClient } from "@/lib/supabase/server";
+import { ownsKit } from "@/lib/kit-access";
 import KitBuyButton from "./KitBuyButton";
 import KitGuarantee from "../KitGuarantee";
 import TheRegulars from "../../(marketing)/components/TheRegulars";
 
-export function generateStaticParams() {
-  return getAllKits().map((k) => ({ slug: k.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -31,6 +31,13 @@ export default async function KitDetailPage({
   const { slug } = await params;
   const kit = getKit(slug);
   if (!kit) notFound();
+
+  // Is the signed-in visitor already entitled (bought it, or an all-access supporter)?
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const owned = user ? await ownsKit(user.id, kit.slug) : false;
 
   return (
     <>
@@ -54,16 +61,38 @@ export default async function KitDetailPage({
                 ))}
               </ul>
 
-              <div className="kit-detail-buy">
-                <div>
-                  <span className="kit-card-price">{formatKitPrice(kit.priceCents)}</span>
-                  <span className="form-note" style={{ display: "block" }}>
-                    One-time. Customized to you by AI. Yours to download.
-                  </span>
-                </div>
-                <KitBuyButton slug={kit.slug} label={`Buy this kit for ${formatKitPrice(kit.priceCents)}`} />
-              </div>
-              <KitGuarantee />
+              {owned ? (
+                <>
+                  <div className="kit-detail-buy">
+                    <div>
+                      <span className="note-type note-type--skill">Yours</span>
+                      <span className="form-note" style={{ display: "block", marginTop: "var(--space-2xs)" }}>
+                        You already own this. Open it and run it anytime.
+                      </span>
+                    </div>
+                    <Link href={`/kits/${kit.slug}/customize`} className="btn btn-primary">
+                      Open it →
+                    </Link>
+                  </div>
+                  <p className="form-note kit-guarantee">
+                    Also saved in your{" "}
+                    <Link href="/my-stuff" className="link">My Stuff</Link> library.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="kit-detail-buy">
+                    <div>
+                      <span className="kit-card-price">{formatKitPrice(kit.priceCents)}</span>
+                      <span className="form-note" style={{ display: "block" }}>
+                        One-time. Customized to you by AI. Yours to download.
+                      </span>
+                    </div>
+                    <KitBuyButton slug={kit.slug} label={`Buy this kit for ${formatKitPrice(kit.priceCents)}`} />
+                  </div>
+                  <KitGuarantee />
+                </>
+              )}
             </div>
 
             <div className="card card--highlight kit-how">
@@ -79,12 +108,14 @@ export default async function KitDetailPage({
               </p>
             </div>
 
-            <div style={{ marginTop: "var(--space-xl)" }}>
-              <p className="form-note" style={{ textAlign: "center", marginBottom: "var(--space-sm)" }}>
-                Or get this and everything else I build:
-              </p>
-              <TheRegulars bare />
-            </div>
+            {!owned && (
+              <div style={{ marginTop: "var(--space-xl)" }}>
+                <p className="form-note" style={{ textAlign: "center", marginBottom: "var(--space-sm)" }}>
+                  Or get this and everything else I build:
+                </p>
+                <TheRegulars bare />
+              </div>
+            )}
           </div>
         </section>
       </main>
