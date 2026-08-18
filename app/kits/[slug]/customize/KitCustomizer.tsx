@@ -9,11 +9,12 @@ type Props = {
   prefill: Record<string, string>;
   allowUploads?: KitUploads;
   submitLabel?: string;
+  loadingLabel?: string;
 };
 
 type Result = { title: string; previewHtml: string; docxBase64: string; filename: string };
 
-export default function KitCustomizer({ slug, fields, prefill, allowUploads, submitLabel }: Props) {
+export default function KitCustomizer({ slug, fields, prefill, allowUploads, submitLabel, loadingLabel }: Props) {
   const [values, setValues] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
     for (const f of fields) init[f.name] = prefill[f.name] ?? "";
@@ -201,7 +202,7 @@ export default function KitCustomizer({ slug, fields, prefill, allowUploads, sub
 
         <button type="submit" className="btn btn-primary btn-large" disabled={loading}>
           {loading
-            ? "Your assistant is building it…"
+            ? loadingLabel ?? "Your assistant is building it…"
             : result
               ? "Regenerate"
               : submitLabel ?? "Generate my document →"}

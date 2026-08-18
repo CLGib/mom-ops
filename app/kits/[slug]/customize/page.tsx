@@ -90,6 +90,7 @@ export default async function KitCustomizePage({
               prefill={prefill}
               allowUploads={kit.allowUploads}
               submitLabel={kit.ctaLabel}
+              loadingLabel={kit.loadingLabel}
             />
           </div>
         </section>

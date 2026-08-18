@@ -3,6 +3,7 @@ import Link from "next/link";
 import SiteHeader from "../(marketing)/components/SiteHeader";
 import SiteFooter from "../(marketing)/components/SiteFooter";
 import { getPublishedKits, formatKitPrice } from "@/lib/kits";
+import KitGuarantee from "./KitGuarantee";
 
 export const metadata: Metadata = {
   title: "Kits · Mom Ops",
@@ -39,7 +40,10 @@ export default function KitsPage() {
                 </article>
               ))}
             </div>
-            <p className="form-note" style={{ marginTop: "var(--space-xl)" }}>
+            <div style={{ marginTop: "var(--space-lg)" }}>
+              <KitGuarantee align="center" />
+            </div>
+            <p className="form-note" style={{ marginTop: "var(--space-lg)" }}>
               More Ops coming soon. Want first dibs?{" "}
               <Link href="/#newsletter" className="link">
                 Get on the list

@@ -3468,6 +3468,13 @@ input[type="search"].form-input:focus {
   padding-top: var(--space-lg);
   border-top: 1px solid var(--border);
 }
+.kit-guarantee {
+  margin-top: var(--space-md);
+}
+.kit-guarantee strong {
+  color: var(--text);
+  font-weight: 700;
+}
 .kit-how {
   margin-top: var(--space-lg);
 }

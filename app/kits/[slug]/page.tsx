@@ -5,6 +5,7 @@ import SiteHeader from "../../(marketing)/components/SiteHeader";
 import SiteFooter from "../../(marketing)/components/SiteFooter";
 import { getKit, getAllKits, formatKitPrice } from "@/lib/kits";
 import KitBuyButton from "./KitBuyButton";
+import KitGuarantee from "../KitGuarantee";
 import TheRegulars from "../../(marketing)/components/TheRegulars";
 
 export function generateStaticParams() {
@@ -62,6 +63,7 @@ export default async function KitDetailPage({
                 </div>
                 <KitBuyButton slug={kit.slug} label={`Buy this kit for ${formatKitPrice(kit.priceCents)}`} />
               </div>
+              <KitGuarantee />
             </div>
 
             <div className="card card--highlight kit-how">
