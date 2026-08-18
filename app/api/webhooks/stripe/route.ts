@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { queueEmail } from "@/lib/email/queue";
 import { getPostHogClient } from "@/lib/posthog-server";
+import { findUserIdByEmail } from "@/lib/find-user";
 
 // ---- Fix Stripe Invoice subscription typing (InvoiceWithSubscription v2) ----
 type InvoiceWithSubscription = Stripe.Invoice & {
@@ -88,12 +89,9 @@ export async function POST(request: NextRequest) {
         (session.client_reference_id as string) || (session.metadata?.member_id as string | undefined);
       let createdGuest = false;
       if (!buyerId && email) {
-        const {
-          data: { users },
-        } = await db.auth.admin.listUsers({ perPage: 1000 });
-        const match = users?.find((u) => u.email?.toLowerCase() === email.toLowerCase());
-        if (match) {
-          buyerId = match.id;
+        const existingId = await findUserIdByEmail(db, email);
+        if (existingId) {
+          buyerId = existingId;
         } else {
           const randomPassword = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, "");
           const { data: newUser, error: createErr } = await db.auth.admin.createUser({
@@ -165,12 +163,9 @@ export async function POST(request: NextRequest) {
         (session.client_reference_id as string) || (session.metadata?.user_id as string | undefined);
       let createdGuest = false;
       if (!supporterId && email) {
-        const {
-          data: { users },
-        } = await db.auth.admin.listUsers({ perPage: 1000 });
-        const match = users?.find((u) => u.email?.toLowerCase() === email.toLowerCase());
-        if (match) {
-          supporterId = match.id;
+        const existingId = await findUserIdByEmail(db, email);
+        if (existingId) {
+          supporterId = existingId;
         } else {
           const randomPassword = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, "");
           const { data: newUser, error: createErr } = await db.auth.admin.createUser({
@@ -322,12 +317,10 @@ export async function POST(request: NextRequest) {
     if (!userId && invoice.customer) {
       const custId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
       if (custId) {
-        const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
         const customer = await stripe.customers.retrieve(custId);
         const email = (customer as Stripe.Customer).email;
-        if (email && users?.length) {
-          const match = users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
-          if (match) userId = match.id;
+        if (email) {
+          userId = await findUserIdByEmail(supabase, email);
         }
       }
     }

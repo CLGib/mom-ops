@@ -7,7 +7,9 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "stripe:listen": "./bin/stripe listen --forward-to localhost:3000/api/webhooks/stripe"
+    "stripe:listen": "./bin/stripe listen --forward-to localhost:3000/api/webhooks/stripe",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
@@ -40,6 +42,7 @@
     "eslint": "^10.0.2",
     "eslint-config-next": "^0.2.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "5.9.3",
+    "vitest": "^4.1.11"
   }
 }
