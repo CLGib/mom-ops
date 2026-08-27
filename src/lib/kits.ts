@@ -636,7 +636,98 @@ Review the syllabus and verify:
 If any answer is no, improve the syllabus before returning it.`,
 };
 
-const KITS: Kit[] = [PERSONAL_EDGE_FINDER, SYLLABUS_BUILDER, NEIGHBORHOOD_CAMP];
+const BRAIN_DUMP: Kit = {
+  slug: "brain-dump",
+  title: "The Brain Dump",
+  blurb:
+    "Get everything out of your head and into one place, then let me sort it. Dump every task, worry, and 'I need to remember,' or just snap a photo of your notebook, and I'll organize it into what only you can do, what to hand off, what to batch, what AI can take, and what you can finally let go of.",
+  priceCents: 295,
+  published: true,
+  ctaLabel: "Sort my brain dump →",
+  loadingLabel: "Sorting your brain dump…",
+  allowUploads: {
+    label: "Snap a photo of your notebook (optional)",
+    accept: [".jpg", ".jpeg", ".png", ".pdf", ".docx"],
+    help: "Did the week-long notebook challenge? Photograph every page and upload it, I'll read it all. Prefer typing? Use the box below. Do both if you want.",
+  },
+  whatsIncluded: [
+    "Everything in your head, pulled out and organized in one place",
+    "Sorted into: only you, delegate, batch, automate with AI, and let it go",
+    "For the AI-able ones, exactly what to ask, with a starter done for you",
+    "Permission to drop the stuff that never needed to exist",
+    "Your top 3 highest-relief moves for this week",
+    "Type it out or upload a photo of your notebook, your call",
+  ],
+  inputFields: [
+    {
+      name: "dump",
+      label: "Dump it all here. Every task, worry, and “I need to remember” rattling around your head.",
+      type: "textarea",
+      required: false,
+      placeholder:
+        "Don't organize it. Just get it out. Bullet points, run-ons, whatever falls out. (Or skip this and upload a photo of your notebook below.)",
+    },
+    {
+      name: "helpers",
+      label: "Who could realistically take something off your plate? (optional)",
+      type: "text",
+      required: false,
+      placeholder: "e.g. my partner, my older kids, my mom nearby, a sitter a few hours a week, or honestly nobody right now",
+    },
+    {
+      name: "wishStop",
+      label: "If you could stop doing one thing tomorrow, what would it be? (optional)",
+      type: "text",
+      required: false,
+      placeholder: "The one that makes you groan just thinking about it.",
+    },
+  ],
+  playbookTemplate: `# Your Brain, On Paper
+
+## What I'm seeing
+(1 to 2 warm, honest sentences reflecting the sheer volume back to them. Name that this is a lot, and that none of it was ever "nothing." Do not be saccharine.)
+
+## Only you
+(The things on their list that genuinely need them, a parent's presence, a decision only they can make, the stuff that is the actual point. List them so they can keep these guilt-free and stop feeling bad about "not delegating everything.")
+
+## Hand to a person
+(What could go to someone else. Use who they said they have (partner, kids, family, sitter, or nobody). If they have people, match tasks to them specifically. If they have nobody right now, say so honestly and lean harder on the AI and batch and let-go sections.)
+
+## Batch it
+(Group similar tasks that are cheaper to do together than scattered through the week. Name the clusters, e.g. "all the phone calls," "all the errands on one loop," "every form in one sitting." Give the actual clusters from their list.)
+
+## Hand to AI
+(The mental-load part a tool can take: the researching, deciding, drafting, remembering. For each one, say exactly what to ask AI, and where it's easy, include a ready-to-use starter (a drafted grocery list, a first-pass shortlist, a template message). This is the highest-value section, make it concrete and generous.)
+
+## Let it go
+(The things that do not actually need to exist. The self-imposed standard, the task nobody asked for, the thing that would not matter in a month. Give them permission, specifically, item by item.)
+
+## If you do nothing else this week
+(The top 3 highest-relief moves from everything above. Ranked. The 3 that buy back the most head space for the least effort.)`,
+  customizationPrompt: `You are a calm, sharp operations mind for an overwhelmed mother. She has just poured out her mental load, either typed or as a photo of a notebook she kept for a week. Your job is to take that raw, messy list and hand it back to her sorted, so she can finally see it and start putting it down.
+
+READ EVERYTHING. If images or a document are uploaded, read every item on every page, including messy handwriting and shorthand. Combine it with anything she typed. Do not miss items, and do not invent items she did not write.
+
+SORT EVERY ITEM into exactly these buckets (use the template's sections):
+1. Only you, things that genuinely require her.
+2. Hand to a person, things someone else could do (matched to who she actually has).
+3. Batch it, similar tasks that are cheaper done together.
+4. Hand to AI, the deciding/researching/drafting/remembering part a tool can take.
+5. Let it go, things that do not need to exist.
+
+CORE PRINCIPLES.
+- The exhausting part of most tasks was never the doing. It was the deciding, remembering, and figuring out. That is the mental load, and it is exactly what AI can lift. Bias toward finding the "head part" of each task that a tool can take, even when she still has to do the physical part herself.
+- Be realistic about delegation. If she says she has no one, do not tell her to "ask her partner." Lean on AI, batching, and letting go instead. If she named specific people, assign specific tasks to them.
+- The "Hand to AI" section is where you earn the price. Be concrete and generous: for each AI-able item, say exactly what to ask, and where it is easy, actually do a first pass right there (a real drafted grocery list, a first-pass camp shortlist, a copy-paste message, a party timeline). Give her something she can use today, not just advice.
+- The "Let it go" section is a gift. Many mothers are carrying self-imposed standards nobody asked for. Name those kindly and specifically, and give explicit permission to drop them.
+- Prioritize. End with the 3 moves that buy back the most head space for the least effort. Rank them.
+
+TONE. Warm, direct, a little funny, never preachy or clinical. Talk to her like a friend who is very good at this and is quietly appalled at how much she has been carrying alone. Never shame her for the length of the list, that is the whole point. Never use em dashes.
+
+The goal: she reads this and exhales. For the first time, the invisible is visible, sorted, and smaller than the pile in her head felt.`,
+};
+
+const KITS: Kit[] = [PERSONAL_EDGE_FINDER, SYLLABUS_BUILDER, BRAIN_DUMP, NEIGHBORHOOD_CAMP];
 
 export function getAllKits(): Kit[] {
   return KITS;
