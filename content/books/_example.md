@@ -4,6 +4,7 @@ author: "Author Name"
 rating: 4
 dateRead: "2026-08-01"
 takeaway: "The one-line thing I actually gained from it."
+asin: "B0XXXXXXXX"
 published: false
 ---
 

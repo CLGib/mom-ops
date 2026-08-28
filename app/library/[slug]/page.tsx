@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import SiteHeader from "../../(marketing)/components/SiteHeader";
 import SiteFooter from "../../(marketing)/components/SiteFooter";
 import NewsletterSignup from "../../(marketing)/components/NewsletterSignup";
-import { getAllBooks, getBookBySlug } from "@/lib/books";
+import { getAllBooks, getBookBySlug, amazonAffiliateUrl } from "@/lib/books";
 
 export function generateStaticParams() {
   return getAllBooks().map((b) => ({ slug: b.slug }));
@@ -67,6 +67,23 @@ export default async function BookPage({
             )}
 
             <div className="prose" dangerouslySetInnerHTML={{ __html: book.html }} />
+
+            {amazonAffiliateUrl(book.asin) && (
+              <p style={{ marginTop: "var(--space-lg)" }}>
+                <a
+                  href={amazonAffiliateUrl(book.asin)!}
+                  target="_blank"
+                  rel="noopener noreferrer sponsored"
+                  className="btn btn-primary"
+                >
+                  Get it on Amazon →
+                </a>
+                <span className="form-note" style={{ display: "block", marginTop: "var(--space-xs)" }}>
+                  This is an affiliate link. If you buy through it, I earn a little, at no extra cost
+                  to you. I only list books I actually rate.
+                </span>
+              </p>
+            )}
 
             <div className="note-article-cta card card--highlight">
               <h2 className="section-heading">Get the next one</h2>
