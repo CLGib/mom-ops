@@ -69,7 +69,17 @@ export default async function BookPage({
             <div className="prose" dangerouslySetInnerHTML={{ __html: book.html }} />
 
             {amazonAffiliateUrl(book.asin) && (
-              <p style={{ marginTop: "var(--space-lg)" }}>
+              <div className="card" style={{ marginTop: "var(--space-lg)" }}>
+                <p style={{ marginTop: 0 }}>
+                  <strong>Before you buy:</strong> seriously, check your local library first. They
+                  almost always have it, usually the audiobook too, and it costs you nothing.
+                  Libraries are the best deal in town and criminally underrated.
+                </p>
+                <p>
+                  But if you&apos;re someone who loves building your own shelf (no judgment, same),
+                  here&apos;s the link. It&apos;s an affiliate link, so I earn a few cents if you grab
+                  it through me, at no extra cost to you.
+                </p>
                 <a
                   href={amazonAffiliateUrl(book.asin)!}
                   target="_blank"
@@ -78,11 +88,7 @@ export default async function BookPage({
                 >
                   Get it on Amazon →
                 </a>
-                <span className="form-note" style={{ display: "block", marginTop: "var(--space-xs)" }}>
-                  This is an affiliate link. If you buy through it, I earn a little, at no extra cost
-                  to you. I only list books I actually rate.
-                </span>
-              </p>
+              </div>
             )}
 
             <div className="note-article-cta card card--highlight">
