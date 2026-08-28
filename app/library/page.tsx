@@ -25,7 +25,9 @@ export default function LibraryPage() {
             <h1 className="section-title">The Library</h1>
             <p className="section-lead">
               Books I've actually read, what I gained from each one, and whether it's
-              worth your time. No affiliate-link book lists. Just honest notes.
+              worth your time. The Amazon links are affiliate links, so if you grab one
+              I earn a little, at no extra cost to you. But I only put books here that I
+              genuinely rate. No filler, no fake lists.
             </p>
             {books.length === 0 ? (
               <p className="form-note" style={{ marginTop: "var(--space-lg)" }}>

@@ -18,8 +18,26 @@ export type BookMeta = {
   dateRead: string;
   /** One-line takeaway shown on cards. */
   takeaway: string;
+  /** Amazon product id (10 chars, from the product URL /dp/XXXXXXXXXX). Optional. */
+  asin?: string;
   published: boolean;
 };
+
+/** Amazon Associates tag. Set AMAZON_ASSOCIATES_TAG in the environment once you join. */
+const AMAZON_ASSOCIATES_TAG = process.env.AMAZON_ASSOCIATES_TAG ?? "";
+
+/**
+ * Build an Amazon link for a book. When AMAZON_ASSOCIATES_TAG is set, the
+ * affiliate tag is appended so qualifying purchases earn a commission. Returns
+ * null when the book has no valid ASIN.
+ */
+export function amazonAffiliateUrl(asin?: string): string | null {
+  if (!asin) return null;
+  const clean = asin.trim();
+  if (!/^[A-Z0-9]{10}$/i.test(clean)) return null;
+  const url = `https://www.amazon.com/dp/${clean}`;
+  return AMAZON_ASSOCIATES_TAG ? `${url}?tag=${encodeURIComponent(AMAZON_ASSOCIATES_TAG)}` : url;
+}
 
 export type Book = BookMeta & { html: string };
 
@@ -48,6 +66,7 @@ function toMeta(slug: string, fm: Record<string, unknown>): BookMeta {
     rating: Number.isFinite(ratingNum) ? Math.max(0, Math.min(5, ratingNum)) : 0,
     dateRead: String(fm.dateRead ?? ""),
     takeaway: String(fm.takeaway ?? ""),
+    asin: fm.asin != null && String(fm.asin).trim() ? String(fm.asin).trim() : undefined,
     published: fm.published !== false,
   };
 }
