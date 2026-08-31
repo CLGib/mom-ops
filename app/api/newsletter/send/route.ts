@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { marked } from "marked";
 import { createClient } from "@/lib/supabase/server";
 import { isNewsletterOwner, unsubscribeUrl } from "@/lib/newsletter";
 import { getNoteBySlug } from "@/lib/notes";
@@ -7,17 +8,13 @@ import { queueEmail } from "@/lib/email/queue";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://themomops.com";
 
-function esc(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-/** Turn the owner's plain-text hook into simple, safe HTML paragraphs. */
+/**
+ * Render the owner's hook (written in markdown in the studio) to email HTML.
+ * Supports links [text](url), bold, italics, and preserves line breaks. Input
+ * is authored by the site owner in an auth-gated studio, so it is trusted.
+ */
 function hookToHtml(text: string): string {
-  return text
-    .trim()
-    .split(/\n\s*\n/)
-    .map((block) => `<p>${esc(block.trim()).replace(/\n/g, "<br/>")}</p>`)
-    .join("\n");
+  return marked.parse(text.trim(), { breaks: true, gfm: true, async: false }) as string;
 }
 
 /**

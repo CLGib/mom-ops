@@ -118,7 +118,8 @@ export default function StudioSender({
         />
         <p className="form-note" style={{ marginTop: "var(--space-2xs)" }}>
           This is the whole email. Readers click <strong>Read the whole thing →</strong> to finish it
-          on the site. Prefilled from the post summary, edit it into a real hook.
+          on the site. Prefilled from the post summary, edit it into a real hook. You can add links with{" "}
+          <code>[text](https://url.com)</code> and bold with <code>**text**</code>.
         </p>
       </div>
 
