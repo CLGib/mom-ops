@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-type NoteOption = { slug: string; title: string; date: string };
+type NoteOption = { slug: string; title: string; date: string; summary: string };
 
 export default function StudioSender({
   notes,
@@ -12,18 +12,33 @@ export default function StudioSender({
   subscriberCount: number;
 }) {
   const [slug, setSlug] = useState(notes[0]?.slug ?? "");
+  const [subject, setSubject] = useState(notes[0]?.title ?? "");
+  const [body, setBody] = useState(notes[0]?.summary ?? "");
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const selected = notes.find((n) => n.slug === slug);
 
+  // When the selected post changes, reset the subject + hook to that post's defaults.
+  useEffect(() => {
+    const n = notes.find((x) => x.slug === slug);
+    if (n) {
+      setSubject(n.title);
+      setBody(n.summary);
+    }
+  }, [slug, notes]);
+
   async function post(test: boolean) {
     if (!slug) return;
+    if (!subject.trim() || !body.trim()) {
+      setError("Add a subject and a hook before sending.");
+      return;
+    }
     if (
       !test &&
       !window.confirm(
-        `Send "${selected?.title}" to ${subscriberCount} subscriber${subscriberCount === 1 ? "" : "s"}? This emails real people.`
+        `Send this to ${subscriberCount} subscriber${subscriberCount === 1 ? "" : "s"}? This emails real people.`
       )
     ) {
       return;
@@ -36,7 +51,7 @@ export default function StudioSender({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ slug, test }),
+        body: JSON.stringify({ slug, subject, body, test }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -45,8 +60,8 @@ export default function StudioSender({
       }
       setResult(
         test
-          ? `Test sent just to you. Check your inbox in ~2 minutes to see exactly what subscribers get.`
-          : `Queued "${data.subject}" to ${data.queued} of ${data.recipients} subscribers. They send within ~2 minutes.`
+          ? "Test sent just to you. Check your inbox in ~2 minutes to see exactly what subscribers get."
+          : `Queued to ${data.queued} of ${data.recipients} subscribers. They send within ~2 minutes.`
       );
     } catch {
       setError("Network error. Try again.");
@@ -56,13 +71,13 @@ export default function StudioSender({
   }
 
   return (
-    <div className="card" style={{ maxWidth: 560 }}>
+    <div className="card" style={{ maxWidth: 620 }}>
       <p className="form-note" style={{ marginTop: 0 }}>
         <strong>{subscriberCount}</strong> active subscriber{subscriberCount === 1 ? "" : "s"}.
       </p>
 
       <div className="form-group">
-        <label htmlFor="note-select">Issue to send (a published Notebook post)</label>
+        <label htmlFor="note-select">Which post is this issue about?</label>
         <select
           id="note-select"
           className="input"
@@ -78,13 +93,36 @@ export default function StudioSender({
         </select>
       </div>
 
+      <div className="form-group">
+        <label htmlFor="nl-subject">Subject line</label>
+        <input
+          id="nl-subject"
+          className="input"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          placeholder="A subject worth opening"
+          style={{ width: "100%", boxSizing: "border-box" }}
+        />
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="nl-body">The email (keep it a short hook)</label>
+        <textarea
+          id="nl-body"
+          className="input"
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder="A few lines that make them want to click. Don't paste the whole post, tease it."
+          style={{ width: "100%", boxSizing: "border-box", minHeight: 160 }}
+        />
+        <p className="form-note" style={{ marginTop: "var(--space-2xs)" }}>
+          This is the whole email. Readers click <strong>Read the whole thing →</strong> to finish it
+          on the site. Prefilled from the post summary, edit it into a real hook.
+        </p>
+      </div>
+
       <div style={{ display: "flex", gap: "var(--space-sm)", flexWrap: "wrap", alignItems: "center" }}>
-        <button
-          type="button"
-          className="btn btn-secondary"
-          onClick={() => post(true)}
-          disabled={sending || !slug}
-        >
+        <button type="button" className="btn btn-secondary" onClick={() => post(true)} disabled={sending || !slug}>
           Send test to me
         </button>
         <button
@@ -99,7 +137,11 @@ export default function StudioSender({
 
       {selected && (
         <p className="form-note" style={{ marginTop: "var(--space-sm)" }}>
-          Preview: <a href={`/notes/${selected.slug}`} target="_blank" rel="noreferrer" className="link">read this issue</a> before sending.
+          The button links to{" "}
+          <a href={`/notes/${selected.slug}`} target="_blank" rel="noreferrer" className="link">
+            this post
+          </a>
+          . Send a test to yourself first.
         </p>
       )}
 
