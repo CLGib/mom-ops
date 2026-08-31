@@ -30,7 +30,12 @@ export default async function StudioPage() {
   if (!user) redirect("/login?next=/studio");
   if (!isNewsletterOwner(user.email)) redirect("/");
 
-  const notes = getAllNotes().map((n) => ({ slug: n.slug, title: n.title, date: n.date }));
+  const notes = getAllNotes().map((n) => ({
+    slug: n.slug,
+    title: n.title,
+    date: n.date,
+    summary: n.summary,
+  }));
   const subscriberCount = await activeSubscriberCount();
 
   return (

@@ -20,6 +20,7 @@ export async function queueNewsletterBroadcast(opts: {
   issueSlug: string;
   subject: string;
   bodyHtml: string;
+  postUrl?: string;
 }): Promise<{ queued: number; recipients: number }> {
   const db = svc();
   const { data: subs, error } = await db
@@ -40,6 +41,7 @@ export async function queueNewsletterBroadcast(opts: {
         payload: {
           subject: opts.subject,
           body_html: opts.bodyHtml,
+          ...(opts.postUrl ? { post_url: opts.postUrl } : {}),
           unsubscribe_url: unsubscribeUrl(email),
         },
         dedupe_key: `nl:${opts.issueSlug}:${email}`,

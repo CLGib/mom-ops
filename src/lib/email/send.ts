@@ -72,8 +72,9 @@ function getTemplate(
         <p>- The Mom Ops Team</p>
       `.trim(),
     }),
-    // A weekly newsletter issue. body_html is pre-rendered from a Notebook note;
-    // subject + unsubscribe_url come from the broadcast enqueuer.
+    // A weekly newsletter issue: a short hook the owner wrote, plus a button to
+    // read the full post on the site. subject, body_html, post_url, and
+    // unsubscribe_url come from the send route / broadcast enqueuer.
     newsletter_issue_v1: () => {
       const bodyHtml = typeof payload.body_html === "string" ? payload.body_html : "";
       const subject =
@@ -82,10 +83,15 @@ function getTemplate(
           : "Notes from the workshop";
       const unsub =
         typeof payload.unsubscribe_url === "string" ? payload.unsubscribe_url : SITE_URL;
+      const postUrl = typeof payload.post_url === "string" ? payload.post_url : "";
+      const readMore = postUrl
+        ? `<p style="margin:28px 0 8px;"><a href="${postUrl}" style="display:inline-block;background:#B8860B;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:6px;font-weight:600;font-size:15px;">Read the whole thing →</a></p>`
+        : "";
       return {
         subject,
         html: `<div style="max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#1A1917;line-height:1.65;font-size:16px;">
 ${bodyHtml}
+${readMore}
 <hr style="border:none;border-top:1px solid #ececec;margin:36px 0 16px;">
 <p style="color:#8A8681;font-size:13px;line-height:1.5;">You're getting this because you're part of Mom Ops. <a href="${unsub}" style="color:#8A8681;">Unsubscribe</a> anytime, no hard feelings.<br/>Mom Ops, LLC</p>
 </div>`,
