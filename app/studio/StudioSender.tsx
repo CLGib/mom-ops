@@ -14,6 +14,7 @@ export default function StudioSender({
   const [slug, setSlug] = useState(notes[0]?.slug ?? "");
   const [subject, setSubject] = useState(notes[0]?.title ?? "");
   const [body, setBody] = useState(notes[0]?.summary ?? "");
+  const [testEmail, setTestEmail] = useState("christina@cg-co.com");
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +52,7 @@ export default function StudioSender({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ slug, subject, body, test }),
+        body: JSON.stringify({ slug, subject, body, test, testEmail: test ? testEmail : undefined }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -60,7 +61,7 @@ export default function StudioSender({
       }
       setResult(
         test
-          ? "Test sent just to you. Check your inbox in ~2 minutes to see exactly what subscribers get."
+          ? `Test sent to ${testEmail}. Check that inbox in ~2 minutes to see exactly what subscribers get.`
           : `Queued to ${data.queued} of ${data.recipients} subscribers. They send within ~2 minutes.`
       );
     } catch {
@@ -121,9 +122,30 @@ export default function StudioSender({
         </p>
       </div>
 
+      <div className="form-group">
+        <label htmlFor="nl-test-email">Send test to</label>
+        <input
+          id="nl-test-email"
+          className="input"
+          type="email"
+          value={testEmail}
+          onChange={(e) => setTestEmail(e.target.value)}
+          placeholder="an inbox you can actually check"
+          style={{ width: "100%", boxSizing: "border-box" }}
+        />
+        <p className="form-note" style={{ marginTop: "var(--space-2xs)" }}>
+          Use a different address than your own login, Gmail hides emails you send to yourself.
+        </p>
+      </div>
+
       <div style={{ display: "flex", gap: "var(--space-sm)", flexWrap: "wrap", alignItems: "center" }}>
-        <button type="button" className="btn btn-secondary" onClick={() => post(true)} disabled={sending || !slug}>
-          Send test to me
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => post(true)}
+          disabled={sending || !slug || !testEmail.trim()}
+        >
+          Send test
         </button>
         <button
           type="button"

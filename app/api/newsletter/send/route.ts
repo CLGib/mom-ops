@@ -35,11 +35,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { slug, subject, body, test } = (await req.json().catch(() => ({}))) as {
+  const { slug, subject, body, test, testEmail } = (await req.json().catch(() => ({}))) as {
     slug?: string;
     subject?: string;
     body?: string;
     test?: boolean;
+    testEmail?: string;
   };
   if (!slug) return NextResponse.json({ error: "Missing note slug" }, { status: 400 });
   if (!subject?.trim() || !body?.trim()) {
@@ -58,7 +59,10 @@ export async function POST(req: NextRequest) {
   // Test send: only to the owner, so they can preview the real email. Unique
   // dedupe key so it can be re-tested.
   if (test) {
-    const email = (user.email ?? "").toLowerCase();
+    const email = (testEmail || user.email || "").trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: "Enter a valid test email address" }, { status: 400 });
+    }
     await queueEmail({
       to_email: email,
       template: "newsletter_issue_v1",
