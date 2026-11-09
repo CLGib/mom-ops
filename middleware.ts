@@ -1,9 +1,24 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { checkRateLimitMemory, getClientIp } from "@/lib/rate-limit-memory";
+import { MAINTENANCE, restingPage } from "@/lib/maintenance";
 
 export async function middleware(req: NextRequest) {
   try {
+    // Sleep mode: the whole site is offline behind a calm "resting" page.
+    // Everything (code, content, products, data) is preserved; flip MAINTENANCE
+    // in src/lib/maintenance.ts to false and redeploy to wake it back up.
+    if (MAINTENANCE) {
+      return new NextResponse(restingPage(), {
+        status: 503,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Retry-After": "86400",
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+
     // Canonical domain: redirect www to apex so cookies stay on one host
     const host = req.nextUrl.hostname;
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
@@ -87,5 +102,7 @@ function isPublicApiPath(path: string): boolean {
 }
 
 export const config = {
-  matcher: ["/login", "/api/:path*"],
+  // Broad matcher so sleep mode can intercept every route. Static assets are
+  // excluded so the resting page (and any assets) still serve.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.svg|assets/).*)"],
 };
